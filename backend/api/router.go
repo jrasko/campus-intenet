@@ -2,13 +2,18 @@ package api
 
 import (
 	"backend/model"
+	"context"
 	"net/http"
 
 	"github.com/gorilla/mux"
 )
 
 type DhcpdService interface {
-	UpdateConfig(config model.NetworkConf) error
+	UpdateConfig(ctx context.Context, config model.NetworkConfig) error
+}
+
+type DhcpdRepository interface {
+	UpdateNetworkConfig(ctx context.Context, conf model.NetworkConfig) error
 }
 
 func NewRouter(

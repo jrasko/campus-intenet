@@ -1,6 +1,13 @@
-database:
-  restart: unless-stopped
-  image: postgres
-  container_name: internet-db
-  ports:
-    - 5432:54321
+version: "3.7"
+
+services:
+  database:
+    restart: unless-stopped
+    image: postgres:15
+    environment:
+      POSTGRES_USER: network
+      POSTGRES_PASSWORD: network
+      POSTGRES_DB: network
+    container_name: internet-db
+    ports:
+      - 5432:5432

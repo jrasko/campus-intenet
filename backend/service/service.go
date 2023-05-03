@@ -2,27 +2,33 @@ package service
 
 import (
 	"backend/model"
-	"fmt"
+	"backend/repository"
+	"context"
 
 	"github.com/go-playground/validator/v10"
 )
 
 type Service struct {
-	validate *validator.Validate
+	validate    *validator.Validate
+	networkRepo NetworkRepository
 }
 
-func New() Service {
+type NetworkRepository interface {
+	UpdateNetworkConfig(ctx context.Context, conf model.NetworkConfig) error
+}
+
+func New(repo repository.NetworkRepository) Service {
 	v := validator.New()
 	return Service{
-		validate: v,
+		validate:    v,
+		networkRepo: repo,
 	}
 }
 
-func (s Service) UpdateConfig(config model.NetworkConf) error {
+func (s Service) UpdateConfig(ctx context.Context, config model.NetworkConfig) error {
 	err := s.validate.Struct(config)
 	if err != nil {
 		return err
 	}
-	fmt.Println(config)
-	return nil
+	return s.networkRepo.UpdateNetworkConfig(ctx, config)
 }
