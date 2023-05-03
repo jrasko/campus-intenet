@@ -1,0 +1,6 @@
+database:
+  restart: unless-stopped
+  image: postgres
+  container_name: internet-db
+  ports:
+    - 5432:54321
