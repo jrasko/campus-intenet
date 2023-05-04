@@ -4,7 +4,7 @@
     <v-table>
         <thead>
         <tr>
-            <th>Bezahlt?</th>
+            <th>Zahlung</th>
             <th>Name</th>
             <th>MAC</th>
             <th>WG</th>
@@ -16,10 +16,10 @@
         <tbody>
         <tr v-for="person in this.people">
             <td v-if="person.hasPaid">
-                <v-icon icon="mdi-checkbox-marked-circle"/>
+                <v-icon icon="mdi-checkbox-marked-circle" color="green"/>
             </td>
             <td v-else>
-                <v-icon icon="mdi-close-circle"/>
+                <v-icon icon="mdi-close-circle" color="red"/>
             </td>
             <td>{{ person.name }}</td>
             <td>{{ person.mac }}</td>
