@@ -14,7 +14,8 @@ type Service struct {
 }
 
 type NetworkRepository interface {
-	UpdateNetworkConfig(ctx context.Context, conf model.NetworkConfig) error
+	UpdateNetworkConfig(ctx context.Context, conf model.NetworkConfig) (model.NetworkConfig, error)
+	GetAllNetworkConfigs(ctx context.Context) ([]model.NetworkConfig, error)
 }
 
 func New(repo repository.NetworkRepository) Service {
@@ -25,10 +26,14 @@ func New(repo repository.NetworkRepository) Service {
 	}
 }
 
-func (s Service) UpdateConfig(ctx context.Context, config model.NetworkConfig) error {
+func (s Service) UpdateConfig(ctx context.Context, config model.NetworkConfig) (model.NetworkConfig, error) {
 	err := s.validate.Struct(config)
 	if err != nil {
-		return err
+		return model.NetworkConfig{}, err
 	}
 	return s.networkRepo.UpdateNetworkConfig(ctx, config)
+}
+
+func (s Service) GetAllConfigs(ctx context.Context) ([]model.NetworkConfig, error) {
+	return s.networkRepo.GetAllNetworkConfigs(ctx)
 }

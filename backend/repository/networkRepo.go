@@ -2,8 +2,8 @@ package repository
 
 import (
 	"backend/model"
+	"context"
 
-	"golang.org/x/net/context"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -20,9 +20,25 @@ type NetworkRepository struct {
 	db *gorm.DB
 }
 
-func (nr NetworkRepository) UpdateNetworkConfig(ctx context.Context, conf model.NetworkConfig) error {
-	return nr.db.
+func (nr NetworkRepository) UpdateNetworkConfig(ctx context.Context, conf model.NetworkConfig) (model.NetworkConfig, error) {
+	err := nr.db.
 		WithContext(ctx).
 		Save(&conf).
 		Error
+	if err != nil {
+		return model.NetworkConfig{}, err
+	}
+	return conf, nil
+}
+
+func (nr NetworkRepository) GetAllNetworkConfigs(ctx context.Context) ([]model.NetworkConfig, error) {
+	configs := []model.NetworkConfig{}
+	err := nr.db.
+		WithContext(ctx).
+		Find(&configs).
+		Error
+	if err != nil {
+		return []model.NetworkConfig{}, err
+	}
+	return configs, nil
 }

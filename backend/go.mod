@@ -5,7 +5,6 @@ go 1.20
 require (
 	github.com/go-playground/validator/v10 v10.13.0
 	github.com/gorilla/mux v1.8.0
-	golang.org/x/net v0.9.0
 	gorm.io/driver/postgres v1.5.0
 	gorm.io/gorm v1.25.0
 )

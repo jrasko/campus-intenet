@@ -11,3 +11,7 @@ services:
     container_name: internet-db
     ports:
       - 5432:5432
+    volumes:
+      - internet-db:/var/lib/postgresql/data
+volumes:
+  internet-db:
