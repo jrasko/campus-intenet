@@ -36,6 +36,7 @@ func (nr NetworkRepository) GetAllNetworkConfigs(ctx context.Context) ([]model.N
 	err := nr.db.
 		WithContext(ctx).
 		Find(&configs).
+		Order("lastname").
 		Error
 	if err != nil {
 		return []model.NetworkConfig{}, err
