@@ -1,0 +1,91 @@
+<template>
+    <v-form
+            @submit.prevent="submit"
+    >
+        <v-container>
+            <v-row>
+                <v-col>
+                    <v-text-field
+                            label="Vorname"
+                    />
+                </v-col>
+                <v-col>
+                    <v-text-field
+                            label="Nachname"
+                    />
+                </v-col>
+            </v-row>
+            <v-row>
+                <v-col>
+                    <v-text-field
+                            label="MAC-Adresse"
+                    />
+                </v-col>
+            </v-row>
+            <v-row>
+                <v-col>
+                    <v-text-field
+                            label="WG"
+                    />
+                </v-col>
+                <v-col>
+                    <v-text-field
+                            label="Zimmernummer"
+                    />
+                </v-col>
+            </v-row>
+            <v-row>
+                <v-col>
+                    <v-text-field
+                            label="Email"
+                    />
+                </v-col>
+                <v-col>
+                    <v-text-field
+                            label="Telefonnummer"
+                    />
+                </v-col>
+                <v-col>
+                    <v-switch
+                            color="green"
+                            label="Bezahlt"
+                    />
+                </v-col>
+            </v-row>
+            <v-row>
+                <v-col>
+                    <v-btn
+                            color="red"
+                    >Abbrechen
+                    </v-btn>
+                </v-col>
+                <v-col>
+                    <v-btn
+                            color="blue"
+                            type="submit"
+                    >Speichern & Next
+                    </v-btn>
+                </v-col>
+                <v-col>
+                    <v-btn
+                            color="green"
+                    >Speichern
+                    </v-btn>
+                </v-col>
+            </v-row>
+        </v-container>
+    </v-form>
+</template>
+
+<script>
+export default {
+    methods: {
+        async submit(){
+            console.log("test")
+        }
+    }
+}
+</script>
+<style scoped>
+
+</style>
