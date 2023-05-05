@@ -5,7 +5,8 @@
         <thead>
         <tr>
             <th>Zahlung</th>
-            <th>Name</th>
+            <th>Vorname</th>
+            <th>Nachname</th>
             <th>MAC</th>
             <th>WG</th>
             <th>Zimmer-Nr</th>
@@ -21,7 +22,8 @@
             <td v-else>
                 <v-icon icon="mdi-close-circle" color="red"/>
             </td>
-            <td>{{ person.name }}</td>
+            <td>{{ person.firstname }}</td>
+            <td>{{ person.lastname }}</td>
             <td>{{ person.mac }}</td>
             <td>{{ person.wg }}</td>
             <td>{{ person.roomNr }}</td>
@@ -35,17 +37,20 @@
 import axios from "axios";
 
 export default {
-    data(){
+    data() {
         return {
             people: []
         }
     },
-    mounted(){
+    mounted() {
         axios
             .get('http://localhost:8000/dhcpd')
             .then(resp => {
-                console.log(resp.data);
                 this.people = resp.data
+            })
+            .catch(err => {
+                console.log(err)
+                alert("Fehler: " + err)
             })
     }
 }
