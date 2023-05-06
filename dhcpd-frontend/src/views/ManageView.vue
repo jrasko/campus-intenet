@@ -1,7 +1,7 @@
 <script setup>
 </script>
 <template>
-    <v-table>
+    <v-table hover>
         <thead>
         <tr>
             <th>Zahlung</th>

@@ -1,15 +1,15 @@
 <template>
     <v-snackbar
-            color="success"
-            :timeout="2000"
             v-model="success"
+            :timeout="2000"
+            color="success"
     >
         Erfolg!
     </v-snackbar>
     <v-snackbar
-            color="error"
-            :timeout="2000"
             v-model="failure"
+            :timeout="2000"
+            color="error"
     >
         Fehler!
     </v-snackbar>
@@ -20,72 +20,76 @@
             <v-row>
                 <v-col>
                     <v-text-field
-                            label="Vorname"
                             v-model="config.firstname"
+                            label="Vorname"
                     />
                 </v-col>
                 <v-col>
                     <v-text-field
-                            label="Nachname"
                             v-model="config.lastname"
+                            label="Nachname"
                     />
                 </v-col>
             </v-row>
             <v-row>
                 <v-col>
                     <v-text-field
-                            label="MAC-Adresse"
                             v-model="config.mac"
+                            label="MAC-Adresse"
                     />
                 </v-col>
             </v-row>
             <v-row>
                 <v-col>
                     <v-text-field
-                            label="WG"
                             v-model="config.wg"
+                            label="WG"
                     />
                 </v-col>
                 <v-col>
                     <v-text-field
-                            label="Zimmernummer"
                             v-model="config.roomNr"
+                            label="Zimmernummer"
                     />
                 </v-col>
             </v-row>
             <v-row>
                 <v-col>
                     <v-text-field
-                            label="Email"
                             v-model="config.email"
+                            label="Email"
                     />
                 </v-col>
                 <v-col>
                     <v-text-field
-                            label="Telefonnummer"
                             v-model="config.phone"
+                            label="Telefonnummer"
                     />
                 </v-col>
                 <v-col>
                     <v-switch
+                            v-model="config.hasPaid"
                             color="green"
                             label="Bezahlt"
-                            v-model="config.hasPaid"
                     />
                 </v-col>
             </v-row>
             <v-row>
                 <v-col>
-                    <v-btn
-                            color="red"
-                    >Abbrechen
-                    </v-btn>
+                    <RouterLink to="/">
+                        <v-btn
+                                color="red"
+                        >
+                            Abbrechen
+                        </v-btn>
+                    </RouterLink>
                 </v-col>
                 <v-col>
                     <v-btn
                             color="blue"
-                            type="submit"
-                    >Speichern & Next
+                            @click="this.goNext"
+                    >
+                        Speichern & Next
                     </v-btn>
                 </v-col>
                 <v-col>
@@ -129,10 +133,28 @@ export default {
                     this.failure = true
                     console.log(e)
                 })
+        },
+        goNext() {
+            updateConfig(this.config)
+                .then(() => {
+                    this.success = true
+                    this.config = {}
+                })
+                .catch(e => {
+                    this.failure = true
+                    console.log(e)
+                })
         }
     }
 }
 </script>
 <style scoped>
+.v-input--switch:not(.v-input--switch--flat):not(.v-input--switch--inset) .v-input--switch__thumb {
+    color: darkred;
+}
+
+.theme--light.v-input--switch .v-input--switch__track {
+    color: darkred
+}
 
 </style>
