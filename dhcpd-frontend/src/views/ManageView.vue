@@ -34,7 +34,7 @@
     </v-table>
 </template>
 <script>
-import axios from "axios";
+import {getConfigs} from "@/utils/axios";
 
 export default {
     data() {
@@ -43,14 +43,9 @@ export default {
         }
     },
     mounted() {
-        axios
-            .get('http://localhost:8000/dhcpd')
-            .then(resp => {
-                this.people = resp.data
-            })
-            .catch(err => {
-                console.log(err)
-                alert("Fehler: " + err)
+        getConfigs()
+            .then(data => {
+                this.people = data
             })
     }
 }
