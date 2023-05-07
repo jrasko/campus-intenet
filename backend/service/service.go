@@ -16,6 +16,8 @@ type Service struct {
 type NetworkRepository interface {
 	UpdateNetworkConfig(ctx context.Context, conf model.NetworkConfig) (model.NetworkConfig, error)
 	GetAllNetworkConfigs(ctx context.Context) ([]model.NetworkConfig, error)
+	GetNetworkConfig(ctx context.Context, mac string) (model.NetworkConfig, error)
+	DeleteNetworkConfig(ctx context.Context, mac string) error
 }
 
 func New(repo repository.NetworkRepository) Service {
@@ -36,4 +38,12 @@ func (s Service) UpdateConfig(ctx context.Context, config model.NetworkConfig) (
 
 func (s Service) GetAllConfigs(ctx context.Context) ([]model.NetworkConfig, error) {
 	return s.networkRepo.GetAllNetworkConfigs(ctx)
+}
+
+func (s Service) GetConfig(ctx context.Context, mac string) (model.NetworkConfig, error) {
+	return s.networkRepo.GetNetworkConfig(ctx, mac)
+}
+
+func (s Service) DeleteConfig(ctx context.Context, mac string) error {
+	return s.networkRepo.DeleteNetworkConfig(ctx, mac)
 }

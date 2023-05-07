@@ -43,3 +43,24 @@ func (nr NetworkRepository) GetAllNetworkConfigs(ctx context.Context) ([]model.N
 	}
 	return configs, nil
 }
+
+func (nr NetworkRepository) GetNetworkConfig(ctx context.Context, mac string) (model.NetworkConfig, error) {
+	config := model.NetworkConfig{}
+	err := nr.db.
+		WithContext(ctx).
+		Where("mac = ?", mac).
+		Find(&config).
+		Error
+	if err != nil {
+		return model.NetworkConfig{}, err
+	}
+	return config, nil
+}
+
+func (nr NetworkRepository) DeleteNetworkConfig(ctx context.Context, mac string) error {
+	c := model.NetworkConfig{Mac: mac}
+	return nr.db.
+		WithContext(ctx).
+		Delete(&c).
+		Error
+}
