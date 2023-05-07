@@ -13,6 +13,7 @@ type DhcpdService interface {
 	GetAllConfigs(ctx context.Context) ([]model.NetworkConfig, error)
 	GetConfig(ctx context.Context, mac string) (model.NetworkConfig, error)
 	DeleteConfig(ctx context.Context, mac string) error
+	ResetPayment(ctx context.Context) error
 }
 
 type DhcpdRepository interface{}
@@ -25,12 +26,19 @@ func NewRouter(
 	router.
 		Handle("/dhcpd", AuthMiddleware(PutConfigHandler(service))).
 		Methods(http.MethodPut)
+
 	router.
 		Handle("/dhcpd", AuthMiddleware(GetAllConfigHandler(service))).
 		Methods(http.MethodGet)
+
+	router.
+		Handle("/dhcpd/resetPayment", AuthMiddleware(ResetPaymentConfigHandler(service))).
+		Methods(http.MethodPost)
+
 	router.
 		Handle("/dhcpd/{mac}", AuthMiddleware(GetConfigHandler(service))).
 		Methods(http.MethodGet)
+
 	router.
 		Handle("/dhcpd/{mac}", AuthMiddleware(DeleteConfigHandler(service))).
 		Methods(http.MethodDelete)

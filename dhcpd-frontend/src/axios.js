@@ -21,3 +21,7 @@ export async function getConfigFor(mac) {
 export async function deleteConfigFor(mac) {
   return await axios.delete(basePath + '/dhcpd/' + mac)
 }
+
+export async function resetPayments() {
+  return await axios.post(basePath + '/dhcpd/resetPayment')
+}
