@@ -3,11 +3,17 @@
   <v-snackbar v-model="success" :timeout="2000" color="success"> Erfolg!</v-snackbar>
   <v-snackbar v-model="failure" :timeout="2000" color="error"> Fehler!</v-snackbar>
   <v-container fluid>
-    <v-row justify="center">
-      <v-col v-if="!(this.$route.name === 'add')" cols="10">
+    <v-row justify="start">
+      <v-col cols="1" />
+      <v-col v-if="!(this.$route.name === 'add')" cols="2">
         <RouterLink to="/update">
           <v-btn prepend-icon="mdi-account-plus"> Person hinzufügen</v-btn>
         </RouterLink>
+      </v-col>
+      <v-col cols="2">
+        <v-btn prepend-icon="mdi-credit-card-refresh" @click="this.resetPayments"
+          >Zahlungen zurücksetzen</v-btn
+        >
       </v-col>
     </v-row>
     <v-row justify="center">
@@ -65,7 +71,7 @@
   </v-container>
 </template>
 <script>
-import { deleteConfigFor, getConfigs } from '@/axios'
+import { deleteConfigFor, getConfigs, resetPayments } from '@/axios'
 
 export default {
   data() {
@@ -85,14 +91,24 @@ export default {
       })
     },
     delete(p) {
-      deleteConfigFor(p.mac)
-        .then(() => {
+      if (confirm('Wirklich löschen?')) {
+        deleteConfigFor(p.mac)
+          .then(() => {
+            this.success = true
+            this.refresh()
+          })
+          .catch(() => {
+            this.failure = true
+          })
+      }
+    },
+    resetPayments() {
+      if (confirm('Zahlungen zurücksetzen?')) {
+        resetPayments().then(() => {
           this.success = true
           this.refresh()
         })
-        .catch(() => {
-          this.failure = true
-        })
+      }
     }
   }
 }

@@ -32,11 +32,11 @@ func (nr NetworkRepository) UpdateNetworkConfig(ctx context.Context, conf model.
 }
 
 func (nr NetworkRepository) GetAllNetworkConfigs(ctx context.Context) ([]model.NetworkConfig, error) {
-	configs := []model.NetworkConfig{}
+	var configs []model.NetworkConfig
 	err := nr.db.
 		WithContext(ctx).
+		Order("lastname, firstname").
 		Find(&configs).
-		Order("lastname").
 		Error
 	if err != nil {
 		return []model.NetworkConfig{}, err
@@ -62,5 +62,14 @@ func (nr NetworkRepository) DeleteNetworkConfig(ctx context.Context, mac string)
 	return nr.db.
 		WithContext(ctx).
 		Delete(&c).
+		Error
+}
+
+func (nr NetworkRepository) ResetPayment(ctx context.Context) error {
+	return nr.db.
+		WithContext(ctx).
+		Table("network_configs").
+		Where("true").
+		Updates(map[string]interface{}{"has_paid": false}).
 		Error
 }

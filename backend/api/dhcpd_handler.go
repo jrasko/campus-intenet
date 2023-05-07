@@ -68,6 +68,17 @@ func DeleteConfigHandler(service DhcpdService) http.HandlerFunc {
 	}
 }
 
+func ResetPaymentConfigHandler(service DhcpdService) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		err := service.ResetPayment(r.Context())
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		w.WriteHeader(200)
+	}
+}
+
 func sendJSONResponse(w http.ResponseWriter, v any) {
 	err := json.NewEncoder(w).Encode(v)
 	if err != nil {

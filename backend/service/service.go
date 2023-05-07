@@ -18,6 +18,7 @@ type NetworkRepository interface {
 	GetAllNetworkConfigs(ctx context.Context) ([]model.NetworkConfig, error)
 	GetNetworkConfig(ctx context.Context, mac string) (model.NetworkConfig, error)
 	DeleteNetworkConfig(ctx context.Context, mac string) error
+	ResetPayment(ctx context.Context) error
 }
 
 func New(repo repository.NetworkRepository) Service {
@@ -33,7 +34,7 @@ func (s Service) UpdateConfig(ctx context.Context, config model.NetworkConfig) (
 	if err != nil {
 		return model.NetworkConfig{}, err
 	}
-	return s.networkRepo.UpdateNetworkConfig(ctx, config)
+	return s.networkRepo.UpdateNetworkConfig(ctx, specialize(config))
 }
 
 func (s Service) GetAllConfigs(ctx context.Context) ([]model.NetworkConfig, error) {
@@ -46,4 +47,8 @@ func (s Service) GetConfig(ctx context.Context, mac string) (model.NetworkConfig
 
 func (s Service) DeleteConfig(ctx context.Context, mac string) error {
 	return s.networkRepo.DeleteNetworkConfig(ctx, mac)
+}
+
+func (s Service) ResetPayment(ctx context.Context) error {
+	return s.networkRepo.ResetPayment(ctx)
 }
