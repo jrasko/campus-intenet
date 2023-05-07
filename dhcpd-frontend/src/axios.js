@@ -13,3 +13,11 @@ export async function getConfigs() {
 export async function updateConfig(cfg) {
   return await axios.put(basePath + '/dhcpd', cfg)
 }
+
+export async function getConfigFor(mac) {
+  return await axios.get(basePath + '/dhcpd/' + mac)
+}
+
+export async function deleteConfigFor(mac) {
+  return await axios.delete(basePath + '/dhcpd/' + mac)
+}

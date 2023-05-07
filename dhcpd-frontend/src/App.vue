@@ -1,13 +1,8 @@
 <template>
-  <v-container>
-    <v-row>
-      <v-col>
+  <v-container fluid>
+    <v-row justify="center">
+      <v-col cols="10">
         <v-btn prepend-icon="mdi-theme-light-dark" @click="toggleTheme"> Lichtschalter </v-btn>
-      </v-col>
-      <v-col v-if="!(this.$route.name === 'add')">
-        <RouterLink to="/update">
-          <v-btn prepend-icon="mdi-account-plus"> Person hinzufügen </v-btn>
-        </RouterLink>
       </v-col>
     </v-row>
   </v-container>
