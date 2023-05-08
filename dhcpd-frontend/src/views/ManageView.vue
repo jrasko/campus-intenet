@@ -6,7 +6,7 @@
     <v-row justify="start">
       <v-col cols="1" />
       <v-col v-if="!(this.$route.name === 'add')" cols="2">
-        <RouterLink to="/update">
+        <RouterLink to="/add">
           <v-btn prepend-icon="mdi-account-plus"> Person hinzufügen</v-btn>
         </RouterLink>
       </v-col>
@@ -52,7 +52,7 @@
                 <v-container>
                   <v-row align="center" justify="center">
                     <v-col cols="1">
-                      <RouterLink :to="'/update/' + p.mac">
+                      <RouterLink :to="'/edit/' + p.mac">
                         <v-btn density="compact" icon="mdi-square-edit-outline" />
                       </RouterLink>
                     </v-col>

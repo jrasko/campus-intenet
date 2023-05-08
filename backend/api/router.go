@@ -24,23 +24,23 @@ func NewRouter(
 	router := mux.NewRouter()
 
 	router.
-		Handle("/dhcpd", AuthMiddleware(PutConfigHandler(service))).
+		Handle("/dhcpd", PutConfigHandler(service)).
 		Methods(http.MethodPut)
 
 	router.
-		Handle("/dhcpd", AuthMiddleware(GetAllConfigHandler(service))).
+		Handle("/dhcpd", GetAllConfigHandler(service)).
 		Methods(http.MethodGet)
 
 	router.
-		Handle("/dhcpd/resetPayment", AuthMiddleware(ResetPaymentConfigHandler(service))).
+		Handle("/dhcpd/resetPayment", ResetPaymentConfigHandler(service)).
 		Methods(http.MethodPost)
 
 	router.
-		Handle("/dhcpd/{mac}", AuthMiddleware(GetConfigHandler(service))).
+		Handle("/dhcpd/{mac}", GetConfigHandler(service)).
 		Methods(http.MethodGet)
 
 	router.
-		Handle("/dhcpd/{mac}", AuthMiddleware(DeleteConfigHandler(service))).
+		Handle("/dhcpd/{mac}", DeleteConfigHandler(service)).
 		Methods(http.MethodDelete)
 
 	return router
