@@ -3,6 +3,7 @@ package repository
 import (
 	"backend/model"
 	"context"
+	"errors"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -12,6 +13,9 @@ func New(dsn string) (NetworkRepository, error) {
 	db, err := gorm.Open(postgres.Open(dsn))
 	if err != nil {
 		return NetworkRepository{}, err
+	}
+	if !db.Migrator().HasTable("network_configs") {
+		return NetworkRepository{}, errors.New("missing table")
 	}
 	return NetworkRepository{db: db}, nil
 }

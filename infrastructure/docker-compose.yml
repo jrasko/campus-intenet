@@ -10,22 +10,30 @@ services:
       POSTGRES_DB: network
     container_name: dhcpd_db
     ports:
-      - 5432:5432
+      - "5432:5432"
     volumes:
-      - dhcpd-db
+      - dhcpd-db:/var/lib/postgresql/data
   traefik:
     restart: unless-stopped
     image: traefik:v2.10
     container_name: dhcpd_traefik
     ports:
-      - 8000:8000
+      - "80:80"
+      - "8080:8080"
+    command: --api.insecure=true --providers.docker --log.level=DEBUG
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
   frontend:
     restart: unless-stopped
     build: ../dhcpd-frontend
     container_name: dhcpd_frontend
+    labels:
+      traefik.http.routers.frontend.rule: "PathPrefix(`/`)"
   backend:
     restart: unless-stopped
     build: ../backend      
     container_name: dhcpd_backend
+    labels:
+      traefik.http.routers.backend.rule: "PathPrefix(`/dhcpd`)"
 volumes:
   dhcpd-db:

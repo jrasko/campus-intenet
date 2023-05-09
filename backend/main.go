@@ -4,6 +4,7 @@ import (
 	"backend/api"
 	"backend/repository"
 	"backend/service"
+	"fmt"
 	"net/http"
 )
 
@@ -13,7 +14,7 @@ type Config struct {
 
 func main() {
 	app, err := newApplication(Config{
-		DSN: "host=localhost user=network password=network dbname=network port=5432 sslmode=disable",
+		DSN: "host=dhcpd_db user=network password=network dbname=network port=5432 sslmode=disable",
 	})
 	if err != nil {
 		panic(err)
@@ -23,6 +24,7 @@ func main() {
 }
 
 type application struct {
+	port       string
 	service    api.DhcpdService
 	repository api.DhcpdRepository
 }
@@ -37,11 +39,13 @@ func newApplication(cfg Config) (*application, error) {
 	return &application{
 		repository: repo,
 		service:    srv,
+		port:       "8080",
 	}, nil
 }
 
 func (app application) start() {
 	router := api.NewRouter(app.service)
-	err := http.ListenAndServe("localhost:8000", router)
+	fmt.Println("Listening at Port " + app.port)
+	err := http.ListenAndServe(":"+app.port, router)
 	panic(err)
 }

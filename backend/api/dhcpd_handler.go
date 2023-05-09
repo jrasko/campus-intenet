@@ -3,6 +3,7 @@ package api
 import (
 	"backend/model"
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -13,11 +14,13 @@ func PutConfigHandler(service DhcpdService) http.HandlerFunc {
 		var config model.NetworkConfig
 		err := json.NewDecoder(r.Body).Decode(&config)
 		if err != nil {
+			fmt.Println(err)
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
 		config, err = service.UpdateConfig(nil, config)
 		if err != nil {
+			fmt.Println(err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
@@ -29,6 +32,7 @@ func GetAllConfigHandler(service DhcpdService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		configs, err := service.GetAllConfigs(r.Context())
 		if err != nil {
+			fmt.Println(err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
@@ -45,6 +49,7 @@ func GetConfigHandler(service DhcpdService) http.HandlerFunc {
 		}
 		config, err := service.GetConfig(r.Context(), mac)
 		if err != nil {
+			fmt.Println(err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
@@ -61,6 +66,7 @@ func DeleteConfigHandler(service DhcpdService) http.HandlerFunc {
 		}
 		err := service.DeleteConfig(r.Context(), mac)
 		if err != nil {
+			fmt.Println(err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
@@ -72,6 +78,7 @@ func ResetPaymentConfigHandler(service DhcpdService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		err := service.ResetPayment(r.Context())
 		if err != nil {
+			fmt.Println(err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
@@ -82,6 +89,7 @@ func ResetPaymentConfigHandler(service DhcpdService) http.HandlerFunc {
 func sendJSONResponse(w http.ResponseWriter, v any) {
 	err := json.NewEncoder(w).Encode(v)
 	if err != nil {
+		fmt.Println(err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
