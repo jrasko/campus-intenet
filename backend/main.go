@@ -20,7 +20,8 @@ func main() {
 		panic(err)
 	}
 
-	app.start()
+	config := api.Configuration{}
+	app.start(config)
 }
 
 type application struct {
@@ -43,8 +44,8 @@ func newApplication(cfg Config) (*application, error) {
 	}, nil
 }
 
-func (app application) start() {
-	router := api.NewRouter(app.service)
+func (app application) start(config api.Configuration) {
+	router := api.NewRouter(app.service, config)
 	fmt.Println("Listening at Port " + app.port)
 	err := http.ListenAndServe(":"+app.port, router)
 	panic(err)

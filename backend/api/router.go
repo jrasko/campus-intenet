@@ -16,12 +16,24 @@ type DhcpdService interface {
 	ResetPayment(ctx context.Context) error
 }
 
+type Configuration struct {
+	Username   string
+	Password   string
+	HMACSecret string
+	Salt       string
+}
+
 type DhcpdRepository interface{}
 
 func NewRouter(
 	service DhcpdService,
+	config Configuration,
 ) http.Handler {
 	router := mux.NewRouter()
+
+	router.
+		Handle("/dhcpd/login", Login(config)).
+		Methods(http.MethodPost)
 
 	router.
 		Handle("/dhcpd", PutConfigHandler(service)).
