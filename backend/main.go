@@ -6,6 +6,7 @@ import (
 	"backend/service"
 	"fmt"
 	"net/http"
+	"os"
 )
 
 type Config struct {
@@ -20,8 +21,17 @@ func main() {
 		panic(err)
 	}
 
-	config := api.Configuration{}
+	config := loadConfig()
 	app.start(config)
+}
+
+func loadConfig() api.Configuration {
+	return api.Configuration{
+		Username:   os.Getenv("LOGIN_USER"),
+		Password:   os.Getenv("LOGIN_PASSWORD_HASH"),
+		HMACSecret: os.Getenv("HMAC_SECRET"),
+		Salt:       os.Getenv("SALT"),
+	}
 }
 
 type application struct {
