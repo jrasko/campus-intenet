@@ -30,6 +30,8 @@ services:
     labels:
       traefik.http.routers.frontend.rule: "PathPrefix(`/`)"
   backend:
+    env_file:
+      - ".env"
     restart: unless-stopped
     build: ../backend
     container_name: dhcpd_backend
