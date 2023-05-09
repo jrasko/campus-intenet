@@ -36,23 +36,23 @@ func NewRouter(
 		Methods(http.MethodPost)
 
 	router.
-		Handle("/dhcpd", PutConfigHandler(service)).
+		Handle("/dhcpd", AuthMiddleware(PutConfigHandler(service), config)).
 		Methods(http.MethodPut)
 
 	router.
-		Handle("/dhcpd", GetAllConfigHandler(service)).
+		Handle("/dhcpd", AuthMiddleware(GetAllConfigHandler(service), config)).
 		Methods(http.MethodGet)
 
 	router.
-		Handle("/dhcpd/resetPayment", ResetPaymentConfigHandler(service)).
+		Handle("/dhcpd/resetPayment", AuthMiddleware(ResetPaymentConfigHandler(service), config)).
 		Methods(http.MethodPost)
 
 	router.
-		Handle("/dhcpd/{mac}", GetConfigHandler(service)).
+		Handle("/dhcpd/{mac}", AuthMiddleware(GetConfigHandler(service), config)).
 		Methods(http.MethodGet)
 
 	router.
-		Handle("/dhcpd/{mac}", DeleteConfigHandler(service)).
+		Handle("/dhcpd/{mac}", AuthMiddleware(DeleteConfigHandler(service), config)).
 		Methods(http.MethodDelete)
 
 	return router

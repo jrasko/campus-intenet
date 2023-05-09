@@ -2,73 +2,68 @@
 <template>
   <v-snackbar v-model="success" :timeout="2000" color="success"> Erfolg!</v-snackbar>
   <v-snackbar v-model="failure" :timeout="2000" color="error"> Fehler!</v-snackbar>
-  <v-container fluid>
-    <v-row justify="start">
-      <v-col cols="1" />
-      <v-col v-if="!(this.$route.name === 'add')" cols="2">
-        <RouterLink to="/add">
-          <v-btn prepend-icon="mdi-account-plus"> Person hinzufügen</v-btn>
-        </RouterLink>
-      </v-col>
-      <v-col cols="2">
-        <v-btn prepend-icon="mdi-credit-card-refresh" @click="this.resetPayments"
-          >Zahlungen zurücksetzen</v-btn
-        >
-      </v-col>
-    </v-row>
-    <v-row justify="center">
-      <v-col cols="10">
-        <v-table hover>
-          <thead>
-            <tr>
-              <th>Zahlung</th>
-              <th>Vorname</th>
-              <th>Nachname</th>
-              <th>MAC</th>
-              <th>WG</th>
-              <th>Zimmer-Nr.</th>
-              <th>Telefonr.</th>
-              <th>E-Mail</th>
-              <th></th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="p in this.people">
-              <td v-if="p.hasPaid">
-                <v-icon color="green" icon="mdi-checkbox-marked-circle" />
-              </td>
-              <td v-else>
-                <v-icon color="red" icon="mdi-close-circle" />
-              </td>
-              <td>{{ p.firstname }}</td>
-              <td>{{ p.lastname }}</td>
-              <td>{{ p.mac }}</td>
-              <td>{{ p.wg }}</td>
-              <td>{{ p.roomNr }}</td>
-              <td>{{ p.phone }}</td>
-              <td>{{ p.email }}</td>
-              <td>
-                <v-container>
-                  <v-row align="center" justify="center">
-                    <v-col cols="1">
-                      <RouterLink :to="'/edit/' + p.mac">
-                        <v-btn density="compact" icon="mdi-square-edit-outline" />
-                      </RouterLink>
-                    </v-col>
-                    <v-col cols="1">
-                      <v-btn density="compact" icon="mdi-delete" @click="this.delete(p)" />
-                    </v-col>
-                  </v-row>
-                </v-container>
-              </td>
-              <td></td>
-            </tr>
-          </tbody>
-        </v-table>
-      </v-col>
-    </v-row>
-  </v-container>
+  <v-row>
+    <v-col v-if="!(this.$route.name === 'add')" cols="3">
+      <RouterLink to="/add">
+        <v-btn prepend-icon="mdi-account-plus"> Person hinzufügen</v-btn>
+      </RouterLink>
+    </v-col>
+    <v-col cols="3">
+      <v-btn prepend-icon="mdi-credit-card-refresh" @click="this.resetPayments"
+        >Zahlungen zurücksetzen</v-btn
+      >
+    </v-col>
+  </v-row>
+  <v-row>
+    <v-col cols="12">
+      <v-table hover>
+        <thead>
+          <tr>
+            <th>Zahlung</th>
+            <th>Vorname</th>
+            <th>Nachname</th>
+            <th>MAC</th>
+            <th>WG</th>
+            <th>Zimmer-Nr.</th>
+            <th>Telefonr.</th>
+            <th>E-Mail</th>
+            <th></th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="p in this.people">
+            <td v-if="p.hasPaid">
+              <v-icon color="green" icon="mdi-checkbox-marked-circle" />
+            </td>
+            <td v-else>
+              <v-icon color="red" icon="mdi-close-circle" />
+            </td>
+            <td>{{ p.firstname }}</td>
+            <td>{{ p.lastname }}</td>
+            <td>{{ p.mac }}</td>
+            <td>{{ p.wg }}</td>
+            <td>{{ p.roomNr }}</td>
+            <td>{{ p.phone }}</td>
+            <td>{{ p.email }}</td>
+            <td>
+              <v-row align="center" justify="center">
+                <v-col cols="1">
+                  <RouterLink :to="'/edit/' + p.mac">
+                    <v-btn density="compact" icon="mdi-square-edit-outline" />
+                  </RouterLink>
+                </v-col>
+                <v-col cols="1">
+                  <v-btn density="compact" icon="mdi-delete" @click="this.delete(p)" />
+                </v-col>
+              </v-row>
+            </td>
+            <td></td>
+          </tr>
+        </tbody>
+      </v-table>
+    </v-col>
+  </v-row>
 </template>
 <script>
 import { deleteConfigFor, getConfigs, resetPayments } from '@/axios'
@@ -86,9 +81,14 @@ export default {
   },
   methods: {
     refresh() {
-      getConfigs().then((data) => {
-        this.people = data
-      })
+      getConfigs()
+        .then((resp) => {
+          this.people = resp.data
+        })
+        .catch((err) => {
+          console.log(err)
+          alert('Fehler: ' + err + '\n maybe a new login would help')
+        })
     },
     delete(p) {
       if (confirm('Wirklich löschen?')) {

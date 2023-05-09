@@ -9,7 +9,7 @@ import * as components from 'vuetify/components'
 import * as directives from 'vuetify/directives'
 import { aliases, mdi } from 'vuetify/iconsets/mdi'
 import '@mdi/font/css/materialdesignicons.css'
-import axios from "axios";
+import axios from 'axios'
 
 const vuetify = createVuetify({
   components: components,
@@ -26,8 +26,13 @@ const vuetify = createVuetify({
   }
 })
 
-axios.defaults.baseURL = "http://localhost"
+axios.defaults.baseURL = 'http://localhost'
 
+router.beforeEach((to) => {
+  if (!localStorage.getItem('jwt') && to.name !== 'login') {
+    return { name: 'login' }
+  }
+})
 const app = createApp(App)
 app.use(router)
 app.use(vuetify)

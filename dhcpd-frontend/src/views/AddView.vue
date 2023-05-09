@@ -2,21 +2,19 @@
   <v-snackbar v-model="success" :timeout="2000" color="success"> Erfolg!</v-snackbar>
   <v-snackbar v-model="failure" :timeout="2000" color="error"> Fehler!</v-snackbar>
   <AddEditForm :person="this.person" />
-  <v-container>
-    <v-row>
-      <v-col>
-        <RouterLink to="/">
-          <v-btn color="red"> Abbrechen</v-btn>
-        </RouterLink>
-      </v-col>
-      <v-col>
-        <v-btn color="blue" @click="this.goNext"> Speichern & Next</v-btn>
-      </v-col>
-      <v-col>
-        <v-btn color="green" @click="this.submit">Speichern</v-btn>
-      </v-col>
-    </v-row>
-  </v-container>
+  <v-row>
+    <v-col>
+      <RouterLink to="/">
+        <v-btn color="red"> Abbrechen</v-btn>
+      </RouterLink>
+    </v-col>
+    <v-col>
+      <v-btn color="blue" @click="this.goNext"> Speichern & Next</v-btn>
+    </v-col>
+    <v-col>
+      <v-btn color="green" @click="this.submit">Speichern</v-btn>
+    </v-col>
+  </v-row>
 </template>
 
 <script>
