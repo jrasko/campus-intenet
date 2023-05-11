@@ -10,6 +10,8 @@ import (
 	"gorm.io/gorm"
 )
 
+var ErrNotFound = errors.New("db entry not found")
+
 func New(dsn string) (NetworkRepository, error) {
 	db, err := gorm.Open(postgres.Open(dsn))
 	if err != nil {
@@ -56,7 +58,9 @@ func (nr NetworkRepository) GetNetworkConfig(ctx context.Context, mac string) (m
 		Where("mac = ?", mac).
 		Find(&config).
 		Error
-	if err != nil {
+	if err == gorm.ErrRecordNotFound {
+		return model.NetworkConfig{}, ErrNotFound
+	} else if err != nil {
 		return model.NetworkConfig{}, err
 	}
 	return config, nil

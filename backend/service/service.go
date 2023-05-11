@@ -18,6 +18,7 @@ type Service struct {
 
 type IPAllocationService interface {
 	GetUnusedIP(ctx context.Context) (net.IP, error)
+	UnAllocateIP(ctx context.Context, ip net.IP) error
 }
 
 type ResidentsRepository interface {
@@ -42,7 +43,14 @@ func (s Service) UpdateConfig(ctx context.Context, config model.NetworkConfig) (
 	if err != nil {
 		return model.NetworkConfig{}, err
 	}
-	config.IP, err = s.ipService.GetUnusedIP(ctx)
+
+	_, err = s.networkRepo.GetNetworkConfig(ctx, config.Mac)
+	if err == repository.ErrNotFound {
+		config.IP, err = s.ipService.GetUnusedIP(ctx)
+	} else if err != nil {
+		return model.NetworkConfig{}, err
+	}
+
 	if err != nil {
 		return model.NetworkConfig{}, err
 	}
@@ -58,6 +66,16 @@ func (s Service) GetConfig(ctx context.Context, mac string) (model.NetworkConfig
 }
 
 func (s Service) DeleteConfig(ctx context.Context, mac string) error {
+	config, err := s.networkRepo.GetNetworkConfig(ctx, mac)
+	if err != nil {
+		return err
+	}
+
+	err = s.ipService.UnAllocateIP(ctx, config.IP)
+	if err != nil {
+		return err
+	}
+
 	return s.networkRepo.DeleteNetworkConfig(ctx, mac)
 }
 
