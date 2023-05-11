@@ -4,6 +4,7 @@ import (
 	"backend/model"
 	"context"
 	"errors"
+	"net"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -75,5 +76,36 @@ func (nr NetworkRepository) ResetPayment(ctx context.Context) error {
 		Table("network_configs").
 		Where("true").
 		Updates(map[string]interface{}{"has_paid": false}).
+		Error
+}
+
+const (
+	ip_table = "allocated_ips"
+)
+
+func (nr NetworkRepository) GetAllIPs(ctx context.Context) ([]net.IP, error) {
+	var ips []net.IP
+	err := nr.db.
+		WithContext(ctx).
+		Table(ip_table).
+		Order("ip").
+		Find(ips).
+		Error
+	return ips, err
+}
+
+func (nr NetworkRepository) AddIP(ctx context.Context, ip net.IP) error {
+	return nr.db.
+		WithContext(ctx).
+		Table(ip_table).
+		Save(ip).
+		Error
+}
+
+func (nr NetworkRepository) RemoveIP(ctx context.Context, ip net.IP) error {
+	return nr.db.
+		WithContext(ctx).
+		Table(ip_table).
+		Delete(ip).
 		Error
 }

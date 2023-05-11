@@ -1,5 +1,7 @@
 package model
 
+import "net"
+
 type NetworkConfig struct {
 	Firstname string `json:"firstname" validate:"required"`
 	Lastname  string `json:"lastname" validate:"required"`
@@ -9,4 +11,5 @@ type NetworkConfig struct {
 	WG        string `json:"wg"`
 	Email     string `json:"email"`
 	Phone     string `json:"phone"`
+	IP        net.IP `json:"ip" validate:"len=0"`
 }

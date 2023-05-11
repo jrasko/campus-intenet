@@ -41,3 +41,4 @@ services:
       - ./dhcpd.conf:/app/dhcpd.conf
 volumes:
   dhcpd-db:
+    external: true

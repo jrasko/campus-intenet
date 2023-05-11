@@ -3,17 +3,24 @@ package service
 import (
 	"backend/model"
 	"backend/repository"
+	"backend/service/allocation"
 	"context"
+	"net"
 
 	"github.com/go-playground/validator/v10"
 )
 
 type Service struct {
 	validate    *validator.Validate
-	networkRepo NetworkRepository
+	networkRepo ResidentsRepository
+	ipService   IPAllocationService
 }
 
-type NetworkRepository interface {
+type IPAllocationService interface {
+	GetUnusedIP(ctx context.Context) (net.IP, error)
+}
+
+type ResidentsRepository interface {
 	UpdateNetworkConfig(ctx context.Context, conf model.NetworkConfig) (model.NetworkConfig, error)
 	GetAllNetworkConfigs(ctx context.Context) ([]model.NetworkConfig, error)
 	GetNetworkConfig(ctx context.Context, mac string) (model.NetworkConfig, error)
@@ -26,11 +33,16 @@ func New(repo repository.NetworkRepository) Service {
 	return Service{
 		validate:    v,
 		networkRepo: repo,
+		ipService:   allocation.New(repo),
 	}
 }
 
 func (s Service) UpdateConfig(ctx context.Context, config model.NetworkConfig) (model.NetworkConfig, error) {
 	err := s.validate.Struct(config)
+	if err != nil {
+		return model.NetworkConfig{}, err
+	}
+	config.IP, err = s.ipService.GetUnusedIP(ctx)
 	if err != nil {
 		return model.NetworkConfig{}, err
 	}
