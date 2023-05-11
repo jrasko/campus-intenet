@@ -26,12 +26,16 @@ func main() {
 }
 
 func loadConfig() api.Configuration {
-	return api.Configuration{
+	config := api.Configuration{
 		Username:   os.Getenv("LOGIN_USER"),
 		Password:   os.Getenv("LOGIN_PASSWORD_HASH"),
 		HMACSecret: os.Getenv("HMAC_SECRET"),
 		Salt:       os.Getenv("SALT"),
 	}
+	if (config == api.Configuration{}) {
+		panic("empty config")
+	}
+	return config
 }
 
 type application struct {

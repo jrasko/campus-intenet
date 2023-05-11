@@ -23,15 +23,12 @@ func AuthMiddleware(next http.HandlerFunc, config Configuration) http.HandlerFun
 		}
 		header = header[7:]
 
-		token, err := jwt.Parse(
-			header,
-			func(token *jwt.Token) (interface{}, error) {
-				if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-					return nil, fmt.Errorf("unexpected method: %s", token.Header["alg"])
-				}
-				return []byte(config.HMACSecret), nil
-			},
-		)
+		token, err := jwt.Parse(header, func(token *jwt.Token) (interface{}, error) {
+			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+				return nil, fmt.Errorf("unexpected method: %s", token.Header["alg"])
+			}
+			return []byte(config.HMACSecret), nil
+		})
 		if err != nil {
 			fmt.Println(err)
 			w.WriteHeader(403)

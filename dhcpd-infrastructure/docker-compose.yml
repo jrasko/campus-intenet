@@ -39,3 +39,4 @@ services:
       traefik.http.routers.backend.rule: "PathPrefix(`/dhcpd`)"
 volumes:
   dhcpd-db:
+    external: true
