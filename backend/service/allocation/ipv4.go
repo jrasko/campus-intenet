@@ -28,16 +28,27 @@ func New(repo IPRepository) Service {
 	}
 }
 
+func (s Service) UnAllocateIP(ctx context.Context, ip net.IP) error {
+	return s.repository.RemoveIP(ctx, ip)
+}
+
 func (s Service) GetUnusedIP(ctx context.Context) (net.IP, error) {
 	ips, err := s.repository.GetAllIPs(ctx)
 	if err != nil {
 		return nil, err
 	}
+
 	suffix, err := findSuffixNotInList(ips, s.minSuffix, s.maxSuffix)
 	if err != nil {
 		return nil, err
 	}
-	return net.IPv4(s.IPPrefix[0], s.IPPrefix[1], s.IPPrefix[2], suffix), nil
+
+	ip := net.IPv4(s.IPPrefix[0], s.IPPrefix[1], s.IPPrefix[2], suffix)
+	err = s.repository.AddIP(ctx, ip)
+	if err != nil {
+		return nil, err
+	}
+	return ip, nil
 }
 
 func findSuffixNotInList(ips []net.IP, minSuffix byte, maxSuffix byte) (byte, error) {
