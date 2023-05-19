@@ -6,7 +6,12 @@
     <v-row justify="center">
       <v-col lg="6" sm="8">
         <v-text-field v-model="this.credentials.username" label="Nutzername" />
-        <v-text-field v-model="this.credentials.password" type="password" label="Passwort" />
+        <v-text-field
+          v-model="this.credentials.password"
+          type="password"
+          label="Passwort"
+          @keyup.enter="login"
+        />
         <v-btn @click="login">Login</v-btn>
       </v-col>
     </v-row>
@@ -33,8 +38,11 @@ export default {
           this.$router.push('/')
         })
         .catch((e) => {
-          console.log(e)
-          window.location.href = 'https://youtu.be/dQw4w9WgXcQ'
+          if (e.response.status === 403) {
+            window.location.href = 'https://youtu.be/dQw4w9WgXcQ'
+          } else {
+            console.log(e)
+          }
         })
     }
   }

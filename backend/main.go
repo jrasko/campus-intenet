@@ -2,6 +2,7 @@ package main
 
 import (
 	"backend/api"
+	"backend/model"
 	"backend/repository"
 	"backend/service"
 	"fmt"
@@ -9,30 +10,28 @@ import (
 	"os"
 )
 
-type Config struct {
-	DSN string
-}
-
 func main() {
-	app, err := newApplication(Config{
-		DSN: "host=dhcpd_db user=network password=network dbname=network port=5432 sslmode=disable",
-	})
+	config := loadConfig()
+	app, err := newApplication(config)
 	if err != nil {
 		panic(err)
 	}
 
-	config := loadConfig()
 	app.start(config)
 }
 
-func loadConfig() api.Configuration {
-	config := api.Configuration{
+func loadConfig() model.Configuration {
+	config := model.Configuration{
 		Username:   os.Getenv("LOGIN_USER"),
 		Password:   os.Getenv("LOGIN_PASSWORD_HASH"),
 		HMACSecret: os.Getenv("HMAC_SECRET"),
 		Salt:       os.Getenv("SALT"),
+		DBDatabase: os.Getenv("POSTGRES_DB"),
+		DBHost:     os.Getenv("POSTGRES_HOST"),
+		DBUser:     os.Getenv("POSTGRES_USER"),
+		DBPassword: os.Getenv("POSTGRES_PASSWORD"),
 	}
-	if (config == api.Configuration{}) {
+	if (config == model.Configuration{}) {
 		panic("empty config")
 	}
 	return config
@@ -44,8 +43,8 @@ type application struct {
 	repository api.DhcpdRepository
 }
 
-func newApplication(cfg Config) (*application, error) {
-	repo, err := repository.New(cfg.DSN)
+func newApplication(cfg model.Configuration) (*application, error) {
+	repo, err := repository.New(cfg.DSN())
 	if err != nil {
 		return nil, err
 	}
@@ -58,7 +57,7 @@ func newApplication(cfg Config) (*application, error) {
 	}, nil
 }
 
-func (app application) start(config api.Configuration) {
+func (app application) start(config model.Configuration) {
 	router := api.NewRouter(app.service, config)
 	fmt.Println("Listening at Port " + app.port)
 	err := http.ListenAndServe(":"+app.port, router)

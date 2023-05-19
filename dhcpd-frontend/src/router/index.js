@@ -18,7 +18,7 @@ const router = createRouter({
       component: AddEditView
     },
     {
-      path: '/edit/:mac',
+      path: '/edit/:id',
       name: 'edit',
       component: EditView
     },

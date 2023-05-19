@@ -3,15 +3,18 @@
   <v-snackbar v-model="success" :timeout="2000" color="success"> Erfolg!</v-snackbar>
   <v-snackbar v-model="failure" :timeout="2000" color="error"> Fehler!</v-snackbar>
   <v-row>
-    <v-col v-if="!(this.$route.name === 'add')" cols="3">
+    <v-col v-if="!(this.$route.name === 'add')">
       <RouterLink to="/add">
         <v-btn prepend-icon="mdi-account-plus"> Person hinzufügen</v-btn>
       </RouterLink>
     </v-col>
-    <v-col cols="3">
-      <v-btn prepend-icon="mdi-credit-card-refresh" @click="this.resetPayments"
-        >Zahlungen zurücksetzen</v-btn
-      >
+    <v-col>
+      <v-btn prepend-icon="mdi-credit-card-refresh" @click="this.resetPayments">
+        Zahlungen zurücksetzen
+      </v-btn>
+    </v-col>
+    <v-col>
+      <v-btn prepend-icon="mdi-content-copy" @click="this.copyEmails"> Emails kopieren </v-btn>
     </v-col>
   </v-row>
   <v-row>
@@ -23,6 +26,7 @@
             <th>Vorname</th>
             <th>Nachname</th>
             <th>MAC</th>
+            <th>IP</th>
             <th>WG</th>
             <th>Zimmer-Nr.</th>
             <th>Telefonr.</th>
@@ -42,6 +46,7 @@
             <td>{{ p.firstname }}</td>
             <td>{{ p.lastname }}</td>
             <td>{{ p.mac }}</td>
+            <td>{{ p.ip }}</td>
             <td>{{ p.wg }}</td>
             <td>{{ p.roomNr }}</td>
             <td>{{ p.phone }}</td>
@@ -49,7 +54,7 @@
             <td>
               <v-row align="center" justify="center">
                 <v-col cols="1">
-                  <RouterLink :to="'/edit/' + p.mac">
+                  <RouterLink :to="'/edit/' + p.id">
                     <v-btn density="compact" icon="mdi-square-edit-outline" />
                   </RouterLink>
                 </v-col>
@@ -90,9 +95,16 @@ export default {
           alert('Fehler: ' + err + '\n maybe a new login would help')
         })
     },
+    async copyEmails() {
+      let mails = ''
+      for (const p of this.people) {
+        mails += p.email + ';'
+      }
+      await navigator.clipboard.writeText(mails)
+    },
     delete(p) {
       if (confirm('Wirklich löschen?')) {
-        deleteConfigFor(p.mac)
+        deleteConfigFor(p.id)
           .then(() => {
             this.success = true
             this.refresh()

@@ -4,7 +4,6 @@ import (
 	"backend/model"
 	"context"
 	"errors"
-	"net"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -12,12 +11,20 @@ import (
 
 var ErrNotFound = errors.New("db entry not found")
 
+const (
+	memberTable = "member_configs"
+)
+
+type AllocatedIP struct {
+	IP string
+}
+
 func New(dsn string) (NetworkRepository, error) {
 	db, err := gorm.Open(postgres.Open(dsn))
 	if err != nil {
 		return NetworkRepository{}, err
 	}
-	if !db.Migrator().HasTable("network_configs") {
+	if !db.Migrator().HasTable(memberTable) {
 		return NetworkRepository{}, errors.New("missing table")
 	}
 	return NetworkRepository{db: db}, nil
@@ -27,89 +34,63 @@ type NetworkRepository struct {
 	db *gorm.DB
 }
 
-func (nr NetworkRepository) UpdateNetworkConfig(ctx context.Context, conf model.NetworkConfig) (model.NetworkConfig, error) {
+func (nr NetworkRepository) UpdateNetworkConfig(ctx context.Context, conf model.MemberConfig) (model.MemberConfig, error) {
 	err := nr.db.
 		WithContext(ctx).
 		Save(&conf).
 		Error
-	if err != nil {
-		return model.NetworkConfig{}, err
-	}
-	return conf, nil
+	return conf, err
 }
 
-func (nr NetworkRepository) GetAllNetworkConfigs(ctx context.Context) ([]model.NetworkConfig, error) {
-	var configs []model.NetworkConfig
+func (nr NetworkRepository) GetAllNetworkConfigs(ctx context.Context) ([]model.MemberConfig, error) {
+	var configs []model.MemberConfig
 	err := nr.db.
 		WithContext(ctx).
 		Order("lastname, firstname").
 		Find(&configs).
 		Error
-	if err != nil {
-		return []model.NetworkConfig{}, err
-	}
-	return configs, nil
+	return configs, err
 }
 
-func (nr NetworkRepository) GetNetworkConfig(ctx context.Context, mac string) (model.NetworkConfig, error) {
-	config := model.NetworkConfig{}
+func (nr NetworkRepository) GetNetworkConfig(ctx context.Context, id int) (model.MemberConfig, error) {
+	config := model.MemberConfig{}
 	err := nr.db.
 		WithContext(ctx).
-		Where("mac = ?", mac).
-		Find(&config).
+		Where("id = ?", id).
+		First(&config).
 		Error
 	if err == gorm.ErrRecordNotFound {
-		return model.NetworkConfig{}, ErrNotFound
+		return model.MemberConfig{}, ErrNotFound
 	} else if err != nil {
-		return model.NetworkConfig{}, err
+		return model.MemberConfig{}, err
 	}
 	return config, nil
 }
 
-func (nr NetworkRepository) DeleteNetworkConfig(ctx context.Context, mac string) error {
-	c := model.NetworkConfig{Mac: mac}
+func (nr NetworkRepository) DeleteNetworkConfig(ctx context.Context, id int) error {
 	return nr.db.
 		WithContext(ctx).
-		Delete(&c).
+		Delete(&model.MemberConfig{}, id).
 		Error
 }
 
 func (nr NetworkRepository) ResetPayment(ctx context.Context) error {
 	return nr.db.
 		WithContext(ctx).
-		Table("network_configs").
+		Table(memberTable).
 		Where("true").
 		Updates(map[string]interface{}{"has_paid": false}).
 		Error
 }
 
-const (
-	ip_table = "allocated_ips"
-)
-
-func (nr NetworkRepository) GetAllIPs(ctx context.Context) ([]net.IP, error) {
-	var ips []net.IP
+func (nr NetworkRepository) GetAllIPs(ctx context.Context) ([]string, error) {
+	var ips []string
 	err := nr.db.
 		WithContext(ctx).
-		Table(ip_table).
+		Table(memberTable).
+		Select("ip").
 		Order("ip").
-		Find(ips).
+		Find(&ips).
 		Error
 	return ips, err
-}
-
-func (nr NetworkRepository) AddIP(ctx context.Context, ip net.IP) error {
-	return nr.db.
-		WithContext(ctx).
-		Table(ip_table).
-		Save(ip).
-		Error
-}
-
-func (nr NetworkRepository) RemoveIP(ctx context.Context, ip net.IP) error {
-	return nr.db.
-		WithContext(ctx).
-		Table(ip_table).
-		Delete(ip).
-		Error
 }

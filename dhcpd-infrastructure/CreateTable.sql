@@ -1,17 +1,13 @@
-CREATE TABLE IF NOT EXISTS network_configs
+CREATE TABLE IF NOT EXISTS member_configs
 (
-    mac       macaddr PRIMARY KEY,
+    id        SERIAL PRIMARY KEY,
+    mac       macaddr UNIQUE,
     firstname TEXT,
     lastname  TEXT,
-    room_nr   TEXT,
+    room_nr   TEXT UNIQUE,
     has_paid  BOOLEAN,
     wg        TEXT,
     email     TEXT,
     phone     TEXT,
-    ip        inet
-);
-
-CREATE TABLE IF NOT EXISTS allocated_ips
-(
-    ip inet PRIMARY KEY
+    ip        TEXT UNIQUE
 );

@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-func specialize(config model.NetworkConfig) model.NetworkConfig {
+func specialize(config model.MemberConfig) model.MemberConfig {
 	if strings.ToLower(config.Firstname) == "phillip" {
 		config.Firstname += " \U0001F6BF"
 	}
