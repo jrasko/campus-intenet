@@ -7,9 +7,7 @@ import (
 )
 
 type IPRepository interface {
-	GetAllIPs(ctx context.Context) ([]net.IP, error)
-	AddIP(ctx context.Context, ip net.IP) error
-	RemoveIP(ctx context.Context, ip net.IP) error
+	GetAllIPs(ctx context.Context) ([]string, error)
 }
 
 type Service struct {
@@ -28,36 +26,27 @@ func New(repo IPRepository) Service {
 	}
 }
 
-func (s Service) UnAllocateIP(ctx context.Context, ip net.IP) error {
-	return s.repository.RemoveIP(ctx, ip)
-}
-
-func (s Service) GetUnusedIP(ctx context.Context) (net.IP, error) {
+func (s Service) GetUnusedIP(ctx context.Context) (string, error) {
 	ips, err := s.repository.GetAllIPs(ctx)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
 	suffix, err := findSuffixNotInList(ips, s.minSuffix, s.maxSuffix)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
-	ip := net.IPv4(s.IPPrefix[0], s.IPPrefix[1], s.IPPrefix[2], suffix)
-	err = s.repository.AddIP(ctx, ip)
-	if err != nil {
-		return nil, err
-	}
-	return ip, nil
+	return net.IPv4(s.IPPrefix[0], s.IPPrefix[1], s.IPPrefix[2], suffix).String(), nil
 }
 
-func findSuffixNotInList(ips []net.IP, minSuffix byte, maxSuffix byte) (byte, error) {
+func findSuffixNotInList(ips []string, minSuffix byte, maxSuffix byte) (byte, error) {
 	for i := minSuffix; i <= maxSuffix; i++ {
 		listIndex := i - minSuffix
 		if listIndex >= byte(len(ips)) {
 			return i, nil
 		}
-		if address := []byte(ips[listIndex]); address[15] != i {
+		if address := []byte(net.ParseIP(ips[listIndex])); address[15] != i {
 			return i, nil
 		}
 	}

@@ -5,20 +5,49 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/gorilla/mux"
 )
 
-func PutConfigHandler(service DhcpdService) http.HandlerFunc {
+func PostConfigHandler(service DhcpdService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var config model.NetworkConfig
+		var config model.MemberConfig
 		err := json.NewDecoder(r.Body).Decode(&config)
 		if err != nil {
 			fmt.Println(err)
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-		config, err = service.UpdateConfig(nil, config)
+		config, err = service.UpdateConfig(r.Context(), config)
+		if err != nil {
+			fmt.Println(err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		sendJSONResponse(w, config)
+	}
+}
+
+func PutConfigHandler(service DhcpdService) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		idParam, ok := mux.Vars(r)["id"]
+		id, err := strconv.Atoi(idParam)
+		if !ok || err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		var config model.MemberConfig
+		err = json.NewDecoder(r.Body).Decode(&config)
+		if err != nil {
+			fmt.Println(err)
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		config.ID = id
+		config, err = service.UpdateConfig(r.Context(), config)
 		if err != nil {
 			fmt.Println(err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -42,12 +71,13 @@ func GetAllConfigHandler(service DhcpdService) http.HandlerFunc {
 
 func GetConfigHandler(service DhcpdService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		mac, ok := mux.Vars(r)["mac"]
-		if !ok {
+		idParam, ok := mux.Vars(r)["id"]
+		id, err := strconv.Atoi(idParam)
+		if !ok || err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
-		config, err := service.GetConfig(r.Context(), mac)
+		config, err := service.GetConfig(r.Context(), id)
 		if err != nil {
 			fmt.Println(err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -59,18 +89,19 @@ func GetConfigHandler(service DhcpdService) http.HandlerFunc {
 
 func DeleteConfigHandler(service DhcpdService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		mac, ok := mux.Vars(r)["mac"]
-		if !ok {
+		idParam, ok := mux.Vars(r)["id"]
+		id, err := strconv.Atoi(idParam)
+		if !ok || err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
-		err := service.DeleteConfig(r.Context(), mac)
+		err = service.DeleteConfig(r.Context(), id)
 		if err != nil {
 			fmt.Println(err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		w.WriteHeader(200)
+		w.WriteHeader(204)
 	}
 }
 
@@ -82,7 +113,7 @@ func ResetPaymentConfigHandler(service DhcpdService) http.HandlerFunc {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		w.WriteHeader(200)
+		w.WriteHeader(204)
 	}
 }
 

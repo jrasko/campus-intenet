@@ -4,10 +4,8 @@ services:
   database:
     restart: unless-stopped
     image: postgres:15
-    environment:
-      POSTGRES_USER: network
-      POSTGRES_PASSWORD: network
-      POSTGRES_DB: network
+    env_file:
+      - ".env"
     container_name: dhcpd_db
     ports:
       - "5432:5432"

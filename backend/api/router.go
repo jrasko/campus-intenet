@@ -9,25 +9,18 @@ import (
 )
 
 type DhcpdService interface {
-	UpdateConfig(ctx context.Context, config model.NetworkConfig) (model.NetworkConfig, error)
-	GetAllConfigs(ctx context.Context) ([]model.NetworkConfig, error)
-	GetConfig(ctx context.Context, mac string) (model.NetworkConfig, error)
-	DeleteConfig(ctx context.Context, mac string) error
+	UpdateConfig(ctx context.Context, config model.MemberConfig) (model.MemberConfig, error)
+	GetAllConfigs(ctx context.Context) ([]model.MemberConfig, error)
+	GetConfig(ctx context.Context, id int) (model.MemberConfig, error)
+	DeleteConfig(ctx context.Context, id int) error
 	ResetPayment(ctx context.Context) error
-}
-
-type Configuration struct {
-	Username   string
-	Password   string
-	HMACSecret string
-	Salt       string
 }
 
 type DhcpdRepository interface{}
 
 func NewRouter(
 	service DhcpdService,
-	config Configuration,
+	config model.Configuration,
 ) http.Handler {
 	router := mux.NewRouter()
 
@@ -36,7 +29,11 @@ func NewRouter(
 		Methods(http.MethodPost)
 
 	router.
-		Handle("/dhcpd", AuthMiddleware(PutConfigHandler(service), config)).
+		Handle("/dhcpd", AuthMiddleware(PostConfigHandler(service), config)).
+		Methods(http.MethodPost)
+
+	router.
+		Handle("/dhcpd/{id}", AuthMiddleware(PutConfigHandler(service), config)).
 		Methods(http.MethodPut)
 
 	router.
@@ -48,11 +45,11 @@ func NewRouter(
 		Methods(http.MethodPost)
 
 	router.
-		Handle("/dhcpd/{mac}", AuthMiddleware(GetConfigHandler(service), config)).
+		Handle("/dhcpd/{id}", AuthMiddleware(GetConfigHandler(service), config)).
 		Methods(http.MethodGet)
 
 	router.
-		Handle("/dhcpd/{mac}", AuthMiddleware(DeleteConfigHandler(service), config)).
+		Handle("/dhcpd/{id}", AuthMiddleware(DeleteConfigHandler(service), config)).
 		Methods(http.MethodDelete)
 
 	return router

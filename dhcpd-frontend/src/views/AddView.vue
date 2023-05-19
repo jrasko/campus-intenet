@@ -1,7 +1,7 @@
 <template>
   <v-snackbar v-model="success" :timeout="2000" color="success"> Erfolg!</v-snackbar>
   <v-snackbar v-model="failure" :timeout="2000" color="error"> Fehler!</v-snackbar>
-  <AddEditForm :person="this.person" />
+  <AddEditForm :person="this.person" disable-ip="true" />
   <v-row>
     <v-col>
       <RouterLink to="/">
@@ -18,7 +18,7 @@
 </template>
 
 <script>
-import { updateConfig } from '@/axios'
+import { createConfig } from '@/axios'
 import AddEditForm from '@/components/AddEditForm.vue'
 import { th } from 'vuetify/locale'
 
@@ -46,9 +46,9 @@ export default {
   }),
   methods: {
     submit() {
-      updateConfig(this.person)
+      createConfig(this.person)
         .then(() => {
-          this.success = true
+          this.$router.push('/')
         })
         .catch((e) => {
           this.failure = true
@@ -56,7 +56,7 @@ export default {
         })
     },
     goNext() {
-      updateConfig(this.person)
+      createConfig(this.person)
         .then(() => {
           this.success = true
           this.person = {}

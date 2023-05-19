@@ -12,6 +12,15 @@
       <v-col>
         <v-text-field v-model="person.mac" label="MAC-Adresse" />
       </v-col>
+      <v-col>
+        <v-text-field
+          v-model="person.ip"
+          label="IP Addresse"
+          :disabled="disableIp"
+          persistent-hint
+          hint="autogeneriert wenn leer"
+        />
+      </v-col>
     </v-row>
     <v-row>
       <v-col>
@@ -38,6 +47,7 @@
 <script>
 export default {
   props: {
+    disableIp: false,
     person: {}
   }
 }

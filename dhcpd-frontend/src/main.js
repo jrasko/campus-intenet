@@ -27,6 +27,9 @@ const vuetify = createVuetify({
 })
 
 axios.defaults.baseURL = 'http://localhost'
+if (import.meta.env.MODE) {
+  axios.defaults.baseURL += ':8080'
+}
 
 router.beforeEach((to) => {
   if (!localStorage.getItem('jwt') && to.name !== 'login') {

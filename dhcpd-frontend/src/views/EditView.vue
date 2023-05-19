@@ -1,6 +1,6 @@
 <template>
   <v-snackbar v-model="failure" :timeout="2000" color="error"> Fehler!</v-snackbar>
-  <AddEditForm :person="this.person" />
+  <AddEditForm :person="this.person" disable-ip="true" />
   <v-row>
     <v-col>
       <RouterLink to="/">
@@ -23,6 +23,7 @@ export default {
   data: () => ({
     failure: false,
     person: {
+      id: '',
       firstname: '',
       lastname: '',
       mac: '',
@@ -34,7 +35,7 @@ export default {
     }
   }),
   mounted() {
-    getConfigFor(this.$route.params.mac).then((resp) => {
+    getConfigFor(this.$route.params.id).then((resp) => {
       this.person = resp.data
     })
   },

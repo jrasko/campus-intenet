@@ -1,6 +1,7 @@
 package api
 
 import (
+	"backend/model"
 	"crypto/subtle"
 	"encoding/base64"
 	"encoding/json"
@@ -13,7 +14,7 @@ import (
 	"golang.org/x/crypto/argon2"
 )
 
-func AuthMiddleware(next http.HandlerFunc, config Configuration) http.HandlerFunc {
+func AuthMiddleware(next http.HandlerFunc, config model.Configuration) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		header := r.Header.Get("Authorization")
 		if !strings.HasPrefix(header, "Bearer ") || len(header) <= 7 {
@@ -56,7 +57,7 @@ var (
 	expirationTime = 2 * time.Hour
 )
 
-func Login(config Configuration) http.HandlerFunc {
+func Login(config model.Configuration) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		c := Credentials{}
 		err := json.NewDecoder(r.Body).Decode(&c)
