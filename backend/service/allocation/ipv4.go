@@ -6,9 +6,14 @@ import (
 	"net"
 )
 
+//go:generate mockery --name IPRepository
 type IPRepository interface {
 	GetAllIPs(ctx context.Context) ([]string, error)
 }
+
+var (
+	noIPFoundErr = errors.New("no unallocated ip found")
+)
 
 type Service struct {
 	repository IPRepository
@@ -50,5 +55,5 @@ func findSuffixNotInList(ips []string, minSuffix byte, maxSuffix byte) (byte, er
 			return i, nil
 		}
 	}
-	return 255, errors.New("no unallocated ip found")
+	return 255, noIPFoundErr
 }
