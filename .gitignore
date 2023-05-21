@@ -1,3 +1,4 @@
-/dhcpd-infrastructure/.env
 .idea
 /dhcpd-frontend/node_modules
+/dhcpd-infrastructure/.env
+/backend/dhcpd.conf

@@ -52,6 +52,17 @@ func (nr NetworkRepository) GetAllNetworkConfigs(ctx context.Context) ([]model.M
 	return configs, err
 }
 
+func (nr NetworkRepository) GetAllMacs(ctx context.Context) ([]string, error) {
+	var macs []string
+	err := nr.db.
+		WithContext(ctx).
+		Table(memberTable).
+		Select("mac").
+		Find(&macs).
+		Error
+	return macs, err
+}
+
 func (nr NetworkRepository) GetNetworkConfig(ctx context.Context, id int) (model.MemberConfig, error) {
 	config := model.MemberConfig{}
 	err := nr.db.

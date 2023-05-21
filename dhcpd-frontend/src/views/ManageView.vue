@@ -90,9 +90,11 @@ export default {
         .then((resp) => {
           this.people = resp.data
         })
-        .catch((err) => {
-          console.log(err)
-          alert('Fehler: ' + err + '\n maybe a new login would help')
+        .catch((e) => {
+          if (e.response.status === 403){
+            this.$router.push('/login')
+          }
+          console.log(e)
         })
     },
     async copyEmails() {

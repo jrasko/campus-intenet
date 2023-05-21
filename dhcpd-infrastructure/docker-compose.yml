@@ -35,6 +35,8 @@ services:
     container_name: dhcpd_backend
     labels:
       traefik.http.routers.backend.rule: "PathPrefix(`/dhcpd`)"
+    volumes:
+      - /home/jannik/Documents/Persöhnlich/dhcpd-server/dhcpd-infrastructure/dhcpd.conf:/app/dhcpd.conf
 volumes:
   dhcpd-db:
     external: true
