@@ -27,7 +27,7 @@ const vuetify = createVuetify({
 })
 
 axios.defaults.baseURL = 'http://localhost'
-if (import.meta.env.MODE) {
+if (import.meta.env.MODE === 'development') {
   axios.defaults.baseURL += ':8080'
 }
 

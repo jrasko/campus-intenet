@@ -3,7 +3,9 @@ package repository
 import (
 	"backend/model"
 	"context"
+	"encoding/hex"
 	"os"
+	"strconv"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -127,4 +129,20 @@ func TestNetworkRepository(t *testing.T) {
 		assert.ErrorIs(t, err, ErrNotFound)
 	})
 
+}
+
+func TestManyShops(t *testing.T) {
+	repo, creationErr := setupDB()
+	require.NoError(t, creationErr)
+	for i := 0; i < 100; i++ {
+		member := model.MemberConfig{
+			Firstname: strconv.Itoa(i),
+			Lastname:  strconv.Itoa(i),
+			Mac:       "00:00:00:00:00:" + hex.EncodeToString([]byte{byte(i)}),
+			RoomNr:    strconv.Itoa(i),
+			IP:        strconv.Itoa(i),
+		}
+		member, err := repo.UpdateNetworkConfig(ctx, member)
+		require.NoError(t, err)
+	}
 }

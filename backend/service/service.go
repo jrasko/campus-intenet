@@ -4,6 +4,7 @@ import (
 	"backend/model"
 	"backend/repository"
 	"backend/service/allocation"
+	"backend/service/confwriter"
 	"context"
 
 	"github.com/go-playground/validator/v10"
@@ -13,6 +14,11 @@ type Service struct {
 	validate    *validator.Validate
 	networkRepo ResidentsRepository
 	ipService   IPAllocationService
+	dhcpdWriter ConfWriter
+}
+
+type ConfWriter interface {
+	WhitelistMacs(macs []string) error
 }
 
 type IPAllocationService interface {
@@ -25,12 +31,15 @@ type ResidentsRepository interface {
 	GetNetworkConfig(ctx context.Context, id int) (model.MemberConfig, error)
 	DeleteNetworkConfig(ctx context.Context, id int) error
 	ResetPayment(ctx context.Context) error
+	GetAllMacs(ctx context.Context) ([]string, error)
 }
 
 func New(repo repository.NetworkRepository) Service {
+	w := confwriter.New()
 	v := validator.New()
 	return Service{
 		validate:    v,
+		dhcpdWriter: w,
 		networkRepo: repo,
 		ipService:   allocation.New(repo),
 	}
@@ -49,7 +58,20 @@ func (s Service) UpdateConfig(ctx context.Context, config model.MemberConfig) (m
 		}
 	}
 
-	return s.networkRepo.UpdateNetworkConfig(ctx, specialize(config))
+	//FIXME konsistenz?
+	networkConfig, err := s.networkRepo.UpdateNetworkConfig(ctx, specialize(config))
+	if err != nil {
+		return model.MemberConfig{}, err
+	}
+	macs, err := s.networkRepo.GetAllMacs(ctx)
+	if err != nil {
+		return model.MemberConfig{}, err
+	}
+	err = s.dhcpdWriter.WhitelistMacs(macs)
+	if err != nil {
+		return model.MemberConfig{}, err
+	}
+	return networkConfig, err
 }
 
 func (s Service) GetAllConfigs(ctx context.Context) ([]model.MemberConfig, error) {
@@ -61,7 +83,15 @@ func (s Service) GetConfig(ctx context.Context, id int) (model.MemberConfig, err
 }
 
 func (s Service) DeleteConfig(ctx context.Context, id int) error {
-	return s.networkRepo.DeleteNetworkConfig(ctx, id)
+	err := s.networkRepo.DeleteNetworkConfig(ctx, id)
+	if err != nil {
+		return err
+	}
+	macs, err := s.networkRepo.GetAllMacs(ctx)
+	if err != nil {
+		return err
+	}
+	return s.dhcpdWriter.WhitelistMacs(macs)
 }
 
 func (s Service) ResetPayment(ctx context.Context) error {

@@ -5,7 +5,7 @@ type MemberConfig struct {
 	Firstname string `json:"firstname" validate:"required"`
 	Lastname  string `json:"lastname" validate:"required"`
 	Mac       string `json:"mac" validate:"required,mac"`
-	RoomNr    string `json:"roomNr"`
+	RoomNr    string `json:"roomNr" validate:"required"`
 	HasPaid   bool   `json:"hasPaid"`
 	WG        string `json:"wg"`
 	Email     string `json:"email"`
