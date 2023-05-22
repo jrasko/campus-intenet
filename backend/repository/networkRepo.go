@@ -4,12 +4,13 @@ import (
 	"backend/model"
 	"context"
 	"errors"
+	"fmt"
+	"net/http"
+	"strings"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
-
-var ErrNotFound = errors.New("db entry not found")
 
 const (
 	memberTable = "member_configs"
@@ -24,8 +25,12 @@ func New(dsn string) (NetworkRepository, error) {
 	if err != nil {
 		return NetworkRepository{}, err
 	}
+
+	// check if db has needed table
 	if !db.Migrator().HasTable(memberTable) {
-		return NetworkRepository{}, errors.New("missing table")
+		if err = db.Migrator().CreateTable(&model.MemberConfig{}); err != nil {
+			return NetworkRepository{}, fmt.Errorf("could not create table: %w", err)
+		}
 	}
 	return NetworkRepository{db: db}, nil
 }
@@ -39,7 +44,7 @@ func (nr NetworkRepository) UpdateNetworkConfig(ctx context.Context, conf model.
 		WithContext(ctx).
 		Save(&conf).
 		Error
-	return conf, err
+	return conf, wrapGormErrors(err)
 }
 
 func (nr NetworkRepository) GetAllNetworkConfigs(ctx context.Context) ([]model.MemberConfig, error) {
@@ -49,7 +54,7 @@ func (nr NetworkRepository) GetAllNetworkConfigs(ctx context.Context) ([]model.M
 		Order("lastname, firstname").
 		Find(&configs).
 		Error
-	return configs, err
+	return configs, wrapGormErrors(err)
 }
 
 func (nr NetworkRepository) GetAllMacs(ctx context.Context) ([]string, error) {
@@ -60,7 +65,7 @@ func (nr NetworkRepository) GetAllMacs(ctx context.Context) ([]string, error) {
 		Select("mac").
 		Find(&macs).
 		Error
-	return macs, err
+	return macs, wrapGormErrors(err)
 }
 
 func (nr NetworkRepository) GetNetworkConfig(ctx context.Context, id int) (model.MemberConfig, error) {
@@ -70,28 +75,25 @@ func (nr NetworkRepository) GetNetworkConfig(ctx context.Context, id int) (model
 		Where("id = ?", id).
 		First(&config).
 		Error
-	if err == gorm.ErrRecordNotFound {
-		return model.MemberConfig{}, ErrNotFound
-	} else if err != nil {
-		return model.MemberConfig{}, err
-	}
-	return config, nil
+	return config, wrapGormErrors(err)
 }
 
 func (nr NetworkRepository) DeleteNetworkConfig(ctx context.Context, id int) error {
-	return nr.db.
+	err := nr.db.
 		WithContext(ctx).
 		Delete(&model.MemberConfig{}, id).
 		Error
+	return wrapGormErrors(err)
 }
 
 func (nr NetworkRepository) ResetPayment(ctx context.Context) error {
-	return nr.db.
+	err := nr.db.
 		WithContext(ctx).
 		Table(memberTable).
 		Where("true").
 		Updates(map[string]interface{}{"has_paid": false}).
 		Error
+	return wrapGormErrors(err)
 }
 
 func (nr NetworkRepository) GetAllIPs(ctx context.Context) ([]string, error) {
@@ -103,5 +105,18 @@ func (nr NetworkRepository) GetAllIPs(ctx context.Context) ([]string, error) {
 		Order("ip").
 		Find(&ips).
 		Error
-	return ips, err
+	return ips, wrapGormErrors(err)
+}
+
+func wrapGormErrors(err error) error {
+	if err == nil {
+		return nil
+	}
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return model.Error(http.StatusNotFound, err.Error(), "db entry not found")
+	}
+	if errors.Is(err, gorm.ErrDuplicatedKey) || strings.Contains(err.Error(), "duplicate key value violates unique constraint") {
+		return model.Error(http.StatusConflict, err.Error(), "unique constraint violation")
+	}
+	return model.Error(http.StatusInternalServerError, err.Error(), "internal server error")
 }

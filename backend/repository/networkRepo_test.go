@@ -4,6 +4,8 @@ import (
 	"backend/model"
 	"context"
 	"encoding/hex"
+	"fmt"
+	"net/http"
 	"os"
 	"strconv"
 	"testing"
@@ -17,12 +19,7 @@ var (
 )
 
 func setupDB() (NetworkRepository, error) {
-	cfg := model.Configuration{
-		DBHost:     "localhost",
-		DBDatabase: "network",
-		DBUser:     "network",
-		DBPassword: os.Getenv("POSTGRES_PASSWORD"),
-	}
+	cfg := readConfig()
 	repo, err := New(cfg.DSN())
 	if err != nil {
 		return NetworkRepository{}, err
@@ -31,10 +28,31 @@ func setupDB() (NetworkRepository, error) {
 	return repo, err
 }
 
+func readConfig() model.Configuration {
+	return model.Configuration{
+		DBHost:     "localhost",
+		DBDatabase: "network",
+		DBUser:     "network",
+		DBPassword: os.Getenv("POSTGRES_PASSWORD"),
+	}
+}
+
 func TestNew(t *testing.T) {
-	repo, err := New("")
-	assert.Error(t, err)
-	assert.Equal(t, NetworkRepository{}, repo)
+
+	t.Run("empty dsn", func(t *testing.T) {
+		repo, err := New("")
+		assert.Error(t, err)
+		assert.Equal(t, NetworkRepository{}, repo)
+	})
+	t.Run("it creates table on setup", func(t *testing.T) {
+		config := readConfig()
+		repo, err := New(config.DSN())
+		assert.NoError(t, err)
+		repo.db.Exec(fmt.Sprintf("DROP TABLE %s", memberTable))
+
+		_, err = New(config.DSN())
+		assert.NoError(t, err)
+	})
 }
 
 func TestNetworkRepository(t *testing.T) {
@@ -88,6 +106,15 @@ func TestNetworkRepository(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, config2, newConfig)
 	})
+	t.Run("it checks unique constraints", func(t *testing.T) {
+		newConfig := model.MemberConfig{
+			Mac:    config.Mac,
+			RoomNr: config.RoomNr,
+			IP:     config.IP,
+		}
+		newConfig, err := repo.UpdateNetworkConfig(ctx, newConfig)
+		assert.Equal(t, http.StatusConflict, err.(model.HttpError).Status())
+	})
 	t.Run("it retrevies a single member", func(t *testing.T) {
 		cfg, err := repo.GetNetworkConfig(ctx, config.ID)
 		assert.NoError(t, err)
@@ -102,8 +129,16 @@ func TestNetworkRepository(t *testing.T) {
 	t.Run("it retreives all ips", func(t *testing.T) {
 		ips, err := repo.GetAllIPs(ctx)
 		assert.NoError(t, err)
+		assert.Len(t, ips, 2)
 		assert.Contains(t, ips, config.IP)
 		assert.Contains(t, ips, config2.IP)
+	})
+	t.Run("it retreives all macs", func(t *testing.T) {
+		macs, err := repo.GetAllMacs(ctx)
+		assert.NoError(t, err)
+		assert.Len(t, macs, 2)
+		assert.Contains(t, macs, config.Mac)
+		assert.Contains(t, macs, config2.Mac)
 	})
 	t.Run("it updates a member", func(t *testing.T) {
 		updatedConfig.ID = config.ID
@@ -126,7 +161,7 @@ func TestNetworkRepository(t *testing.T) {
 		assert.NoError(t, err)
 
 		_, err = repo.GetNetworkConfig(ctx, config2.ID)
-		assert.ErrorIs(t, err, ErrNotFound)
+		assert.Equal(t, http.StatusNotFound, err.(model.HttpError).Status())
 	})
 
 }

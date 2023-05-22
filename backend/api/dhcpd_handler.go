@@ -3,7 +3,7 @@ package api
 import (
 	"backend/model"
 	"encoding/json"
-	"fmt"
+	"log"
 	"net/http"
 	"strconv"
 
@@ -15,16 +15,17 @@ func PostConfigHandler(service DhcpdService) http.HandlerFunc {
 		var config model.MemberConfig
 		err := json.NewDecoder(r.Body).Decode(&config)
 		if err != nil {
-			fmt.Println(err)
+			log.Println(err)
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
+
 		config, err = service.UpdateConfig(r.Context(), config)
 		if err != nil {
-			fmt.Println(err)
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			sendHttpError(w, err)
 			return
 		}
+
 		sendJSONResponse(w, config)
 	}
 }
@@ -41,7 +42,7 @@ func PutConfigHandler(service DhcpdService) http.HandlerFunc {
 		var config model.MemberConfig
 		err = json.NewDecoder(r.Body).Decode(&config)
 		if err != nil {
-			fmt.Println(err)
+			log.Println(err)
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
@@ -49,10 +50,10 @@ func PutConfigHandler(service DhcpdService) http.HandlerFunc {
 		config.ID = id
 		config, err = service.UpdateConfig(r.Context(), config)
 		if err != nil {
-			fmt.Println(err)
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			sendHttpError(w, err)
 			return
 		}
+
 		sendJSONResponse(w, config)
 	}
 }
@@ -61,10 +62,10 @@ func GetAllConfigHandler(service DhcpdService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		configs, err := service.GetAllConfigs(r.Context())
 		if err != nil {
-			fmt.Println(err)
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			sendHttpError(w, err)
 			return
 		}
+
 		sendJSONResponse(w, configs)
 	}
 }
@@ -77,12 +78,13 @@ func GetConfigHandler(service DhcpdService) http.HandlerFunc {
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
+
 		config, err := service.GetConfig(r.Context(), id)
 		if err != nil {
-			fmt.Println(err)
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			sendHttpError(w, err)
 			return
 		}
+
 		sendJSONResponse(w, config)
 	}
 }
@@ -95,13 +97,14 @@ func DeleteConfigHandler(service DhcpdService) http.HandlerFunc {
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
+
 		err = service.DeleteConfig(r.Context(), id)
 		if err != nil {
-			fmt.Println(err)
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			sendHttpError(w, err)
 			return
 		}
-		w.WriteHeader(204)
+
+		w.WriteHeader(http.StatusNoContent)
 	}
 }
 
@@ -109,19 +112,10 @@ func ResetPaymentConfigHandler(service DhcpdService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		err := service.ResetPayment(r.Context())
 		if err != nil {
-			fmt.Println(err)
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			sendHttpError(w, err)
 			return
 		}
-		w.WriteHeader(204)
-	}
-}
 
-func sendJSONResponse(w http.ResponseWriter, v any) {
-	err := json.NewEncoder(w).Encode(v)
-	if err != nil {
-		fmt.Println(err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		w.WriteHeader(http.StatusNoContent)
 	}
 }

@@ -63,14 +63,17 @@ func (s Service) UpdateConfig(ctx context.Context, config model.MemberConfig) (m
 	if err != nil {
 		return model.MemberConfig{}, err
 	}
+
 	macs, err := s.networkRepo.GetAllMacs(ctx)
 	if err != nil {
 		return model.MemberConfig{}, err
 	}
+
 	err = s.dhcpdWriter.WhitelistMacs(macs)
 	if err != nil {
 		return model.MemberConfig{}, err
 	}
+
 	return networkConfig, err
 }
 
@@ -87,10 +90,12 @@ func (s Service) DeleteConfig(ctx context.Context, id int) error {
 	if err != nil {
 		return err
 	}
+
 	macs, err := s.networkRepo.GetAllMacs(ctx)
 	if err != nil {
 		return err
 	}
+
 	return s.dhcpdWriter.WhitelistMacs(macs)
 }
 
