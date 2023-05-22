@@ -1,6 +1,7 @@
 package allocation
 
 import (
+	"backend/model"
 	"context"
 	"errors"
 	"net"
@@ -60,7 +61,7 @@ func Test_findIPNotInList(t *testing.T) {
 		}
 		ip, err := findSuffixNotInList(ips, 5, 11)
 		assert.Error(t, err)
-		assert.Equal(t, byte(255), ip)
+		assert.Equal(t, byte(0), ip)
 	})
 }
 
@@ -97,7 +98,7 @@ func TestService_GetUnusedIP(t *testing.T) {
 		ipService.maxSuffix = 8
 
 		ip, err := ipService.GetUnusedIP(ctx)
-		assert.ErrorIs(t, err, noIPFoundErr)
+		assert.Equal(t, "no unallocated ip available", err.(model.HttpError).Message())
 		assert.Equal(t, "", ip)
 	})
 }

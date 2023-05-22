@@ -6,6 +6,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"strings"
 	"time"
@@ -16,14 +17,16 @@ import (
 
 func AuthMiddleware(next http.HandlerFunc, config model.Configuration) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		// read http authorization header
 		header := r.Header.Get("Authorization")
 		if !strings.HasPrefix(header, "Bearer ") || len(header) <= 7 {
-			fmt.Println("Unauthicated access")
-			w.WriteHeader(403)
+			log.Println("Unauthicated access")
+			w.WriteHeader(http.StatusForbidden)
 			return
 		}
 		header = header[7:]
 
+		// parse and check jwt in header
 		token, err := jwt.Parse(header, func(token *jwt.Token) (interface{}, error) {
 			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 				return nil, fmt.Errorf("unexpected method: %s", token.Header["alg"])
@@ -31,13 +34,13 @@ func AuthMiddleware(next http.HandlerFunc, config model.Configuration) http.Hand
 			return []byte(config.HMACSecret), nil
 		})
 		if err != nil {
-			fmt.Println(err)
-			w.WriteHeader(403)
+			log.Println(err)
+			w.WriteHeader(http.StatusForbidden)
 			return
 		}
 		if !token.Valid {
-			fmt.Println("Invalid token")
-			w.WriteHeader(403)
+			log.Println("Invalid token")
+			w.WriteHeader(http.StatusForbidden)
 			return
 		}
 		next.ServeHTTP(w, r)
@@ -59,40 +62,42 @@ var (
 
 func Login(config model.Configuration) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		// decode creadentials
 		c := Credentials{}
 		err := json.NewDecoder(r.Body).Decode(&c)
 		if err != nil {
-			fmt.Println(err)
-			w.WriteHeader(403)
+			log.Println(err)
+			w.WriteHeader(http.StatusForbidden)
 			return
 		}
 
+		// hash given password
 		key := base64.StdEncoding.EncodeToString(argon2.IDKey([]byte(c.Password), []byte(config.Salt), 4, 512*MB, 8, 64))
 
+		// check if username and password are equal
 		userCheck := subtle.ConstantTimeCompare([]byte(c.Username), []byte(config.Username))
 		pwCheck := subtle.ConstantTimeCompare([]byte(key), []byte(config.Password))
 
 		if userCheck == 0 || pwCheck == 0 {
-			fmt.Println("Auth error for user", c.Username)
-			w.WriteHeader(403)
+			log.Println("Auth error for user", c.Username)
+			w.WriteHeader(http.StatusForbidden)
 			return
 		}
 
+		// create a jwt
 		token, err := createJWT(config.HMACSecret)
 		if err != nil {
-			fmt.Println(err)
-			w.WriteHeader(500)
+			sendHttpError(w, err)
 			return
 		}
 
-		// user authenticated
+		// send token back to user
 		_, _ = w.Write([]byte(fmt.Sprintf(`{ "token": "%s" }`, token)))
 		if err != nil {
-			fmt.Println(err)
-			w.WriteHeader(500)
+			sendHttpError(w, err)
 			return
 		}
-		w.WriteHeader(200)
+		w.WriteHeader(http.StatusOK)
 
 	}
 }

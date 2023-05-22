@@ -5,7 +5,7 @@ import (
 	"backend/model"
 	"backend/repository"
 	"backend/service"
-	"fmt"
+	"log"
 	"net/http"
 	"os"
 )
@@ -59,7 +59,7 @@ func newApplication(cfg model.Configuration) (*application, error) {
 
 func (app application) start(config model.Configuration) {
 	router := api.NewRouter(app.service, config)
-	fmt.Println("Listening at Port " + app.port)
+	log.Println("Listening at Port " + app.port)
 	err := http.ListenAndServe(":"+app.port, router)
 	panic(err)
 }
