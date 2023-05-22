@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"strings"
 )
 
 func sendJSONResponse(w http.ResponseWriter, v any) {
@@ -14,7 +15,7 @@ func sendJSONResponse(w http.ResponseWriter, v any) {
 }
 
 func sendHttpError(w http.ResponseWriter, err error) {
-	log.Println(err)
+	log.Println(strings.Replace(err.Error(), "\n", "; ", -1))
 	if httpError, ok := err.(model.HttpError); ok {
 		http.Error(w, httpError.Message(), httpError.Status())
 		return
