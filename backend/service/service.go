@@ -6,6 +6,8 @@ import (
 	"backend/service/allocation"
 	"backend/service/confwriter"
 	"context"
+	"fmt"
+	"net/http"
 
 	"github.com/go-playground/validator/v10"
 )
@@ -48,6 +50,13 @@ func New(repo repository.NetworkRepository) Service {
 func (s Service) UpdateConfig(ctx context.Context, config model.MemberConfig) (model.MemberConfig, error) {
 	err := s.validate.Struct(config)
 	if err != nil {
+		if fieldErrors, ok := err.(validator.ValidationErrors); ok {
+			message := ""
+			for _, fieldError := range fieldErrors {
+				message += fmt.Sprintf("%s:%s; ", fieldError.Field(), fieldError.Tag())
+			}
+			return model.MemberConfig{}, model.Error(http.StatusBadRequest, err.Error(), fmt.Sprintf(message))
+		}
 		return model.MemberConfig{}, err
 	}
 

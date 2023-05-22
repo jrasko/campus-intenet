@@ -1,6 +1,6 @@
 <template>
   <v-snackbar v-model="success" :timeout="2000" color="success"> Erfolg!</v-snackbar>
-  <v-snackbar v-model="failure" :timeout="2000" color="error"> Fehler!</v-snackbar>
+  <v-snackbar v-model="failure" :timeout="3000" color="error">{{ this.errorMessage }}</v-snackbar>
   <AddEditForm :person="this.person" disable-ip="true" />
   <v-row>
     <v-col>
@@ -33,6 +33,7 @@ export default {
   data: () => ({
     success: false,
     failure: false,
+    errorMessage: '',
     person: {
       firstname: '',
       lastname: '',
@@ -51,6 +52,7 @@ export default {
           this.$router.push('/')
         })
         .catch((e) => {
+          this.errorMessage = e.response.data
           this.failure = true
           console.log(e)
         })
@@ -62,6 +64,7 @@ export default {
           this.person = {}
         })
         .catch((e) => {
+          this.errorMessage = e.response.data
           this.failure = true
           console.log(e)
         })

@@ -1,5 +1,5 @@
 <template>
-  <v-snackbar v-model="failure" :timeout="2000" color="error"> Fehler!</v-snackbar>
+  <v-snackbar v-model="failure" :timeout="3000" color="error"> {{ this.errorMessage }}</v-snackbar>
   <AddEditForm :person="this.person" disable-ip="true" />
   <v-row>
     <v-col>
@@ -22,6 +22,7 @@ export default {
   props: {},
   data: () => ({
     failure: false,
+    errorMessage: '',
     person: {
       id: '',
       firstname: '',
@@ -46,6 +47,7 @@ export default {
           this.$router.push('/')
         })
         .catch((e) => {
+          this.errorMessage = e.response.data
           this.failure = true
           console.log(e)
         })

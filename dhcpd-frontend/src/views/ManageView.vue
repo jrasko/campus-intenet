@@ -1,7 +1,6 @@
-<script setup></script>
 <template>
   <v-snackbar v-model="success" :timeout="2000" color="success"> Erfolg!</v-snackbar>
-  <v-snackbar v-model="failure" :timeout="2000" color="error"> Fehler!</v-snackbar>
+  <v-snackbar v-model="failure" :timeout="3000" color="error"> {{ this.errorMessage }}</v-snackbar>
   <v-row>
     <v-col v-if="!(this.$route.name === 'add')">
       <RouterLink to="/add">
@@ -78,7 +77,8 @@ export default {
     return {
       people: [],
       success: false,
-      failure: false
+      failure: false,
+      errorMessage: ''
     }
   },
   mounted() {
@@ -91,7 +91,7 @@ export default {
           this.people = resp.data
         })
         .catch((e) => {
-          if (e.response.status === 403){
+          if (e.response.status === 403) {
             this.$router.push('/login')
           }
           console.log(e)
@@ -111,7 +111,8 @@ export default {
             this.success = true
             this.refresh()
           })
-          .catch(() => {
+          .catch((e) => {
+            this.errorMessage = e.response.data
             this.failure = true
           })
       }
