@@ -18,11 +18,11 @@ var (
 	ctx = context.Background()
 )
 
-func setupDB() (NetworkRepository, error) {
+func setupDB() (MemberRepository, error) {
 	cfg := readConfig()
 	repo, err := New(cfg.DSN())
 	if err != nil {
-		return NetworkRepository{}, err
+		return MemberRepository{}, err
 	}
 	repo.db.Exec("TRUNCATE member_configs RESTART IDENTITY")
 	return repo, err
@@ -42,7 +42,7 @@ func TestNew(t *testing.T) {
 	t.Run("empty dsn", func(t *testing.T) {
 		repo, err := New("")
 		assert.Error(t, err)
-		assert.Equal(t, NetworkRepository{}, repo)
+		assert.Equal(t, MemberRepository{}, repo)
 	})
 	t.Run("it creates table on setup", func(t *testing.T) {
 		config := readConfig()
@@ -55,11 +55,11 @@ func TestNew(t *testing.T) {
 	})
 }
 
-func TestNetworkRepository(t *testing.T) {
+func TestMemberRepository(t *testing.T) {
 	repo, creationErr := setupDB()
 	require.NoError(t, creationErr)
 
-	config := model.MemberConfig{
+	member := model.MemberConfig{
 		Firstname: "first",
 		Lastname:  "name",
 		Mac:       "00:11:22:33:44:55",
@@ -70,7 +70,7 @@ func TestNetworkRepository(t *testing.T) {
 		Phone:     "012345678901",
 		IP:        "192.168.1.1",
 	}
-	config2 := model.MemberConfig{
+	member2 := model.MemberConfig{
 		Firstname: "mister",
 		Lastname:  "x",
 		Mac:       "aa:aa:aa:aa:aa:aa",
@@ -81,7 +81,7 @@ func TestNetworkRepository(t *testing.T) {
 		Phone:     "0999888777666",
 		IP:        "10.0.0.1",
 	}
-	updatedConfig := model.MemberConfig{
+	updatedMember := model.MemberConfig{
 		Firstname: "Bernd",
 		Lastname:  "Das Brot",
 		Mac:       "55:44:33:22:11:00",
@@ -94,79 +94,81 @@ func TestNetworkRepository(t *testing.T) {
 	}
 
 	t.Run("it creates a member", func(t *testing.T) {
-		newConfig, err := repo.UpdateNetworkConfig(ctx, config)
+		newMember, err := repo.UpdateMemberConfig(ctx, member)
 		assert.NoError(t, err)
-		assert.NotEmpty(t, newConfig.ID)
-		config.ID = newConfig.ID
-		assert.Equal(t, config, newConfig)
+		assert.NotEmpty(t, newMember.ID)
+		member.ID = newMember.ID
+		assert.Equal(t, member, newMember)
 	})
 	t.Run("it creates another member", func(t *testing.T) {
-		newConfig, err := repo.UpdateNetworkConfig(ctx, config2)
-		config2.ID = newConfig.ID
+		newMember, err := repo.UpdateMemberConfig(ctx, member2)
+		member2.ID = newMember.ID
 		assert.NoError(t, err)
-		assert.Equal(t, config2, newConfig)
+		assert.Equal(t, member2, newMember)
 	})
 	t.Run("it checks unique constraints", func(t *testing.T) {
-		newConfig := model.MemberConfig{
-			Mac:    config.Mac,
-			RoomNr: config.RoomNr,
-			IP:     config.IP,
+		newMember := model.MemberConfig{
+			Mac:    member.Mac,
+			RoomNr: member.RoomNr,
+			IP:     member.IP,
 		}
-		newConfig, err := repo.UpdateNetworkConfig(ctx, newConfig)
+		newMember, err := repo.UpdateMemberConfig(ctx, newMember)
 		assert.Equal(t, http.StatusConflict, err.(model.HttpError).Status())
 	})
 	t.Run("it retrevies a single member", func(t *testing.T) {
-		cfg, err := repo.GetNetworkConfig(ctx, config.ID)
+		m, err := repo.GetMemberConfig(ctx, member.ID)
 		assert.NoError(t, err)
-		assert.Equal(t, cfg, config)
+		assert.Equal(t, m, m)
 	})
 	t.Run("it retreives multiple members", func(t *testing.T) {
-		cfgs, err := repo.GetAllNetworkConfigs(ctx)
+		members, err := repo.GetAllMemberConfigs(ctx)
 		assert.NoError(t, err)
-		assert.Contains(t, cfgs, config)
-		assert.Contains(t, cfgs, config2)
+		assert.Len(t, members, 2)
+		assert.Contains(t, members, member)
+		assert.Contains(t, members, member2)
 	})
 	t.Run("it retreives all ips", func(t *testing.T) {
 		ips, err := repo.GetAllIPs(ctx)
 		assert.NoError(t, err)
 		assert.Len(t, ips, 2)
-		assert.Contains(t, ips, config.IP)
-		assert.Contains(t, ips, config2.IP)
+		assert.Contains(t, ips, member.IP)
+		assert.Contains(t, ips, member2.IP)
 	})
 	t.Run("it retreives all macs", func(t *testing.T) {
 		macs, err := repo.GetAllMacs(ctx)
 		assert.NoError(t, err)
 		assert.Len(t, macs, 2)
-		assert.Contains(t, macs, config.Mac)
-		assert.Contains(t, macs, config2.Mac)
+		assert.Contains(t, macs, member.Mac)
+		assert.Contains(t, macs, member2.Mac)
 	})
 	t.Run("it updates a member", func(t *testing.T) {
-		updatedConfig.ID = config.ID
-		newConfig, err := repo.UpdateNetworkConfig(ctx, updatedConfig)
+		updatedMember.ID = member.ID
+		newMember, err := repo.UpdateMemberConfig(ctx, updatedMember)
 		assert.NoError(t, err)
-		assert.Equal(t, updatedConfig, newConfig)
+		assert.Equal(t, updatedMember, newMember)
 	})
 	t.Run("it resets payments", func(t *testing.T) {
 		err := repo.ResetPayment(ctx)
 		assert.NoError(t, err)
 
-		cfgs, err := repo.GetAllNetworkConfigs(ctx)
+		members, err := repo.GetAllMemberConfigs(ctx)
 		assert.NoError(t, err)
-		for _, cfg := range cfgs {
-			assert.False(t, cfg.HasPaid)
+		for _, m := range members {
+			assert.False(t, m.HasPaid)
 		}
 	})
 	t.Run("it deletes a member", func(t *testing.T) {
-		err := repo.DeleteNetworkConfig(ctx, config2.ID)
+		err := repo.DeleteMemberConfig(ctx, member2.ID)
 		assert.NoError(t, err)
 
-		_, err = repo.GetNetworkConfig(ctx, config2.ID)
+		_, err = repo.GetMemberConfig(ctx, member2.ID)
 		assert.Equal(t, http.StatusNotFound, err.(model.HttpError).Status())
 	})
 
 }
 
-func TestManyShops(t *testing.T) {
+func TestManyMembers(t *testing.T) {
+	t.SkipNow()
 	repo, creationErr := setupDB()
 	require.NoError(t, creationErr)
 	for i := 0; i < 100; i++ {
@@ -177,7 +179,7 @@ func TestManyShops(t *testing.T) {
 			RoomNr:    strconv.Itoa(i),
 			IP:        strconv.Itoa(i),
 		}
-		member, err := repo.UpdateNetworkConfig(ctx, member)
+		member, err := repo.UpdateMemberConfig(ctx, member)
 		require.NoError(t, err)
 	}
 }

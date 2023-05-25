@@ -2,6 +2,22 @@
   <v-snackbar v-model="success" :timeout="2000" color="success"> Erfolg!</v-snackbar>
   <v-snackbar v-model="failure" :timeout="3000" color="error"> {{ this.errorMessage }}</v-snackbar>
   <v-row>
+    <v-alert v-model="warning" type="warning" variant="tonal" closable>
+      <v-alert-title>
+        inconsistent dhcpd.conf file
+        <v-spacer />
+        <v-btn
+          density="compact"
+          append-icon="mdi-reload-alert"
+          variant="text"
+          @click="this.writeDhcpd"
+        >
+          Regenerate File
+        </v-btn>
+      </v-alert-title>
+    </v-alert>
+  </v-row>
+  <v-row>
     <v-col v-if="!(this.$route.name === 'add')">
       <RouterLink to="/add">
         <v-btn prepend-icon="mdi-account-plus"> Person hinzufügen</v-btn>
@@ -13,7 +29,7 @@
       </v-btn>
     </v-col>
     <v-col>
-      <v-btn prepend-icon="mdi-content-copy" @click="this.copyEmails"> Emails kopieren </v-btn>
+      <v-btn prepend-icon="mdi-content-copy" @click="this.copyEmails">Emails kopieren</v-btn>
     </v-col>
   </v-row>
   <v-row>
@@ -70,7 +86,7 @@
   </v-row>
 </template>
 <script>
-import { deleteConfigFor, getConfigs, resetPayments } from '@/axios'
+import { deleteConfigFor, getConfigs, resetPayments, updateDhcpd } from '@/axios'
 
 export default {
   data() {
@@ -78,6 +94,7 @@ export default {
       people: [],
       success: false,
       failure: false,
+      warning: false,
       errorMessage: ''
     }
   },
@@ -89,6 +106,9 @@ export default {
       getConfigs()
         .then((resp) => {
           this.people = resp.data
+          if (resp.status === 210) {
+            this.warning = true
+          }
         })
         .catch((e) => {
           if (e.response.status === 403) {
@@ -119,11 +139,27 @@ export default {
     },
     resetPayments() {
       if (confirm('Zahlungen zurücksetzen?')) {
-        resetPayments().then(() => {
+        resetPayments()
+          .then(() => {
+            this.success = true
+            this.refresh()
+          })
+          .catch((e) => {
+            this.failure = true
+            this.errorMessage = e.response.data
+          })
+      }
+    },
+    writeDhcpd() {
+      updateDhcpd()
+        .then(() => {
           this.success = true
           this.refresh()
         })
-      }
+        .catch((e) => {
+          this.failure = true
+          this.errorMessage = e.response.data
+        })
     }
   }
 }

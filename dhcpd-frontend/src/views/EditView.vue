@@ -1,6 +1,6 @@
 <template>
   <v-snackbar v-model="failure" :timeout="3000" color="error"> {{ this.errorMessage }}</v-snackbar>
-  <AddEditForm :person="this.person" disable-ip="true" />
+  <AddEditForm :disable-ip="true" :person="this.person" @macUpdate="updateMac" />
   <v-row>
     <v-col>
       <RouterLink to="/">
@@ -16,6 +16,7 @@
 <script>
 import { getConfigFor, updateConfig } from '@/axios'
 import AddEditForm from '@/components/AddEditForm.vue'
+import { formatMac } from '@/utils'
 
 export default {
   components: { AddEditForm },
@@ -51,6 +52,9 @@ export default {
           this.failure = true
           console.log(e)
         })
+    },
+    updateMac() {
+      this.person.mac = formatMac(this.person.mac)
     }
   }
 }

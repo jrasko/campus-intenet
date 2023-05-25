@@ -21,14 +21,15 @@ func New() DhcpdWriter {
 }
 
 const (
-	charsPerMac = 19
-	staticChars = 12
+	charsPerMac      = 19
+	templateMacField = "macs"
 )
 
 func (dw DhcpdWriter) WhitelistMacs(macs []string) error {
-	bufferSize := staticChars + charsPerMac*len(macs)
+	bufferSize := charsPerMac * len(macs)
 	b := bytes.NewBuffer(make([]byte, 0, bufferSize))
-	err := dw.template.Execute(b, map[any]any{"macs": macs})
+
+	err := dw.template.Execute(b, map[any]any{templateMacField: macs})
 	if err != nil {
 		return model.Error(http.StatusInternalServerError, err.Error(), "could not parse dhcpd template")
 	}

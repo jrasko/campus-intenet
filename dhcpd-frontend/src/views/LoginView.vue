@@ -8,8 +8,8 @@
         <v-text-field v-model="this.credentials.username" label="Nutzername" />
         <v-text-field
           v-model="this.credentials.password"
-          type="password"
           label="Passwort"
+          type="password"
           @keyup.enter="login"
         />
         <v-btn @click="login">Login</v-btn>
