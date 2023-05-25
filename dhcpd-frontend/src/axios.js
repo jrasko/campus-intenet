@@ -28,6 +28,10 @@ export async function login(credentials) {
   return await axios.post('/dhcpd/login', credentials)
 }
 
+export async function updateDhcpd() {
+  return await axios.post('/dhcpd/write', {}, getTokenConfig())
+}
+
 function getTokenConfig() {
   return {
     headers: {

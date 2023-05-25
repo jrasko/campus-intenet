@@ -2,7 +2,6 @@ package service
 
 import (
 	"backend/model"
-	"backend/repository"
 	"backend/service/allocation"
 	"backend/service/confwriter"
 	"context"
@@ -14,9 +13,11 @@ import (
 
 type Service struct {
 	validate    *validator.Validate
-	networkRepo ResidentsRepository
+	memberRepo  MemberRepository
 	ipService   IPAllocationService
 	dhcpdWriter ConfWriter
+
+	inconsistentState bool // indicates if the db has another state than the dhcpd file
 }
 
 type ConfWriter interface {
@@ -27,27 +28,33 @@ type IPAllocationService interface {
 	GetUnusedIP(ctx context.Context) (string, error)
 }
 
-type ResidentsRepository interface {
-	UpdateNetworkConfig(ctx context.Context, conf model.MemberConfig) (model.MemberConfig, error)
-	GetAllNetworkConfigs(ctx context.Context) ([]model.MemberConfig, error)
-	GetNetworkConfig(ctx context.Context, id int) (model.MemberConfig, error)
-	DeleteNetworkConfig(ctx context.Context, id int) error
+type MemberRepository interface {
+	allocation.IPRepository
+	UpdateMemberConfig(ctx context.Context, conf model.MemberConfig) (model.MemberConfig, error)
+	GetAllMemberConfigs(ctx context.Context) ([]model.MemberConfig, error)
+	GetMemberConfig(ctx context.Context, id int) (model.MemberConfig, error)
+	DeleteMemberConfig(ctx context.Context, id int) error
 	ResetPayment(ctx context.Context) error
 	GetAllMacs(ctx context.Context) ([]string, error)
 }
 
-func New(repo repository.NetworkRepository) Service {
-	w := confwriter.New()
-	v := validator.New()
-	return Service{
-		validate:    v,
-		dhcpdWriter: w,
-		networkRepo: repo,
-		ipService:   allocation.New(repo),
+func New(repo MemberRepository) Service {
+	dhcpdWriter := confwriter.New()
+	s := Service{
+		validate:          validator.New(),
+		dhcpdWriter:       dhcpdWriter,
+		memberRepo:        repo,
+		ipService:         allocation.New(repo),
+		inconsistentState: false,
 	}
+	// generate config from db initially
+	if err := s.UpdateDhcpdFile(context.Background()); err != nil {
+		panic(err)
+	}
+	return s
 }
 
-func (s Service) UpdateConfig(ctx context.Context, config model.MemberConfig) (model.MemberConfig, error) {
+func (s Service) UpdateMember(ctx context.Context, config model.MemberConfig) (model.MemberConfig, error) {
 	err := s.validate.Struct(config)
 	if err != nil {
 		if fieldErrors, ok := err.(validator.ValidationErrors); ok {
@@ -67,47 +74,51 @@ func (s Service) UpdateConfig(ctx context.Context, config model.MemberConfig) (m
 		}
 	}
 
-	//FIXME konsistenz?
-	networkConfig, err := s.networkRepo.UpdateNetworkConfig(ctx, specialize(config))
+	memberConfig, err := s.memberRepo.UpdateMemberConfig(ctx, specialize(config))
 	if err != nil {
 		return model.MemberConfig{}, err
 	}
 
-	macs, err := s.networkRepo.GetAllMacs(ctx)
+	err = s.UpdateDhcpdFile(ctx)
 	if err != nil {
 		return model.MemberConfig{}, err
+	}
+
+	return memberConfig, err
+}
+
+func (s Service) UpdateDhcpdFile(ctx context.Context) error {
+	macs, err := s.memberRepo.GetAllMacs(ctx)
+	if err != nil {
+		return err
 	}
 
 	err = s.dhcpdWriter.WhitelistMacs(macs)
-	if err != nil {
-		return model.MemberConfig{}, err
-	}
-
-	return networkConfig, err
+	s.inconsistentState = err != nil
+	return err
 }
 
-func (s Service) GetAllConfigs(ctx context.Context) ([]model.MemberConfig, error) {
-	return s.networkRepo.GetAllNetworkConfigs(ctx)
+func (s Service) GetAllMembers(ctx context.Context) ([]model.MemberConfig, error) {
+	return s.memberRepo.GetAllMemberConfigs(ctx)
 }
 
-func (s Service) GetConfig(ctx context.Context, id int) (model.MemberConfig, error) {
-	return s.networkRepo.GetNetworkConfig(ctx, id)
+func (s Service) GetMember(ctx context.Context, id int) (model.MemberConfig, error) {
+	return s.memberRepo.GetMemberConfig(ctx, id)
 }
 
-func (s Service) DeleteConfig(ctx context.Context, id int) error {
-	err := s.networkRepo.DeleteNetworkConfig(ctx, id)
+func (s Service) DeleteMember(ctx context.Context, id int) error {
+	err := s.memberRepo.DeleteMemberConfig(ctx, id)
 	if err != nil {
 		return err
 	}
 
-	macs, err := s.networkRepo.GetAllMacs(ctx)
-	if err != nil {
-		return err
-	}
-
-	return s.dhcpdWriter.WhitelistMacs(macs)
+	return s.UpdateDhcpdFile(ctx)
 }
 
 func (s Service) ResetPayment(ctx context.Context) error {
-	return s.networkRepo.ResetPayment(ctx)
+	return s.memberRepo.ResetPayment(ctx)
+}
+
+func (s Service) IsInconsistent() bool {
+	return s.inconsistentState
 }

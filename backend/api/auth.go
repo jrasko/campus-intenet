@@ -15,7 +15,13 @@ import (
 	"golang.org/x/crypto/argon2"
 )
 
-func AuthMiddleware(next http.HandlerFunc, config model.Configuration) http.HandlerFunc {
+type AuthHandler struct {
+	config model.Configuration
+}
+
+// Middleware wraps a http.HandlerFunc and checks if the caller is authenticated with a valid token
+// if the caller has a valid token, the request will be forwarded to the wrapped http.HandlerFunc
+func (a AuthHandler) Middleware(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// read http authorization header
 		header := r.Header.Get("Authorization")
@@ -31,7 +37,7 @@ func AuthMiddleware(next http.HandlerFunc, config model.Configuration) http.Hand
 			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 				return nil, fmt.Errorf("unexpected method: %s", token.Header["alg"])
 			}
-			return []byte(config.HMACSecret), nil
+			return []byte(a.config.HMACSecret), nil
 		})
 		if err != nil {
 			log.Println(err)
@@ -60,7 +66,7 @@ var (
 	expirationTime = 2 * time.Hour
 )
 
-func Login(config model.Configuration) http.HandlerFunc {
+func (a AuthHandler) Login() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// decode creadentials
 		c := Credentials{}
@@ -72,11 +78,11 @@ func Login(config model.Configuration) http.HandlerFunc {
 		}
 
 		// hash given password
-		key := base64.StdEncoding.EncodeToString(argon2.IDKey([]byte(c.Password), []byte(config.Salt), 4, 512*MB, 8, 64))
+		key := base64.StdEncoding.EncodeToString(argon2.IDKey([]byte(c.Password), []byte(a.config.Salt), 4, 512*MB, 8, 64))
 
 		// check if username and password are equal
-		userCheck := subtle.ConstantTimeCompare([]byte(c.Username), []byte(config.Username))
-		pwCheck := subtle.ConstantTimeCompare([]byte(key), []byte(config.Password))
+		userCheck := subtle.ConstantTimeCompare([]byte(c.Username), []byte(a.config.Username))
+		pwCheck := subtle.ConstantTimeCompare([]byte(key), []byte(a.config.Password))
 
 		if userCheck == 0 || pwCheck == 0 {
 			log.Println("Auth error for user", c.Username)
@@ -85,7 +91,7 @@ func Login(config model.Configuration) http.HandlerFunc {
 		}
 
 		// create a jwt
-		token, err := createJWT(config.HMACSecret)
+		token, err := createJWT(a.config.HMACSecret)
 		if err != nil {
 			sendHttpError(w, err)
 			return

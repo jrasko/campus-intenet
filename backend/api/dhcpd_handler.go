@@ -10,27 +10,33 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func PostConfigHandler(service DhcpdService) http.HandlerFunc {
+const StatusInconsistent = 210
+
+type Handler struct {
+	service DhcpdService
+}
+
+func (h Handler) PostConfigHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var config model.MemberConfig
-		err := json.NewDecoder(r.Body).Decode(&config)
+		var member model.MemberConfig
+		err := json.NewDecoder(r.Body).Decode(&member)
 		if err != nil {
 			log.Println(err)
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
 
-		config, err = service.UpdateConfig(r.Context(), config)
+		member, err = h.service.UpdateMember(r.Context(), member)
 		if err != nil {
 			sendHttpError(w, err)
 			return
 		}
 
-		sendJSONResponse(w, config)
+		sendJSONResponse(w, member)
 	}
 }
 
-func PutConfigHandler(service DhcpdService) http.HandlerFunc {
+func (h Handler) PutConfigHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		idParam, ok := mux.Vars(r)["id"]
 		id, err := strconv.Atoi(idParam)
@@ -39,57 +45,41 @@ func PutConfigHandler(service DhcpdService) http.HandlerFunc {
 			return
 		}
 
-		var config model.MemberConfig
-		err = json.NewDecoder(r.Body).Decode(&config)
+		var member model.MemberConfig
+		err = json.NewDecoder(r.Body).Decode(&member)
 		if err != nil {
 			log.Println(err)
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
 
-		config.ID = id
-		config, err = service.UpdateConfig(r.Context(), config)
+		member.ID = id
+		member, err = h.service.UpdateMember(r.Context(), member)
 		if err != nil {
 			sendHttpError(w, err)
 			return
 		}
 
-		sendJSONResponse(w, config)
+		sendJSONResponse(w, member)
 	}
 }
 
-func GetAllConfigHandler(service DhcpdService) http.HandlerFunc {
+func (h Handler) GetAllConfigHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		configs, err := service.GetAllConfigs(r.Context())
+		members, err := h.service.GetAllMembers(r.Context())
 		if err != nil {
 			sendHttpError(w, err)
 			return
 		}
 
-		sendJSONResponse(w, configs)
+		if h.service.IsInconsistent() {
+			w.WriteHeader(StatusInconsistent)
+		}
+		sendJSONResponse(w, members)
 	}
 }
 
-func GetConfigHandler(service DhcpdService) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		idParam, ok := mux.Vars(r)["id"]
-		id, err := strconv.Atoi(idParam)
-		if !ok || err != nil {
-			w.WriteHeader(http.StatusBadRequest)
-			return
-		}
-
-		config, err := service.GetConfig(r.Context(), id)
-		if err != nil {
-			sendHttpError(w, err)
-			return
-		}
-
-		sendJSONResponse(w, config)
-	}
-}
-
-func DeleteConfigHandler(service DhcpdService) http.HandlerFunc {
+func (h Handler) GetConfigHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		idParam, ok := mux.Vars(r)["id"]
 		id, err := strconv.Atoi(idParam)
@@ -98,7 +88,29 @@ func DeleteConfigHandler(service DhcpdService) http.HandlerFunc {
 			return
 		}
 
-		err = service.DeleteConfig(r.Context(), id)
+		member, err := h.service.GetMember(r.Context(), id)
+		if err != nil {
+			sendHttpError(w, err)
+			return
+		}
+
+		if h.service.IsInconsistent() {
+			w.WriteHeader(StatusInconsistent)
+		}
+		sendJSONResponse(w, member)
+	}
+}
+
+func (h Handler) DeleteConfigHandler() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		idParam, ok := mux.Vars(r)["id"]
+		id, err := strconv.Atoi(idParam)
+		if !ok || err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		err = h.service.DeleteMember(r.Context(), id)
 		if err != nil {
 			sendHttpError(w, err)
 			return
@@ -108,14 +120,26 @@ func DeleteConfigHandler(service DhcpdService) http.HandlerFunc {
 	}
 }
 
-func ResetPaymentConfigHandler(service DhcpdService) http.HandlerFunc {
+func (h Handler) ResetPaymentConfigHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		err := service.ResetPayment(r.Context())
+		err := h.service.ResetPayment(r.Context())
 		if err != nil {
 			sendHttpError(w, err)
 			return
 		}
 
 		w.WriteHeader(http.StatusNoContent)
+	}
+}
+
+func (h Handler) WriteConfigHandler() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		err := h.service.UpdateDhcpdFile(r.Context())
+		if err != nil {
+			sendHttpError(w, err)
+			return
+		}
+
+		w.WriteHeader(http.StatusOK)
 	}
 }

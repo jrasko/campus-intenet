@@ -10,15 +10,20 @@
     </v-row>
     <v-row>
       <v-col>
-        <v-text-field v-model="person.mac" label="MAC-Adresse" />
+        <v-text-field
+          v-model="person.mac"
+          :maxlength="17"
+          label="MAC-Adresse"
+          @input="this.$emit('macUpdate')"
+        />
       </v-col>
       <v-col>
         <v-text-field
           v-model="person.ip"
-          label="IP Addresse"
           :disabled="disableIp"
-          persistent-hint
           hint="autogeneriert wenn leer"
+          label="IP Addresse"
+          persistent-hint
         />
       </v-col>
     </v-row>

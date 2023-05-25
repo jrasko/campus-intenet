@@ -23,14 +23,8 @@
 </template>
 <script>
 import { useTheme } from 'vuetify'
-import { th } from 'vuetify/locale'
 
 export default {
-  computed: {
-    th() {
-      return th
-    }
-  },
   setup() {
     const theme = useTheme()
     return {

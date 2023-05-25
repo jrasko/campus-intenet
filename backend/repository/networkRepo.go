@@ -20,26 +20,26 @@ type AllocatedIP struct {
 	IP string
 }
 
-func New(dsn string) (NetworkRepository, error) {
+func New(dsn string) (MemberRepository, error) {
 	db, err := gorm.Open(postgres.Open(dsn))
 	if err != nil {
-		return NetworkRepository{}, err
+		return MemberRepository{}, err
 	}
 
 	// check if db has needed table
 	if !db.Migrator().HasTable(memberTable) {
 		if err = db.Migrator().CreateTable(&model.MemberConfig{}); err != nil {
-			return NetworkRepository{}, fmt.Errorf("could not create table: %w", err)
+			return MemberRepository{}, fmt.Errorf("could not create table: %w", err)
 		}
 	}
-	return NetworkRepository{db: db}, nil
+	return MemberRepository{db: db}, nil
 }
 
-type NetworkRepository struct {
+type MemberRepository struct {
 	db *gorm.DB
 }
 
-func (nr NetworkRepository) UpdateNetworkConfig(ctx context.Context, conf model.MemberConfig) (model.MemberConfig, error) {
+func (nr MemberRepository) UpdateMemberConfig(ctx context.Context, conf model.MemberConfig) (model.MemberConfig, error) {
 	err := nr.db.
 		WithContext(ctx).
 		Save(&conf).
@@ -47,7 +47,7 @@ func (nr NetworkRepository) UpdateNetworkConfig(ctx context.Context, conf model.
 	return conf, wrapGormErrors(err)
 }
 
-func (nr NetworkRepository) GetAllNetworkConfigs(ctx context.Context) ([]model.MemberConfig, error) {
+func (nr MemberRepository) GetAllMemberConfigs(ctx context.Context) ([]model.MemberConfig, error) {
 	var configs []model.MemberConfig
 	err := nr.db.
 		WithContext(ctx).
@@ -57,7 +57,7 @@ func (nr NetworkRepository) GetAllNetworkConfigs(ctx context.Context) ([]model.M
 	return configs, wrapGormErrors(err)
 }
 
-func (nr NetworkRepository) GetAllMacs(ctx context.Context) ([]string, error) {
+func (nr MemberRepository) GetAllMacs(ctx context.Context) ([]string, error) {
 	var macs []string
 	err := nr.db.
 		WithContext(ctx).
@@ -68,7 +68,7 @@ func (nr NetworkRepository) GetAllMacs(ctx context.Context) ([]string, error) {
 	return macs, wrapGormErrors(err)
 }
 
-func (nr NetworkRepository) GetNetworkConfig(ctx context.Context, id int) (model.MemberConfig, error) {
+func (nr MemberRepository) GetMemberConfig(ctx context.Context, id int) (model.MemberConfig, error) {
 	config := model.MemberConfig{}
 	err := nr.db.
 		WithContext(ctx).
@@ -78,7 +78,7 @@ func (nr NetworkRepository) GetNetworkConfig(ctx context.Context, id int) (model
 	return config, wrapGormErrors(err)
 }
 
-func (nr NetworkRepository) DeleteNetworkConfig(ctx context.Context, id int) error {
+func (nr MemberRepository) DeleteMemberConfig(ctx context.Context, id int) error {
 	err := nr.db.
 		WithContext(ctx).
 		Delete(&model.MemberConfig{}, id).
@@ -86,7 +86,7 @@ func (nr NetworkRepository) DeleteNetworkConfig(ctx context.Context, id int) err
 	return wrapGormErrors(err)
 }
 
-func (nr NetworkRepository) ResetPayment(ctx context.Context) error {
+func (nr MemberRepository) ResetPayment(ctx context.Context) error {
 	err := nr.db.
 		WithContext(ctx).
 		Table(memberTable).
@@ -96,7 +96,7 @@ func (nr NetworkRepository) ResetPayment(ctx context.Context) error {
 	return wrapGormErrors(err)
 }
 
-func (nr NetworkRepository) GetAllIPs(ctx context.Context) ([]string, error) {
+func (nr MemberRepository) GetAllIPs(ctx context.Context) ([]string, error) {
 	var ips []string
 	err := nr.db.
 		WithContext(ctx).
