@@ -52,6 +52,6 @@ func findSuffixNotInList(ips []string, minSuffix byte, maxSuffix byte) (byte, er
 			return i, nil
 		}
 	}
-	return 0, model.Error(http.StatusInternalServerError, "no unused ips available", "no unallocated ip available")
+	return 0, model.Error(http.StatusInternalServerError, "no unallocated ips available", "no unallocated ip available")
 
 }

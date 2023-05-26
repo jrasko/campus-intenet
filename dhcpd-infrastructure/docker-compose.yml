@@ -7,8 +7,6 @@ services:
     env_file:
       - ".env"
     container_name: dhcpd_db
-    ports:
-      - "5432:5432"
     volumes:
       - dhcpd-db:/var/lib/postgresql/data
   traefik:

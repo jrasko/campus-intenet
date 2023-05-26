@@ -41,11 +41,11 @@ type MemberRepository interface {
 func New(repo MemberRepository) Service {
 	dhcpdWriter := confwriter.New()
 	s := Service{
-		validate:          validator.New(),
-		dhcpdWriter:       dhcpdWriter,
-		memberRepo:        repo,
-		ipService:         allocation.New(repo),
 		inconsistentState: false,
+		memberRepo:        repo,
+		dhcpdWriter:       dhcpdWriter,
+		validate:          validator.New(),
+		ipService:         allocation.New(repo),
 	}
 	// generate config from db initially
 	if err := s.UpdateDhcpdFile(context.Background()); err != nil {

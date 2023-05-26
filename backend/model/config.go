@@ -1,16 +1,25 @@
 package model
 
-import "fmt"
+import (
+	"fmt"
+	"os"
+)
+
+const defaultUrl = ":8080"
 
 type Configuration struct {
-	Username   string
-	Password   string
+	Username string
+	Password string
+	Salt     string
+
 	HMACSecret string
-	Salt       string
+
 	DBHost     string
 	DBDatabase string
 	DBUser     string
 	DBPassword string
+
+	URL string
 }
 
 func (c Configuration) DSN() string {
@@ -21,4 +30,22 @@ func (c Configuration) DSN() string {
 		c.DBPassword,
 		c.DBDatabase,
 	)
+}
+
+func LoadConfig() Configuration {
+	config := Configuration{
+		Username:   os.Getenv("LOGIN_USER"),
+		Password:   os.Getenv("LOGIN_PASSWORD_HASH"),
+		HMACSecret: os.Getenv("HMAC_SECRET"),
+		Salt:       os.Getenv("SALT"),
+		DBDatabase: os.Getenv("POSTGRES_DB"),
+		DBHost:     os.Getenv("POSTGRES_HOST"),
+		DBUser:     os.Getenv("POSTGRES_USER"),
+		DBPassword: os.Getenv("POSTGRES_PASSWORD"),
+		URL:        defaultUrl,
+	}
+	if (config == Configuration{}) {
+		panic("empty config")
+	}
+	return config
 }
