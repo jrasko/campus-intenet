@@ -7,59 +7,44 @@ import (
 	"backend/service"
 	"log"
 	"net/http"
-	"os"
 )
 
+type application struct {
+	url        string
+	service    api.DhcpdService
+	repository api.DhcpdRepository
+	router     http.Handler
+}
+
 func main() {
-	config := loadConfig()
+	config := model.LoadConfig()
+
 	app, err := newApplication(config)
 	if err != nil {
 		panic(err)
 	}
 
-	app.start(config)
+	app.start()
 }
 
-func loadConfig() model.Configuration {
-	config := model.Configuration{
-		Username:   os.Getenv("LOGIN_USER"),
-		Password:   os.Getenv("LOGIN_PASSWORD_HASH"),
-		HMACSecret: os.Getenv("HMAC_SECRET"),
-		Salt:       os.Getenv("SALT"),
-		DBDatabase: os.Getenv("POSTGRES_DB"),
-		DBHost:     os.Getenv("POSTGRES_HOST"),
-		DBUser:     os.Getenv("POSTGRES_USER"),
-		DBPassword: os.Getenv("POSTGRES_PASSWORD"),
-	}
-	if (config == model.Configuration{}) {
-		panic("empty config")
-	}
-	return config
-}
-
-type application struct {
-	port       string
-	service    api.DhcpdService
-	repository api.DhcpdRepository
-}
-
-func newApplication(cfg model.Configuration) (*application, error) {
-	repo, err := repository.New(cfg.DSN())
+func newApplication(config model.Configuration) (*application, error) {
+	repo, err := repository.New(config.DSN())
 	if err != nil {
 		return nil, err
 	}
 	srv := service.New(repo)
+	router := api.NewRouter(srv, config)
 
 	return &application{
 		repository: repo,
 		service:    srv,
-		port:       "8080",
+		url:        config.URL,
+		router:     router,
 	}, nil
 }
 
-func (app application) start(config model.Configuration) {
-	router := api.NewRouter(app.service, config)
-	log.Println("Listening at Port " + app.port)
-	err := http.ListenAndServe(":"+app.port, router)
+func (app application) start() {
+	log.Println("Listening at " + app.url)
+	err := http.ListenAndServe(app.url, app.router)
 	panic(err)
 }

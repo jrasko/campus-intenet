@@ -1,7 +1,9 @@
 export function formatMac(mac) {
   const macLen = 17
-  if (mac < macLen) {
-    mac = this.person.mac.replace(/:/g, '').replace(/(.{2})/g, '$1:')
+  let str = mac.toUpperCase()
+  if (str.length < macLen) {
+    str = str
+        .replace(/([0-9A-F]{2}$)/g, '$1:')
   }
-  return mac
+  return str
 }
