@@ -10,6 +10,7 @@ import * as directives from 'vuetify/directives'
 import { aliases, mdi } from 'vuetify/iconsets/mdi'
 import '@mdi/font/css/materialdesignicons.css'
 import axios from 'axios'
+import { isLoggedIn, noAuthPages } from '@/utils'
 
 const vuetify = createVuetify({
   components: components,
@@ -32,7 +33,7 @@ if (import.meta.env.MODE === 'development') {
 }
 
 router.beforeEach((to) => {
-  if (!localStorage.getItem('jwt') && to.name !== 'login') {
+  if (!isLoggedIn() && !noAuthPages.includes(to.name)) {
     return { name: 'login' }
   }
 })

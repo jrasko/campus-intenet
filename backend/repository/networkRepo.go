@@ -39,17 +39,17 @@ type MemberRepository struct {
 	db *gorm.DB
 }
 
-func (nr MemberRepository) UpdateMemberConfig(ctx context.Context, conf model.MemberConfig) (model.MemberConfig, error) {
-	err := nr.db.
+func (mr MemberRepository) UpdateMemberConfig(ctx context.Context, conf model.MemberConfig) (model.MemberConfig, error) {
+	err := mr.db.
 		WithContext(ctx).
 		Save(&conf).
 		Error
 	return conf, wrapGormErrors(err)
 }
 
-func (nr MemberRepository) GetAllMemberConfigs(ctx context.Context) ([]model.MemberConfig, error) {
+func (mr MemberRepository) GetAllMemberConfigs(ctx context.Context) ([]model.MemberConfig, error) {
 	var configs []model.MemberConfig
-	err := nr.db.
+	err := mr.db.
 		WithContext(ctx).
 		Order("lastname, firstname").
 		Find(&configs).
@@ -57,9 +57,9 @@ func (nr MemberRepository) GetAllMemberConfigs(ctx context.Context) ([]model.Mem
 	return configs, wrapGormErrors(err)
 }
 
-func (nr MemberRepository) GetAllMacs(ctx context.Context) ([]string, error) {
+func (mr MemberRepository) GetAllMacs(ctx context.Context) ([]string, error) {
 	var macs []string
-	err := nr.db.
+	err := mr.db.
 		WithContext(ctx).
 		Table(memberTable).
 		Select("mac").
@@ -68,9 +68,9 @@ func (nr MemberRepository) GetAllMacs(ctx context.Context) ([]string, error) {
 	return macs, wrapGormErrors(err)
 }
 
-func (nr MemberRepository) GetMemberConfig(ctx context.Context, id int) (model.MemberConfig, error) {
+func (mr MemberRepository) GetMemberConfig(ctx context.Context, id int) (model.MemberConfig, error) {
 	config := model.MemberConfig{}
-	err := nr.db.
+	err := mr.db.
 		WithContext(ctx).
 		Where("id = ?", id).
 		First(&config).
@@ -78,16 +78,16 @@ func (nr MemberRepository) GetMemberConfig(ctx context.Context, id int) (model.M
 	return config, wrapGormErrors(err)
 }
 
-func (nr MemberRepository) DeleteMemberConfig(ctx context.Context, id int) error {
-	err := nr.db.
+func (mr MemberRepository) DeleteMemberConfig(ctx context.Context, id int) error {
+	err := mr.db.
 		WithContext(ctx).
 		Delete(&model.MemberConfig{}, id).
 		Error
 	return wrapGormErrors(err)
 }
 
-func (nr MemberRepository) ResetPayment(ctx context.Context) error {
-	err := nr.db.
+func (mr MemberRepository) ResetPayment(ctx context.Context) error {
+	err := mr.db.
 		WithContext(ctx).
 		Table(memberTable).
 		Where("true").
@@ -96,9 +96,9 @@ func (nr MemberRepository) ResetPayment(ctx context.Context) error {
 	return wrapGormErrors(err)
 }
 
-func (nr MemberRepository) GetAllIPs(ctx context.Context) ([]string, error) {
+func (mr MemberRepository) GetAllIPs(ctx context.Context) ([]string, error) {
 	var ips []string
-	err := nr.db.
+	err := mr.db.
 		WithContext(ctx).
 		Table(memberTable).
 		Select("ip").
@@ -106,6 +106,17 @@ func (nr MemberRepository) GetAllIPs(ctx context.Context) ([]string, error) {
 		Find(&ips).
 		Error
 	return ips, wrapGormErrors(err)
+}
+
+func (mr MemberRepository) GetNonPayingMembers(ctx context.Context) ([]model.MemberConfig, error) {
+	var members []model.MemberConfig
+	err := mr.db.
+		WithContext(ctx).
+		Select("firstname", "lastname").
+		Where("has_paid = false").
+		Find(&members).
+		Error
+	return members, wrapGormErrors(err)
 }
 
 func wrapGormErrors(err error) error {

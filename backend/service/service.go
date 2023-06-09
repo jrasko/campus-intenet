@@ -36,6 +36,7 @@ type MemberRepository interface {
 	DeleteMemberConfig(ctx context.Context, id int) error
 	ResetPayment(ctx context.Context) error
 	GetAllMacs(ctx context.Context) ([]string, error)
+	GetNonPayingMembers(ctx context.Context) ([]model.MemberConfig, error)
 }
 
 func New(repo MemberRepository) Service {
@@ -121,4 +122,17 @@ func (s Service) ResetPayment(ctx context.Context) error {
 
 func (s Service) IsInconsistent() bool {
 	return s.inconsistentState
+}
+
+func (s Service) GetNotPayingMembers(ctx context.Context) ([]model.ReducedMember, error) {
+	bobs, err := s.memberRepo.GetNonPayingMembers(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	person := make([]model.ReducedMember, 0, len(bobs))
+	for _, member := range bobs {
+		person = append(person, member.ToReduced())
+	}
+	return person, nil
 }

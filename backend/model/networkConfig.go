@@ -8,7 +8,19 @@ type MemberConfig struct {
 	RoomNr    string `json:"roomNr" validate:"required" gorm:"unique"`
 	HasPaid   bool   `json:"hasPaid"`
 	WG        string `json:"wg"`
-	Email     string `json:"email"`
+	Email     string `json:"email" validate:"omitempty,email"`
 	Phone     string `json:"phone"`
-	IP        string `json:"ip" gorm:"unique"`
+	IP        string `json:"ip" gorm:"unique" validate:"omitempty,ipv4"`
+}
+
+type ReducedMember struct {
+	Firstname string `json:"firstname"`
+	Lastname  string `json:"lastname"`
+}
+
+func (c MemberConfig) ToReduced() ReducedMember {
+	return ReducedMember{
+		Firstname: c.Firstname,
+		Lastname:  c.Lastname,
+	}
 }

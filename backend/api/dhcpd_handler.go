@@ -143,3 +143,14 @@ func (h Handler) WriteConfigHandler() http.HandlerFunc {
 		w.WriteHeader(http.StatusOK)
 	}
 }
+
+func (h Handler) WallOfShame() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		members, err := h.service.GetNotPayingMembers(r.Context())
+		if err != nil {
+			sendHttpError(w, err)
+			return
+		}
+		sendJSONResponse(w, members)
+	}
+}
