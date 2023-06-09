@@ -32,6 +32,10 @@ export async function updateDhcpd() {
   return await axios.post('/dhcpd/write', {}, getTokenConfig())
 }
 
+export async function getShameList() {
+  return await axios.get('/dhcpd/shame')
+}
+
 function getTokenConfig() {
   return {
     headers: {

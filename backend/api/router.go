@@ -16,6 +16,7 @@ type DhcpdService interface {
 	ResetPayment(ctx context.Context) error
 	UpdateDhcpdFile(ctx context.Context) error
 	IsInconsistent() bool
+	GetNotPayingMembers(ctx context.Context) ([]model.ReducedMember, error)
 }
 
 type DhcpdRepository interface{}
@@ -45,6 +46,10 @@ func NewRouter(service DhcpdService, config model.Configuration) http.Handler {
 	router.
 		Handle("/dhcpd/resetPayment", auth.Middleware(h.ResetPaymentConfigHandler())).
 		Methods(http.MethodPost)
+
+	router.
+		Handle("/dhcpd/shame", h.WallOfShame()).
+		Methods(http.MethodGet)
 
 	router.
 		Handle("/dhcpd/{id}", auth.Middleware(h.GetConfigHandler())).

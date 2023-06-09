@@ -6,7 +6,6 @@ import (
 	"encoding/hex"
 	"fmt"
 	"net/http"
-	"os"
 	"strconv"
 	"testing"
 
@@ -19,22 +18,13 @@ var (
 )
 
 func setupDB() (MemberRepository, error) {
-	cfg := readConfig()
+	cfg := model.LoadConfig()
 	repo, err := New(cfg.DSN())
 	if err != nil {
 		return MemberRepository{}, err
 	}
 	repo.db.Exec("TRUNCATE member_configs RESTART IDENTITY")
 	return repo, err
-}
-
-func readConfig() model.Configuration {
-	return model.Configuration{
-		DBHost:     "localhost",
-		DBDatabase: "network",
-		DBUser:     "network",
-		DBPassword: os.Getenv("POSTGRES_PASSWORD"),
-	}
 }
 
 func TestNew(t *testing.T) {
@@ -45,7 +35,7 @@ func TestNew(t *testing.T) {
 		assert.Equal(t, MemberRepository{}, repo)
 	})
 	t.Run("it creates table on setup", func(t *testing.T) {
-		config := readConfig()
+		config := model.LoadConfig()
 		repo, err := New(config.DSN())
 		assert.NoError(t, err)
 		repo.db.Exec(fmt.Sprintf("DROP TABLE %s", memberTable))
@@ -146,6 +136,18 @@ func TestMemberRepository(t *testing.T) {
 		newMember, err := repo.UpdateMemberConfig(ctx, updatedMember)
 		assert.NoError(t, err)
 		assert.Equal(t, updatedMember, newMember)
+	})
+	t.Run("it retreives first and lastnames", func(t *testing.T) {
+		persons, err := repo.GetNonPayingMembers(ctx)
+		assert.NoError(t, err)
+		assert.Len(t, persons, 1)
+		assert.Contains(t, persons,
+			model.MemberConfig{
+				Firstname: member2.Firstname,
+				Lastname:  member2.Lastname,
+			},
+		)
+
 	})
 	t.Run("it resets payments", func(t *testing.T) {
 		err := repo.ResetPayment(ctx)
