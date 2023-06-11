@@ -1,57 +1,18 @@
 package allocation
 
 import (
-	"backend/model"
-	"context"
+	"encoding/binary"
 	"net"
-	"net/http"
 )
 
-//go:generate mockery --name IPRepository
-type IPRepository interface {
-	GetAllIPs(ctx context.Context) ([]string, error)
+type IPv4 uint32
+
+func NewIPv4(ip []byte) IPv4 {
+	return IPv4(binary.BigEndian.Uint32(ip))
 }
 
-type Service struct {
-	repository IPRepository
-	minSuffix  byte
-	maxSuffix  byte
-	IPPrefix   []byte
-}
-
-func New(repo IPRepository) Service {
-	return Service{
-		repository: repo,
-		minSuffix:  byte(6),
-		maxSuffix:  byte(254),
-		IPPrefix:   []byte{149, 201, 243},
-	}
-}
-
-func (s Service) GetUnusedIP(ctx context.Context) (string, error) {
-	ips, err := s.repository.GetAllIPs(ctx)
-	if err != nil {
-		return "", err
-	}
-
-	suffix, err := findSuffixNotInList(ips, s.minSuffix, s.maxSuffix)
-	if err != nil {
-		return "", err
-	}
-
-	return net.IPv4(s.IPPrefix[0], s.IPPrefix[1], s.IPPrefix[2], suffix).String(), nil
-}
-
-func findSuffixNotInList(ips []string, minSuffix byte, maxSuffix byte) (byte, error) {
-	for i := minSuffix; i <= maxSuffix; i++ {
-		listIndex := i - minSuffix
-		if listIndex >= byte(len(ips)) {
-			return i, nil
-		}
-		if address := []byte(net.ParseIP(ips[listIndex])); address[15] != i {
-			return i, nil
-		}
-	}
-	return 0, model.Error(http.StatusInternalServerError, "no unallocated ips available", "no unallocated ip available")
-
+func (ip IPv4) String() string {
+	ipBytes := make([]byte, 4)
+	binary.BigEndian.PutUint32(ipBytes, uint32(ip))
+	return net.IP(ipBytes).To4().String()
 }

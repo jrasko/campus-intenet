@@ -1,10 +1,10 @@
 <template>
   <v-row>
     <v-col>
-      <v-img aspect-ratio="16/9" height="350" src="../assets/shame.gif" />
+      <v-img aspect-ratio="16/9" height="350" src="/shame.gif" />
     </v-col>
     <v-col>
-      <v-img src="../assets/shamebox.gif" height="350"></v-img>
+      <v-img src="/shamebox.gif" height="350"></v-img>
     </v-col>
   </v-row>
   <v-row>

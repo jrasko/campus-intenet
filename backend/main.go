@@ -32,8 +32,9 @@ func newApplication(config model.Configuration) (*application, error) {
 	if err != nil {
 		return nil, err
 	}
-	srv := service.New(repo)
-	router := api.NewRouter(srv, config)
+
+	srv := service.New(config, repo)
+	router := api.NewRouter(config, srv)
 
 	return &application{
 		repository: repo,

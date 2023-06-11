@@ -39,17 +39,19 @@ type MemberRepository interface {
 	GetNonPayingMembers(ctx context.Context) ([]model.MemberConfig, error)
 }
 
-func New(repo MemberRepository) Service {
+func New(config model.Configuration, repo MemberRepository) Service {
 	dhcpdWriter := confwriter.New()
 	s := Service{
 		inconsistentState: false,
 		memberRepo:        repo,
 		dhcpdWriter:       dhcpdWriter,
 		validate:          validator.New(),
-		ipService:         allocation.New(repo),
+		ipService:         allocation.New(repo, config.CIDR),
 	}
+
 	// generate config from db initially
-	if err := s.UpdateDhcpdFile(context.Background()); err != nil {
+	err := s.UpdateDhcpdFile(context.Background())
+	if err != nil {
 		panic(err)
 	}
 	return s
