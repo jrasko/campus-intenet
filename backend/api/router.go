@@ -21,7 +21,7 @@ type DhcpdService interface {
 
 type DhcpdRepository interface{}
 
-func NewRouter(service DhcpdService, config model.Configuration) http.Handler {
+func NewRouter(config model.Configuration, service DhcpdService) http.Handler {
 	router := mux.NewRouter()
 
 	auth := AuthHandler{config: config}

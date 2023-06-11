@@ -20,6 +20,8 @@ type Configuration struct {
 	DBPassword string
 
 	URL string
+
+	CIDR string
 }
 
 func (c Configuration) DSN() string {
@@ -42,6 +44,7 @@ func LoadConfig() Configuration {
 		DBHost:     os.Getenv("POSTGRES_HOST"),
 		DBUser:     os.Getenv("POSTGRES_USER"),
 		DBPassword: os.Getenv("POSTGRES_PASSWORD"),
+		CIDR:       os.Getenv("CIDR"),
 		URL:        defaultUrl,
 	}
 	if (config == Configuration{}) {
