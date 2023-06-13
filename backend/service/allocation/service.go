@@ -16,8 +16,8 @@ type IPRepository interface {
 type Service struct {
 	repository IPRepository
 
-	Broadcast IPv4
-	FirstIP   IPv4
+	broadcast IPv4
+	firstIP   IPv4
 }
 
 var (
@@ -38,8 +38,8 @@ func New(repo IPRepository, cidr string) Service {
 	return Service{
 		repository: repo,
 
-		Broadcast: broadcast,
-		FirstIP:   firstIP,
+		broadcast: broadcast,
+		firstIP:   firstIP,
 	}
 }
 
@@ -60,7 +60,7 @@ func (s Service) GetUnusedIP(ctx context.Context) (string, error) {
 func (s Service) getUnallocatedIP(allocatedIPs []string) (string, error) {
 	allocated := createAllocationMap(allocatedIPs)
 
-	for ip := s.FirstIP; ip < s.Broadcast; ip++ {
+	for ip := s.firstIP; ip < s.broadcast; ip++ {
 		if !allocated[ip] {
 			return ip.String(), nil
 		}
@@ -70,6 +70,8 @@ func (s Service) getUnallocatedIP(allocatedIPs []string) (string, error) {
 }
 
 // createAllocationMap returns a maps IPv4 -> bool where every IP on allocatedIPs is mapped to true
+// the trick behind that is, that one can simply query the map and get true, if the ip is already allocated
+// or else false
 func createAllocationMap(allocatedIPs []string) map[IPv4]bool {
 	m := map[IPv4]bool{}
 	for _, ipString := range allocatedIPs {
