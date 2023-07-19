@@ -63,6 +63,7 @@ func (mr MemberRepository) GetAllMacs(ctx context.Context) ([]string, error) {
 		WithContext(ctx).
 		Table(memberTable).
 		Select("mac").
+		Where("disabled = false").
 		Find(&macs).
 		Error
 	return macs, wrapGormErrors(err)

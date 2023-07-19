@@ -7,6 +7,7 @@ type MemberConfig struct {
 	Mac       string `json:"mac" validate:"required,mac" gorm:"unique"`
 	RoomNr    string `json:"roomNr" validate:"required" gorm:"unique"`
 	HasPaid   bool   `json:"hasPaid"`
+	Disabled  bool   `json:"disabled" gorm:"not null"`
 	WG        string `json:"wg"`
 	Email     string `json:"email" validate:"omitempty,email"`
 	Phone     string `json:"phone"`

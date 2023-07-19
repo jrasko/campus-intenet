@@ -2,7 +2,7 @@
   <v-snackbar v-model="success" :timeout="2000" color="success"> Erfolg!</v-snackbar>
   <v-snackbar v-model="failure" :timeout="3000" color="error"> {{ this.errorMessage }}</v-snackbar>
   <v-row>
-    <v-alert v-model="warning" type="warning" variant="tonal" closable>
+    <v-alert v-model="warning" type="warning" variant="tonal" closable="true">
       <v-alert-title>
         inconsistent dhcpd.conf file
         <v-spacer />
@@ -34,9 +34,10 @@
   </v-row>
   <v-row>
     <v-col cols="12">
-      <v-table hover>
+      <v-table hover="true">
         <thead>
           <tr>
+            <th>Status</th>
             <th>Zahlung</th>
             <th>Vorname</th>
             <th>Nachname</th>
@@ -52,6 +53,9 @@
         </thead>
         <tbody>
           <tr v-for="p in this.people">
+            <td>
+              <v-icon :color="p.disabled?'orange':'green'" icon="mdi-circle-medium"/>
+            </td>
             <td v-if="p.hasPaid">
               <v-icon color="green" icon="mdi-checkbox-marked-circle" />
             </td>

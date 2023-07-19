@@ -82,6 +82,18 @@ func TestMemberRepository(t *testing.T) {
 		Phone:     "987654321",
 		IP:        "172.0.0.1",
 	}
+	disabledMember := model.MemberConfig{
+		Firstname: "john",
+		Lastname:  "cena",
+		Mac:       "01:aa:bb:dd:aa:cc",
+		RoomNr:    "4-20",
+		HasPaid:   false,
+		Disabled:  true,
+		WG:        "99",
+		Email:     "other@email.lol",
+		Phone:     "27813917239",
+		IP:        "10.0.0.4",
+	}
 
 	t.Run("it creates a member", func(t *testing.T) {
 		newMember, err := repo.UpdateMemberConfig(ctx, member)
@@ -95,6 +107,12 @@ func TestMemberRepository(t *testing.T) {
 		member2.ID = newMember.ID
 		assert.NoError(t, err)
 		assert.Equal(t, member2, newMember)
+	})
+	t.Run("it creates a disabled member", func(t *testing.T) {
+		newMember, err := repo.UpdateMemberConfig(ctx, disabledMember)
+		disabledMember.ID = newMember.ID
+		assert.NoError(t, err)
+		assert.Equal(t, disabledMember, newMember)
 	})
 	t.Run("it checks unique constraints", func(t *testing.T) {
 		newMember := model.MemberConfig{
@@ -113,14 +131,15 @@ func TestMemberRepository(t *testing.T) {
 	t.Run("it retreives multiple members", func(t *testing.T) {
 		members, err := repo.GetAllMemberConfigs(ctx)
 		assert.NoError(t, err)
-		assert.Len(t, members, 2)
+		assert.Len(t, members, 3)
 		assert.Contains(t, members, member)
 		assert.Contains(t, members, member2)
+		assert.Contains(t, members, disabledMember)
 	})
 	t.Run("it retreives all ips", func(t *testing.T) {
 		ips, err := repo.GetAllIPs(ctx)
 		assert.NoError(t, err)
-		assert.Len(t, ips, 2)
+		assert.Len(t, ips, 3)
 		assert.Contains(t, ips, member.IP)
 		assert.Contains(t, ips, member2.IP)
 	})
@@ -140,11 +159,17 @@ func TestMemberRepository(t *testing.T) {
 	t.Run("it retreives first and lastnames", func(t *testing.T) {
 		persons, err := repo.GetNonPayingMembers(ctx)
 		assert.NoError(t, err)
-		assert.Len(t, persons, 1)
+		assert.Len(t, persons, 2)
 		assert.Contains(t, persons,
 			model.MemberConfig{
 				Firstname: member2.Firstname,
 				Lastname:  member2.Lastname,
+			},
+		)
+		assert.Contains(t, persons,
+			model.MemberConfig{
+				Firstname: disabledMember.Firstname,
+				Lastname:  disabledMember.Lastname,
 			},
 		)
 
