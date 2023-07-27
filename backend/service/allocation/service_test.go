@@ -4,6 +4,7 @@ import (
 	"backend/model"
 	"context"
 	"errors"
+	"net/http"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -97,7 +98,7 @@ func TestService_GetUnusedIP(t *testing.T) {
 			Once()
 
 		ip, err := ipService.GetUnusedIP(ctx)
-		assert.ErrorIs(t, err, anError)
+		assert.Equal(t, http.StatusInternalServerError, err.(model.HttpError).Status())
 		assert.Equal(t, "", ip)
 	})
 	t.Run("it returns an error if no unallocated ip was found", func(t *testing.T) {

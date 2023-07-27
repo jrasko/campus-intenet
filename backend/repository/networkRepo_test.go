@@ -5,12 +5,12 @@ import (
 	"context"
 	"encoding/hex"
 	"fmt"
-	"net/http"
 	"strconv"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"gorm.io/gorm"
 )
 
 var (
@@ -121,7 +121,7 @@ func TestMemberRepository(t *testing.T) {
 			IP:     member.IP,
 		}
 		newMember, err := repo.UpdateMemberConfig(ctx, newMember)
-		assert.Equal(t, http.StatusConflict, err.(model.HttpError).Status())
+		assert.Equal(t, gorm.ErrDuplicatedKey, err)
 	})
 	t.Run("it retrevies a single member", func(t *testing.T) {
 		m, err := repo.GetMemberConfig(ctx, member.ID)
@@ -189,7 +189,7 @@ func TestMemberRepository(t *testing.T) {
 		assert.NoError(t, err)
 
 		_, err = repo.GetMemberConfig(ctx, member2.ID)
-		assert.Equal(t, http.StatusNotFound, err.(model.HttpError).Status())
+		assert.Equal(t, gorm.ErrRecordNotFound, err)
 	})
 
 }

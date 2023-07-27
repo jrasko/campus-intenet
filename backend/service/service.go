@@ -57,8 +57,8 @@ func New(config model.Configuration, repo MemberRepository) Service {
 	return s
 }
 
-func (s Service) UpdateMember(ctx context.Context, config model.MemberConfig) (model.MemberConfig, error) {
-	err := s.validate.Struct(config)
+func (s Service) UpdateMember(ctx context.Context, member model.MemberConfig) (model.MemberConfig, error) {
+	err := s.validate.Struct(member)
 	if err != nil {
 		if fieldErrors, ok := err.(validator.ValidationErrors); ok {
 			message := ""
@@ -70,16 +70,16 @@ func (s Service) UpdateMember(ctx context.Context, config model.MemberConfig) (m
 		return model.MemberConfig{}, err
 	}
 
-	if config.IP == "" {
-		config.IP, err = s.ipService.GetUnusedIP(ctx)
+	if member.IP == "" {
+		member.IP, err = s.ipService.GetUnusedIP(ctx)
 		if err != nil {
 			return model.MemberConfig{}, err
 		}
 	}
 
-	memberConfig, err := s.memberRepo.UpdateMemberConfig(ctx, specialize(config))
+	member, err = s.memberRepo.UpdateMemberConfig(ctx, specialize(member))
 	if err != nil {
-		return model.MemberConfig{}, err
+		return model.MemberConfig{}, model.WrapGormError(err)
 	}
 
 	err = s.UpdateDhcpdFile(ctx)
@@ -87,13 +87,13 @@ func (s Service) UpdateMember(ctx context.Context, config model.MemberConfig) (m
 		return model.MemberConfig{}, err
 	}
 
-	return memberConfig, err
+	return member, err
 }
 
 func (s Service) UpdateDhcpdFile(ctx context.Context) error {
 	macs, err := s.memberRepo.GetAllMacs(ctx)
 	if err != nil {
-		return err
+		return model.WrapGormError(err)
 	}
 
 	err = s.dhcpdWriter.WhitelistMacs(macs)
@@ -102,24 +102,32 @@ func (s Service) UpdateDhcpdFile(ctx context.Context) error {
 }
 
 func (s Service) GetAllMembers(ctx context.Context) ([]model.MemberConfig, error) {
-	return s.memberRepo.GetAllMemberConfigs(ctx)
+	members, err := s.memberRepo.GetAllMemberConfigs(ctx)
+	if err != nil {
+		return []model.MemberConfig{}, model.WrapGormError(err)
+	}
+	return members, nil
 }
 
 func (s Service) GetMember(ctx context.Context, id int) (model.MemberConfig, error) {
-	return s.memberRepo.GetMemberConfig(ctx, id)
+	member, err := s.memberRepo.GetMemberConfig(ctx, id)
+	if err != nil {
+		return model.MemberConfig{}, model.WrapGormError(err)
+	}
+	return member, nil
 }
 
 func (s Service) DeleteMember(ctx context.Context, id int) error {
 	err := s.memberRepo.DeleteMemberConfig(ctx, id)
 	if err != nil {
-		return err
+		return model.WrapGormError(err)
 	}
 
 	return s.UpdateDhcpdFile(ctx)
 }
 
 func (s Service) ResetPayment(ctx context.Context) error {
-	return s.memberRepo.ResetPayment(ctx)
+	return model.WrapGormError(s.memberRepo.ResetPayment(ctx))
 }
 
 func (s Service) IsInconsistent() bool {
@@ -127,14 +135,14 @@ func (s Service) IsInconsistent() bool {
 }
 
 func (s Service) GetNotPayingMembers(ctx context.Context) ([]model.ReducedMember, error) {
-	bobs, err := s.memberRepo.GetNonPayingMembers(ctx)
+	idiots, err := s.memberRepo.GetNonPayingMembers(ctx)
 	if err != nil {
-		return nil, err
+		return nil, model.WrapGormError(err)
 	}
 
-	person := make([]model.ReducedMember, 0, len(bobs))
-	for _, member := range bobs {
-		person = append(person, member.ToReduced())
+	reducedIdiots := make([]model.ReducedMember, 0, len(idiots))
+	for _, member := range idiots {
+		reducedIdiots = append(reducedIdiots, member.ToReduced())
 	}
-	return person, nil
+	return reducedIdiots, nil
 }

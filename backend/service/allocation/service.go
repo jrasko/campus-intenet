@@ -46,7 +46,7 @@ func New(repo IPRepository, cidr string) Service {
 func (s Service) GetUnusedIP(ctx context.Context) (string, error) {
 	ips, err := s.repository.GetAllIPs(ctx)
 	if err != nil {
-		return "", err
+		return "", model.WrapGormError(err)
 	}
 
 	ip, err := s.getUnallocatedIP(ips)
