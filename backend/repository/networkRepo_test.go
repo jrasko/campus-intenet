@@ -129,12 +129,30 @@ func TestMemberRepository(t *testing.T) {
 		assert.Equal(t, m, m)
 	})
 	t.Run("it retreives multiple members", func(t *testing.T) {
-		members, err := repo.GetAllMemberConfigs(ctx)
+		members, err := repo.GetAllMemberConfigs(ctx, model.RequestParams{})
 		assert.NoError(t, err)
 		assert.Len(t, members, 3)
 		assert.Contains(t, members, member)
 		assert.Contains(t, members, member2)
 		assert.Contains(t, members, disabledMember)
+		assert.Equal(t, members[0], member)
+	})
+	t.Run("it searches for members", func(t *testing.T) {
+		members, err := repo.GetAllMemberConfigs(ctx, model.RequestParams{Search: "first"})
+		assert.NoError(t, err)
+		assert.Len(t, members, 1)
+		assert.Contains(t, members, member)
+	})
+	t.Run("it orders the members", func(t *testing.T) {
+		members, err := repo.GetAllMemberConfigs(ctx, model.RequestParams{Order: "wg"})
+		assert.NoError(t, err)
+		assert.Len(t, members, 3)
+		assert.Equal(t, members[0], member2)
+	})
+	t.Run("it does not order by unknown", func(t *testing.T) {
+		members, err := repo.GetAllMemberConfigs(ctx, model.RequestParams{Order: "wg; SELECT id FROM member_configs"})
+		assert.NoError(t, err)
+		assert.Len(t, members, 3)
 	})
 	t.Run("it retreives all ips", func(t *testing.T) {
 		ips, err := repo.GetAllIPs(ctx)
@@ -178,7 +196,7 @@ func TestMemberRepository(t *testing.T) {
 		err := repo.ResetPayment(ctx)
 		assert.NoError(t, err)
 
-		members, err := repo.GetAllMemberConfigs(ctx)
+		members, err := repo.GetAllMemberConfigs(ctx, model.RequestParams{})
 		assert.NoError(t, err)
 		for _, m := range members {
 			assert.False(t, m.HasPaid)

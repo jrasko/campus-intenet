@@ -10,7 +10,7 @@ import (
 
 type DhcpdService interface {
 	UpdateMember(ctx context.Context, member model.MemberConfig) (model.MemberConfig, error)
-	GetAllMembers(ctx context.Context) ([]model.MemberConfig, error)
+	GetAllMembers(ctx context.Context, params model.RequestParams) ([]model.MemberConfig, error)
 	GetMember(ctx context.Context, id int) (model.MemberConfig, error)
 	DeleteMember(ctx context.Context, id int) error
 	ResetPayment(ctx context.Context) error

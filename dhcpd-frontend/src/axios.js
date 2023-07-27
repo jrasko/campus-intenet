@@ -1,7 +1,12 @@
 import axios from 'axios'
 
-export async function getConfigs() {
-  return await axios.get('/dhcpd', getTokenConfig())
+export async function getConfigs(search) {
+  let config = getTokenConfig();
+  config.params = {
+    search: search,
+  }
+  console.log(config)
+  return await axios.get('/dhcpd', config)
 }
 
 export async function createConfig(cfg) {

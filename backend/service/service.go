@@ -5,6 +5,7 @@ import (
 	"backend/service/allocation"
 	"backend/service/confwriter"
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 
@@ -31,7 +32,7 @@ type IPAllocationService interface {
 type MemberRepository interface {
 	allocation.IPRepository
 	UpdateMemberConfig(ctx context.Context, conf model.MemberConfig) (model.MemberConfig, error)
-	GetAllMemberConfigs(ctx context.Context) ([]model.MemberConfig, error)
+	GetAllMemberConfigs(ctx context.Context, params model.RequestParams) ([]model.MemberConfig, error)
 	GetMemberConfig(ctx context.Context, id int) (model.MemberConfig, error)
 	DeleteMemberConfig(ctx context.Context, id int) error
 	ResetPayment(ctx context.Context) error
@@ -60,14 +61,7 @@ func New(config model.Configuration, repo MemberRepository) Service {
 func (s Service) UpdateMember(ctx context.Context, member model.MemberConfig) (model.MemberConfig, error) {
 	err := s.validate.Struct(member)
 	if err != nil {
-		if fieldErrors, ok := err.(validator.ValidationErrors); ok {
-			message := ""
-			for _, fieldError := range fieldErrors {
-				message += fmt.Sprintf("%s:%s; ", fieldError.Field(), fieldError.Tag())
-			}
-			return model.MemberConfig{}, model.Error(http.StatusBadRequest, err.Error(), fmt.Sprintf(message))
-		}
-		return model.MemberConfig{}, err
+		return model.MemberConfig{}, mapValidationError(err)
 	}
 
 	if member.IP == "" {
@@ -101,8 +95,12 @@ func (s Service) UpdateDhcpdFile(ctx context.Context) error {
 	return err
 }
 
-func (s Service) GetAllMembers(ctx context.Context) ([]model.MemberConfig, error) {
-	members, err := s.memberRepo.GetAllMemberConfigs(ctx)
+func (s Service) GetAllMembers(ctx context.Context, params model.RequestParams) ([]model.MemberConfig, error) {
+	err := s.validate.Struct(params)
+	if err != nil {
+		return []model.MemberConfig{}, mapValidationError(err)
+	}
+	members, err := s.memberRepo.GetAllMemberConfigs(ctx, params)
 	if err != nil {
 		return []model.MemberConfig{}, model.WrapGormError(err)
 	}
@@ -145,4 +143,16 @@ func (s Service) GetNotPayingMembers(ctx context.Context) ([]model.ReducedMember
 		reducedIdiots = append(reducedIdiots, member.ToReduced())
 	}
 	return reducedIdiots, nil
+}
+
+func mapValidationError(err error) error {
+	var fieldErrors validator.ValidationErrors
+	if errors.As(err, &fieldErrors) {
+		message := ""
+		for _, fieldError := range fieldErrors {
+			message += fmt.Sprintf("%s:%s-%s; ", fieldError.Field(), fieldError.Tag(), fieldError.Param())
+		}
+		return model.Error(http.StatusBadRequest, err.Error(), fmt.Sprintf(message))
+	}
+	return err
 }

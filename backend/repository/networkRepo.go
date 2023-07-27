@@ -4,6 +4,7 @@ import (
 	"backend/model"
 	"context"
 	"fmt"
+	"log"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -18,10 +19,14 @@ type AllocatedIP struct {
 }
 
 func New(dsn string) (MemberRepository, error) {
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{TranslateError: true})
+	log.Println("Connecting to Database...")
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
+		TranslateError: true,
+	})
 	if err != nil {
 		return MemberRepository{}, err
 	}
+	log.Println("Successfully connected to DB")
 
 	// check if db has needed table
 	if !db.Migrator().HasTable(memberTable) {
@@ -44,11 +49,11 @@ func (mr MemberRepository) UpdateMemberConfig(ctx context.Context, conf model.Me
 	return conf, err
 }
 
-func (mr MemberRepository) GetAllMemberConfigs(ctx context.Context) ([]model.MemberConfig, error) {
+func (mr MemberRepository) GetAllMemberConfigs(ctx context.Context, params model.RequestParams) ([]model.MemberConfig, error) {
 	var configs []model.MemberConfig
-	err := mr.db.
-		WithContext(ctx).
-		Order("lastname, firstname").
+	db := mr.db.WithContext(ctx)
+	db = params.Apply(db)
+	err := db.
 		Find(&configs).
 		Error
 	return configs, err

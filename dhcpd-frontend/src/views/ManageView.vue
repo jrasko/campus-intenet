@@ -18,7 +18,7 @@
     </v-alert>
   </v-row>
   <v-row>
-    <v-col v-if="!(this.$route.name === 'add')">
+    <v-col>
       <RouterLink to="/add">
         <v-btn prepend-icon="mdi-account-plus"> Person hinzufügen</v-btn>
       </RouterLink>
@@ -30,6 +30,11 @@
     </v-col>
     <v-col>
       <v-btn prepend-icon="mdi-content-copy" @click="this.copyEmails">Emails kopieren</v-btn>
+    </v-col>
+  </v-row>
+  <v-row justify="center">
+    <v-col cols="4" @input="this.refresh()">
+      <v-text-field label="Suche" variant="underlined" append-inner-icon="mdi-magnify" v-model="this.search" hide-details clearable></v-text-field>
     </v-col>
   </v-row>
   <v-row>
@@ -99,7 +104,8 @@ export default {
       success: false,
       failure: false,
       warning: false,
-      errorMessage: ''
+      errorMessage: '',
+      search: '',
     }
   },
   mounted() {
@@ -107,7 +113,7 @@ export default {
   },
   methods: {
     refresh() {
-      getConfigs()
+      getConfigs(this.search)
         .then((resp) => {
           this.people = resp.data
           if (resp.status === 210) {
