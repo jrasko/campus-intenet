@@ -27,10 +27,7 @@ const vuetify = createVuetify({
   }
 })
 
-axios.defaults.baseURL = 'http://localhost'
-if (import.meta.env.MODE === 'development') {
-  axios.defaults.baseURL += ':8080'
-}
+axios.defaults.baseURL = import.meta.env.BASE_URL
 
 router.beforeEach((to) => {
   if (!isLoggedIn() && !noAuthPages.includes(to.name)) {
