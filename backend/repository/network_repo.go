@@ -59,16 +59,14 @@ func (mr MemberRepository) GetAllMemberConfigs(ctx context.Context, params model
 	return configs, err
 }
 
-func (mr MemberRepository) GetAllMacs(ctx context.Context) ([]string, error) {
-	var macs []string
+func (mr MemberRepository) GetEnabledUsers(ctx context.Context) ([]model.MemberConfig, error) {
+	var members []model.MemberConfig
 	err := mr.db.
 		WithContext(ctx).
-		Table(memberTable).
-		Select("mac").
 		Where("disabled = false").
-		Find(&macs).
+		Find(&members).
 		Error
-	return macs, err
+	return members, err
 }
 
 func (mr MemberRepository) GetMemberConfig(ctx context.Context, id int) (model.MemberConfig, error) {

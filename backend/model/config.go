@@ -6,6 +6,7 @@ import (
 )
 
 const defaultUrl = ":8080"
+const defaultFile = "dhcpd.conf"
 
 type Configuration struct {
 	Username string
@@ -21,7 +22,8 @@ type Configuration struct {
 
 	URL string
 
-	CIDR string
+	CIDR       string
+	OutputFile string
 }
 
 func (c Configuration) DSN() string {
@@ -45,6 +47,8 @@ func LoadConfig() Configuration {
 		DBUser:     os.Getenv("POSTGRES_USER"),
 		DBPassword: os.Getenv("POSTGRES_PASSWORD"),
 		CIDR:       os.Getenv("CIDR"),
+
+		OutputFile: defaultFile,
 		URL:        defaultUrl,
 	}
 	if (config == Configuration{}) {

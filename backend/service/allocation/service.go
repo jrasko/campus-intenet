@@ -4,6 +4,7 @@ import (
 	"backend/model"
 	"context"
 	"errors"
+	"log"
 	"net"
 	"net/http"
 )
@@ -34,6 +35,7 @@ func New(repo IPRepository, cidr string) Service {
 	if err != nil {
 		panic(err)
 	}
+	log.Printf("allocating IP in range %s to %s", firstIP, broadcast)
 
 	return Service{
 		repository: repo,

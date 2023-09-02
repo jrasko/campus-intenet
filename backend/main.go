@@ -5,6 +5,8 @@ import (
 	"backend/model"
 	"backend/repository"
 	"backend/service"
+	"backend/service/allocation"
+	"backend/service/confwriter"
 	"log"
 	"net/http"
 )
@@ -33,7 +35,10 @@ func newApplication(config model.Configuration) (*application, error) {
 		return nil, err
 	}
 
-	srv := service.New(config, repo)
+	confWriter := confwriter.New(config.OutputFile)
+	ipAllocation := allocation.New(repo, config.CIDR)
+
+	srv := service.New(repo, confWriter, ipAllocation)
 	router := api.NewRouter(config, srv)
 
 	return &application{

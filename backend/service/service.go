@@ -22,7 +22,7 @@ type Service struct {
 }
 
 type ConfWriter interface {
-	WhitelistMacs(macs []string) error
+	WhitelistUsers(macs []model.MemberConfig) error
 }
 
 type IPAllocationService interface {
@@ -36,18 +36,17 @@ type MemberRepository interface {
 	GetMemberConfig(ctx context.Context, id int) (model.MemberConfig, error)
 	DeleteMemberConfig(ctx context.Context, id int) error
 	ResetPayment(ctx context.Context) error
-	GetAllMacs(ctx context.Context) ([]string, error)
+	GetEnabledUsers(ctx context.Context) ([]model.MemberConfig, error)
 	GetNonPayingMembers(ctx context.Context) ([]model.MemberConfig, error)
 }
 
-func New(config model.Configuration, repo MemberRepository) Service {
-	dhcpdWriter := confwriter.New()
+func New(repo MemberRepository, jsonWriter confwriter.JsonWriter, ipAllocation allocation.Service) Service {
 	s := Service{
-		inconsistentState: false,
-		memberRepo:        repo,
-		dhcpdWriter:       dhcpdWriter,
 		validate:          validator.New(),
-		ipService:         allocation.New(repo, config.CIDR),
+		memberRepo:        repo,
+		dhcpdWriter:       jsonWriter,
+		ipService:         ipAllocation,
+		inconsistentState: false,
 	}
 
 	// generate config from db initially
@@ -85,12 +84,12 @@ func (s Service) UpdateMember(ctx context.Context, member model.MemberConfig) (m
 }
 
 func (s Service) UpdateDhcpdFile(ctx context.Context) error {
-	macs, err := s.memberRepo.GetAllMacs(ctx)
+	users, err := s.memberRepo.GetEnabledUsers(ctx)
 	if err != nil {
 		return model.WrapGormError(err)
 	}
 
-	err = s.dhcpdWriter.WhitelistMacs(macs)
+	err = s.dhcpdWriter.WhitelistUsers(users)
 	s.inconsistentState = err != nil
 	return err
 }
