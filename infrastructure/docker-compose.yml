@@ -35,7 +35,7 @@ services:
     labels:
       traefik.http.routers.backend.rule: "PathPrefix(`/dhcp`)"
     volumes:
-      - ./user-list.json:/app/user-list.json
+      - ../user-list.json:/app/user-list.json
 volumes:
   dhcp-db:
     external: true
