@@ -13,8 +13,8 @@ import (
 
 type application struct {
 	url        string
-	service    api.DhcpdService
-	repository api.DhcpdRepository
+	service    api.DhcpService
+	repository service.MemberRepository
 	router     http.Handler
 }
 

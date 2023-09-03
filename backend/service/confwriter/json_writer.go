@@ -27,14 +27,14 @@ func (dw JsonWriter) WhitelistUsers(member []model.MemberConfig) error {
 
 	f, err := os.OpenFile(dw.filename, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0666)
 	if err != nil {
-		return model.Error(http.StatusInternalServerError, err.Error(), "could not open dhcpd file")
+		return model.Error(http.StatusInternalServerError, err.Error(), "could not open output file")
 	}
 
 	encoder := json.NewEncoder(f)
 	encoder.SetIndent("", "  ")
 	err = encoder.Encode(reservations)
 	if err != nil {
-		return model.Error(http.StatusInternalServerError, err.Error(), "error on writing dhcpd file")
+		return model.Error(http.StatusInternalServerError, err.Error(), "error on writing output file")
 	}
 
 	return f.Close()

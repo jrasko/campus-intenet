@@ -1,4 +1,4 @@
-import {createRouter, createWebHistory} from 'vue-router'
+import { createRouter, createWebHistory } from 'vue-router'
 import ManageView from '@/views/ManageView.vue'
 import AddEditView from '@/views/AddView.vue'
 import EditView from '@/views/EditView.vue'

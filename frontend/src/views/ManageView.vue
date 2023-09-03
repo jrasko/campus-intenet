@@ -4,13 +4,13 @@
   <v-row>
     <v-alert v-model="warning" type="warning" variant="tonal" closable="true">
       <v-alert-title>
-        inconsistent dhcpd.conf file
+        inconsistent user-list.json file
         <v-spacer />
         <v-btn
           density="compact"
           append-icon="mdi-reload-alert"
           variant="text"
-          @click="this.writeDhcpd"
+          @click="this.writeDhcp"
         >
           Regenerate File
         </v-btn>
@@ -34,7 +34,14 @@
   </v-row>
   <v-row justify="center">
     <v-col cols="4" @input="this.refresh()">
-      <v-text-field label="Suche" variant="underlined" append-inner-icon="mdi-magnify" v-model="this.search" hide-details clearable></v-text-field>
+      <v-text-field
+        label="Suche"
+        variant="underlined"
+        append-inner-icon="mdi-magnify"
+        v-model="this.search"
+        hide-details
+        clearable
+      ></v-text-field>
     </v-col>
   </v-row>
   <v-row>
@@ -59,7 +66,7 @@
         <tbody>
           <tr v-for="p in this.people">
             <td>
-              <v-icon :color="p.disabled?'orange':'green'" icon="mdi-circle-medium"/>
+              <v-icon :color="p.disabled ? 'orange' : 'green'" icon="mdi-circle-medium" />
             </td>
             <td v-if="p.hasPaid">
               <v-icon color="green" icon="mdi-checkbox-marked-circle" />
@@ -95,7 +102,7 @@
   </v-row>
 </template>
 <script>
-import { deleteConfigFor, getConfigs, resetPayments, updateDhcpd } from '@/axios'
+import { deleteConfigFor, getConfigs, resetPayments, updateDhcp } from '@/axios'
 
 export default {
   data() {
@@ -105,7 +112,7 @@ export default {
       failure: false,
       warning: false,
       errorMessage: '',
-      search: '',
+      search: ''
     }
   },
   mounted() {
@@ -160,8 +167,8 @@ export default {
           })
       }
     },
-    writeDhcpd() {
-      updateDhcpd()
+    writeDhcp() {
+      updateDhcp()
         .then(() => {
           this.success = true
           this.refresh()

@@ -6,13 +6,13 @@ services:
     image: postgres:15
     env_file:
       - ".env"
-    container_name: dhcpd_db
+    container_name: dhcp_db
     volumes:
-      - dhcpd-db:/var/lib/postgresql/data
+      - dhcp-db:/var/lib/postgresql/data
   traefik:
     restart: unless-stopped
     image: traefik:v2.10
-    container_name: dhcpd_traefik
+    container_name: dhcp_traefik
     ports:
       - "80:80"
       - "443:443"
@@ -22,8 +22,8 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
   frontend:
     restart: unless-stopped
-    build: ../dhcpd-frontend
-    container_name: dhcpd_frontend
+    build: ../frontend
+    container_name: dhcp_frontend
     labels:
       traefik.http.routers.frontend.rule: "PathPrefix(`/`)"
   backend:
@@ -31,11 +31,11 @@ services:
       - ".env"
     restart: unless-stopped
     build: ../backend
-    container_name: dhcpd_backend
+    container_name: dhcp_backend
     labels:
-      traefik.http.routers.backend.rule: "PathPrefix(`/dhcpd`)"
+      traefik.http.routers.backend.rule: "PathPrefix(`/dhcp`)"
     volumes:
       - ./user-list.json:/app/user-list.json
 volumes:
-  dhcpd-db:
+  dhcp-db:
     external: true

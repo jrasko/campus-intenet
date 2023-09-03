@@ -13,12 +13,12 @@ import (
 )
 
 type Service struct {
-	validate    *validator.Validate
-	memberRepo  MemberRepository
-	ipService   IPAllocationService
-	dhcpdWriter ConfWriter
+	validate   *validator.Validate
+	memberRepo MemberRepository
+	ipService  IPAllocationService
+	dhcpWriter ConfWriter
 
-	inconsistentState bool // indicates if the db has another state than the dhcpd file
+	inconsistentState bool // indicates if the db has another state than the user-list.json file
 }
 
 type ConfWriter interface {
@@ -44,13 +44,13 @@ func New(repo MemberRepository, jsonWriter confwriter.JsonWriter, ipAllocation a
 	s := Service{
 		validate:          validator.New(),
 		memberRepo:        repo,
-		dhcpdWriter:       jsonWriter,
+		dhcpWriter:        jsonWriter,
 		ipService:         ipAllocation,
 		inconsistentState: false,
 	}
 
 	// generate config from db initially
-	err := s.UpdateDhcpdFile(context.Background())
+	err := s.UpdateDhcpFile(context.Background())
 	if err != nil {
 		panic(err)
 	}
@@ -75,7 +75,7 @@ func (s Service) UpdateMember(ctx context.Context, member model.MemberConfig) (m
 		return model.MemberConfig{}, model.WrapGormError(err)
 	}
 
-	err = s.UpdateDhcpdFile(ctx)
+	err = s.UpdateDhcpFile(ctx)
 	if err != nil {
 		return model.MemberConfig{}, err
 	}
@@ -83,13 +83,13 @@ func (s Service) UpdateMember(ctx context.Context, member model.MemberConfig) (m
 	return member, err
 }
 
-func (s Service) UpdateDhcpdFile(ctx context.Context) error {
+func (s Service) UpdateDhcpFile(ctx context.Context) error {
 	users, err := s.memberRepo.GetEnabledUsers(ctx)
 	if err != nil {
 		return model.WrapGormError(err)
 	}
 
-	err = s.dhcpdWriter.WhitelistUsers(users)
+	err = s.dhcpWriter.WhitelistUsers(users)
 	s.inconsistentState = err != nil
 	return err
 }
@@ -120,7 +120,7 @@ func (s Service) DeleteMember(ctx context.Context, id int) error {
 		return model.WrapGormError(err)
 	}
 
-	return s.UpdateDhcpdFile(ctx)
+	return s.UpdateDhcpFile(ctx)
 }
 
 func (s Service) ResetPayment(ctx context.Context) error {

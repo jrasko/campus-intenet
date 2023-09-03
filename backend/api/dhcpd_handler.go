@@ -13,7 +13,7 @@ import (
 const StatusInconsistent = 210
 
 type Handler struct {
-	service DhcpdService
+	service DhcpService
 }
 
 func (h Handler) PostConfigHandler() http.HandlerFunc {
@@ -138,7 +138,7 @@ func (h Handler) ResetPaymentConfigHandler() http.HandlerFunc {
 
 func (h Handler) WriteConfigHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		err := h.service.UpdateDhcpdFile(r.Context())
+		err := h.service.UpdateDhcpFile(r.Context())
 		if err != nil {
 			sendHttpError(w, err)
 			return

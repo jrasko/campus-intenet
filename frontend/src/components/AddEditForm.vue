@@ -44,7 +44,7 @@
       </v-col>
       <v-col>
         <v-switch v-model="person.hasPaid" color="green" label="Bezahlt" />
-      </v-col> 
+      </v-col>
       <v-col>
         <v-switch v-model="person.disabled" color="green" label="Deaktiviert" />
       </v-col>
