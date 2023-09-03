@@ -6,7 +6,7 @@ import (
 )
 
 const defaultUrl = ":8080"
-const defaultFile = "dhcpd.conf"
+const defaultFile = "user-list.json"
 
 type Configuration struct {
 	Username string

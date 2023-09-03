@@ -1,4 +1,4 @@
 .idea
 /dhcpd-frontend/node_modules
 .env
-dhcpd.conf
+user-list.json

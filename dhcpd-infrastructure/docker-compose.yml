@@ -15,6 +15,7 @@ services:
     container_name: dhcpd_traefik
     ports:
       - "80:80"
+      - "443:443"
       - "8080:8080"
     command: --api.insecure=true --providers.docker --log.level=DEBUG
     volumes:
@@ -34,7 +35,7 @@ services:
     labels:
       traefik.http.routers.backend.rule: "PathPrefix(`/dhcpd`)"
     volumes:
-      - ./dhcpd.conf:/app/dhcpd.conf
+      - ./user-list.json:/app/user-list.json
 volumes:
   dhcpd-db:
     external: true
