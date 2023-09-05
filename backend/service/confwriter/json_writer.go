@@ -37,7 +37,13 @@ func (dw JsonWriter) WhitelistUsers(member []model.MemberConfig) error {
 		return model.Error(http.StatusInternalServerError, err.Error(), "error on writing output file")
 	}
 
-	return f.Close()
+	err = f.Close()
+	if err != nil {
+		return err
+	}
+
+	reloadConfig()
+	return nil
 }
 
 func mapToReservationUser(configs []model.MemberConfig) []reservation {

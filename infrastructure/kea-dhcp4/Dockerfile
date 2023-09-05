@@ -1,0 +1,76 @@
+# Official kea docker file, see https://gitlab.isc.org/isc-projects/kea-docker
+
+FROM alpine:3.17
+LABEL org.opencontainers.image.authors="Kea Developers <kea-dev@lists.isc.org>"
+
+# Add Kea packages from cloudsmith. Make sure the version matches that of the Alpine version.
+# Also, install all the open source hooks. When updating, new instructions can
+# be found at: https://cloudsmith.io/~isc/repos/kea-2-4/setup/#formats-alpine
+ARG VERSION=2.4.0-r20230630120747
+ARG TOKEN
+ARG PREMIUM
+
+RUN cp /etc/apk/repositories /etc/apk/repositories_backup && \
+    # Install curl and bash
+    apk update && apk add --no-cache curl bash && \
+    # Setup Cloudsmith repo
+    curl -1sLf "https://dl.cloudsmith.io/public/isc/kea-${VERSION:0:1}-${VERSION:2:1}/setup.alpine.sh" | bash && \
+    apk update && \
+    # Install main Kea packaegs and supervisor
+    apk add --no-cache isc-kea-dhcp4~=${VERSION} isc-kea-ctrl-agent~=${VERSION} isc-kea-hooks~=${VERSION} supervisor && \
+    # If token is provided add premium Cloudsmith repository
+    if [ -n "$TOKEN" ]; then \
+    curl -1sLf "https://dl.cloudsmith.io/${TOKEN}/isc/kea-${VERSION:0:1}-${VERSION:2:1}-prv/setup.alpine.sh" | bash && \
+    apk update && \
+    # Install premium Kea hooks
+    apk add --no-cache \
+        isc-kea-premium-ddns-tuning~=${VERSION} \
+        isc-kea-premium-flex-id~=${VERSION} \
+        isc-kea-premium-forensic-log~=${VERSION} \
+        isc-kea-premium-host-cmds~=${VERSION}; \
+    fi && \
+    # Install subscribers Kea hooks (provided TOKEN should have access to those pkgs)
+    if [ -n "$TOKEN" ] && [ "$PREMIUM" == "SUBSCRIBERS" ]; then \
+    apk add --no-cache \
+        isc-kea-premium-cb-cmds~=${VERSION} \
+        isc-kea-premium-class-cmds~=${VERSION} \
+        isc-kea-premium-host-cache~=${VERSION} \            
+        isc-kea-premium-lease-query~=${VERSION} \
+        isc-kea-premium-limits~=${VERSION} \
+        isc-kea-premium-subnet-cmds~=${VERSION}; \
+    fi && \
+    # Install subscribers and enterprise Kea hooks (provided TOKEN should have access to those pkgs)
+    if [ -n "$TOKEN" ] && [ "$PREMIUM" == "ENTERPRISE" ]; then \
+    apk add --no-cache \
+        isc-kea-premium-cb-cmds~=${VERSION} \
+        isc-kea-premium-class-cmds~=${VERSION} \
+        isc-kea-premium-host-cache~=${VERSION} \            
+        isc-kea-premium-lease-query~=${VERSION} \
+        isc-kea-premium-limits~=${VERSION} \
+        isc-kea-premium-subnet-cmds~=${VERSION} \
+        isc-kea-premium-rbac~=${VERSION}; \
+    fi && \
+    # Revert Cloudsmith repositories
+    mv /etc/apk/repositories_backup /etc/apk/repositories && \
+    # Create directory for supervisor logs
+    mkdir -p /var/log/supervisor
+
+VOLUME ["/etc/kea", "/var/lib/kea/"]
+
+# Copy supervisor configs
+COPY supervisord.conf /etc/supervisor/supervisord.conf
+COPY supervisor-kea-dhcp4.conf /etc/supervisor/conf.d/kea-dhcp4.conf
+COPY supervisor-kea-agent.conf /etc/supervisor/conf.d/kea-agent.conf
+
+# Copy Kea configs
+COPY kea-ctrl-agent.conf /etc/kea/kea-ctrl-agent.conf
+COPY kea-dhcp4.conf /etc/kea/kea-dhcp4.conf
+
+# 8000 ctrl agent
+# 8001 HA MT (unexposed)
+# 67 blq
+EXPOSE 8000/tcp 67/tcp 67/udp
+
+CMD ["supervisord", "-c", "/etc/supervisor/supervisord.conf"]
+HEALTHCHECK CMD [ "supervisorctl", "status" ]
+

@@ -1,4 +1,4 @@
-version: "3.7"
+version: "3.8"
 
 services:
   database:
@@ -32,10 +32,21 @@ services:
     restart: unless-stopped
     build: ../backend
     container_name: dhcp_backend
+    depends_on: 
+      - database
+      - dhcp4
     labels:
       traefik.http.routers.backend.rule: "PathPrefix(`/dhcp`)"
     volumes:
-      - ../user-list.json:/app/user-list.json
+      - ./user-list.json:/app/user-list.json
+  dhcp4:
+    container_name: dhcp4-server
+    build: kea-dhcp4
+    restart: unless-stopped
+    ports:
+      - "67:67"
+    volumes:
+      - ./user-list.json:/app/user-list.json
 volumes:
   dhcp-db:
     external: true
