@@ -1,8 +1,9 @@
 package confwriter
 
 import (
+	"backend/model"
 	"bytes"
-	"log"
+	"fmt"
 	"net/http"
 )
 
@@ -11,7 +12,7 @@ const (
 	port    = "8000"
 )
 
-func reloadConfig() {
+func reloadConfig() error {
 	resp, err := http.DefaultClient.Post(
 		baseURL+":"+port,
 		"application/json",
@@ -19,11 +20,15 @@ func reloadConfig() {
 	)
 
 	if err != nil {
-		log.Printf("error when sending 'config-reload' to kea: %v", err)
-		return
+		return model.Error(http.StatusInternalServerError, err.Error(), "sending update signal to dhcp-server failed")
+	}
+	if resp.StatusCode != http.StatusOK {
+		return model.Error(
+			http.StatusInternalServerError,
+			fmt.Sprintf("received unexpected status %d", resp.StatusCode),
+			"sending update signal to dhcp-server failed",
+		)
 	}
 
-	if resp.StatusCode != http.StatusOK {
-		log.Printf("received unexpected status %d", resp.StatusCode)
-	}
+	return nil
 }

@@ -3,7 +3,6 @@ package api
 import (
 	"backend/model"
 	"encoding/json"
-	"log"
 	"net/http"
 	"strconv"
 
@@ -21,7 +20,6 @@ func (h Handler) PostConfigHandler() http.HandlerFunc {
 		var member model.MemberConfig
 		err := json.NewDecoder(r.Body).Decode(&member)
 		if err != nil {
-			log.Println(err)
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
@@ -48,7 +46,6 @@ func (h Handler) PutConfigHandler() http.HandlerFunc {
 		var member model.MemberConfig
 		err = json.NewDecoder(r.Body).Decode(&member)
 		if err != nil {
-			log.Println(err)
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}

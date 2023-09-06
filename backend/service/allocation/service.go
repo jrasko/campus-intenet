@@ -4,6 +4,7 @@ import (
 	"backend/model"
 	"context"
 	"errors"
+	"fmt"
 	"log"
 	"net"
 	"net/http"
@@ -35,7 +36,7 @@ func New(repo IPRepository, cidr string) Service {
 	if err != nil {
 		panic(err)
 	}
-	log.Printf("allocating IP in range %s to %s", firstIP, broadcast)
+	log.Printf("[INFO] allocating IP in range %s to %s", firstIP, broadcast)
 
 	return Service{
 		repository: repo,
@@ -53,7 +54,7 @@ func (s Service) GetUnusedIP(ctx context.Context) (string, error) {
 
 	ip, err := s.getUnallocatedIP(ips)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("when allocating new ip: %w", err)
 	}
 
 	return ip, nil

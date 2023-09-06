@@ -7,6 +7,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/go-playground/validator/v10"
@@ -52,6 +53,7 @@ func New(repo MemberRepository, jsonWriter confwriter.JsonWriter, ipAllocation a
 	// generate config from db initially
 	err := s.UpdateDhcpFile(context.Background())
 	if err != nil {
+		log.Printf("[ERROR] when updating dhcp file: %#v", err)
 		panic(err)
 	}
 	return s
@@ -90,8 +92,14 @@ func (s Service) UpdateDhcpFile(ctx context.Context) error {
 	}
 
 	err = s.dhcpWriter.WhitelistUsers(users)
-	s.inconsistentState = err != nil
-	return err
+	if err != nil {
+		s.inconsistentState = true
+		return fmt.Errorf("when updating dhcp file: %w", err)
+	}
+
+	log.Println("[DEBUG] Successfully updated whitelist")
+	s.inconsistentState = false
+	return nil
 }
 
 func (s Service) GetAllMembers(ctx context.Context, params model.RequestParams) ([]model.MemberConfig, error) {

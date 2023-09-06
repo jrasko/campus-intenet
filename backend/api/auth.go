@@ -25,8 +25,8 @@ func (a AuthHandler) Middleware(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// read http authorization header
 		header := r.Header.Get("Authorization")
-		if !strings.HasPrefix(header, "Bearer ") || len(header) <= 7 {
-			log.Println("Unauthicated access")
+		if !strings.HasPrefix(header, "Bearer ") {
+			log.Println("[INFO] Unauthenticated access")
 			w.WriteHeader(http.StatusForbidden)
 			return
 		}
@@ -40,12 +40,12 @@ func (a AuthHandler) Middleware(next http.HandlerFunc) http.HandlerFunc {
 			return []byte(a.config.HMACSecret), nil
 		})
 		if err != nil {
-			log.Println(err)
+			log.Printf("[WARNING] when parsing jwt: %v", err)
 			w.WriteHeader(http.StatusForbidden)
 			return
 		}
 		if !token.Valid {
-			log.Println("Invalid token")
+			log.Println("[DEBUG] got invalid token")
 			w.WriteHeader(http.StatusForbidden)
 			return
 		}
@@ -72,7 +72,7 @@ func (a AuthHandler) Login() http.HandlerFunc {
 		c := Credentials{}
 		err := json.NewDecoder(r.Body).Decode(&c)
 		if err != nil {
-			log.Println(err)
+			log.Printf("[WARNING] when decoding login credentials: %v", err)
 			w.WriteHeader(http.StatusForbidden)
 			return
 		}
@@ -85,24 +85,27 @@ func (a AuthHandler) Login() http.HandlerFunc {
 		pwCheck := subtle.ConstantTimeCompare([]byte(key), []byte(a.config.Password))
 
 		if userCheck == 0 || pwCheck == 0 {
-			log.Println("Auth error for user", c.Username)
+			log.Printf("[DEBUG] auth error for user %s", c.Username)
 			w.WriteHeader(http.StatusForbidden)
 			return
 		}
 
-		// create a jwt
+		// create a json web token
 		token, err := createJWT(a.config.HMACSecret)
 		if err != nil {
+			log.Printf("[ERROR] when creating jwt: %v", err)
 			sendHttpError(w, err)
 			return
 		}
 
 		// send token back to user
-		_, _ = w.Write([]byte(fmt.Sprintf(`{ "token": "%s" }`, token)))
+		_, err = w.Write([]byte(fmt.Sprintf(`{ "token": "%s" }`, token)))
 		if err != nil {
+			log.Printf("[ERROR] when writing response: %v", err)
 			sendHttpError(w, err)
 			return
 		}
+		log.Printf("[DEBUG] new login for user %s", c.Username)
 		w.WriteHeader(http.StatusOK)
 
 	}

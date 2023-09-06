@@ -19,14 +19,14 @@ type AllocatedIP struct {
 }
 
 func New(dsn string) (MemberRepository, error) {
-	log.Println("Connecting to Database...")
+	log.Println("[INFO] Connecting to Database...")
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
 		TranslateError: true,
 	})
 	if err != nil {
 		return MemberRepository{}, err
 	}
-	log.Println("Successfully connected to DB")
+	log.Println("[INFO] Successfully connected to DB")
 
 	// check if db has needed table
 	if !db.Migrator().HasTable(memberTable) {

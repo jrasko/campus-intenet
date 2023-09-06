@@ -20,6 +20,7 @@ type application struct {
 
 func main() {
 	config := model.LoadConfig()
+	log.Println("[INFO] Loaded config")
 
 	app, err := newApplication(config)
 	if err != nil {
@@ -50,7 +51,7 @@ func newApplication(config model.Configuration) (*application, error) {
 }
 
 func (app application) start() {
-	log.Println("Listening at " + app.url)
+	log.Println("[INFO] Listening at " + app.url)
 	err := http.ListenAndServe(app.url, app.router)
 	panic(err)
 }
