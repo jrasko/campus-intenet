@@ -8,7 +8,13 @@ import (
 	"golang.org/x/crypto/argon2"
 )
 
-const MB = 1024
+// CARE! These must match the ones specified in backend/model/config.go to produce a valid hash
+const (
+	argonKeyLength = 64              // 512 bits
+	argonThreads   = 8               // recommended: 2 x server cores
+	argonMemory    = 2 * 1024 * 1024 // [in KB] - 2 GiB
+	argonTime      = 4
+)
 
 func main() {
 	if len(os.Args) < 2 {
@@ -23,7 +29,16 @@ func main() {
 	println(salt)
 
 	// these settings must be synchronized with backend/api/auth.go
-	hash := base64.StdEncoding.EncodeToString(argon2.IDKey([]byte(password), []byte(salt), 4, 512*MB, 8, 64))
+	hash := base64.StdEncoding.EncodeToString(
+		argon2.IDKey(
+			[]byte(password),
+			[]byte(salt),
+			argonTime,
+			argonMemory,
+			argonThreads,
+			argonKeyLength,
+		),
+	)
 
 	println("Hash:")
 	println(hash)

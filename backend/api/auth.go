@@ -78,7 +78,16 @@ func (a AuthHandler) Login() http.HandlerFunc {
 		}
 
 		// hash given password
-		key := base64.StdEncoding.EncodeToString(argon2.IDKey([]byte(c.Password), []byte(a.config.Salt), 4, 512*MB, 8, 64))
+		key := base64.StdEncoding.EncodeToString(
+			argon2.IDKey(
+				[]byte(c.Password),
+				[]byte(a.config.Salt),
+				a.config.ArgonTime,
+				a.config.ArgonMemory,
+				a.config.ArgonThreads,
+				a.config.ArgonKeyLen,
+			),
+		)
 
 		// check if username and password are equal
 		userCheck := subtle.ConstantTimeCompare([]byte(c.Username), []byte(a.config.Username))

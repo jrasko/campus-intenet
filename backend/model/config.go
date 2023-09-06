@@ -5,13 +5,25 @@ import (
 	"os"
 )
 
-const defaultUrl = ":8080"
-const defaultFile = "user-list.json"
+const (
+	defaultUrl  = ":8080"
+	defaultFile = "user-list.json"
+
+	argonKeyLength = 64              // 512 bits
+	argonThreads   = 8               // recommended: 2 x server cores
+	argonMemory    = 2 * 1024 * 1024 // [in KB] - 2 GiB
+	argonTime      = 4
+)
 
 type Configuration struct {
 	Username string
 	Password string
-	Salt     string
+
+	Salt         string
+	ArgonTime    uint32
+	ArgonMemory  uint32
+	ArgonThreads uint8
+	ArgonKeyLen  uint32
 
 	HMACSecret string
 
@@ -40,16 +52,21 @@ func LoadConfig() Configuration {
 	config := Configuration{
 		Username:   os.Getenv("LOGIN_USER"),
 		Password:   os.Getenv("LOGIN_PASSWORD_HASH"),
-		HMACSecret: os.Getenv("HMAC_SECRET"),
 		Salt:       os.Getenv("SALT"),
-		DBDatabase: os.Getenv("POSTGRES_DB"),
+		HMACSecret: os.Getenv("HMAC_SECRET"),
 		DBHost:     os.Getenv("POSTGRES_HOST"),
+		DBDatabase: os.Getenv("POSTGRES_DB"),
 		DBUser:     os.Getenv("POSTGRES_USER"),
 		DBPassword: os.Getenv("POSTGRES_PASSWORD"),
 		CIDR:       os.Getenv("CIDR"),
 
-		OutputFile: defaultFile,
 		URL:        defaultUrl,
+		OutputFile: defaultFile,
+
+		ArgonTime:    argonTime,
+		ArgonMemory:  argonMemory,
+		ArgonThreads: argonThreads,
+		ArgonKeyLen:  argonKeyLength,
 	}
 	if (config == Configuration{}) {
 		panic("empty config")
