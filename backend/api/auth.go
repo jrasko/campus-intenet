@@ -106,8 +106,6 @@ func (a AuthHandler) Login() http.HandlerFunc {
 			return
 		}
 		log.Printf("[DEBUG] new login for user %s", c.Username)
-		w.WriteHeader(http.StatusOK)
-
 	}
 }
 
