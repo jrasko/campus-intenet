@@ -1,8 +1,10 @@
 package model
 
 import (
+	"errors"
 	"fmt"
 	"os"
+	"strconv"
 )
 
 const (
@@ -34,8 +36,9 @@ type Configuration struct {
 
 	URL string
 
-	CIDR       string
-	OutputFile string
+	CIDR                 string
+	OutputFile           string
+	SkipDhcpNotification bool
 }
 
 func (c Configuration) DSN() string {
@@ -48,7 +51,17 @@ func (c Configuration) DSN() string {
 	)
 }
 
-func LoadConfig() Configuration {
+func LoadConfig() (Configuration, error) {
+	var err error
+	skipDhcpNotification := false
+
+	if os.Getenv("SKIP_DHCP_RELOAD") != "" {
+		skipDhcpNotification, err = strconv.ParseBool(os.Getenv("SKIP_DHCP_RELOAD"))
+		if err != nil {
+			return Configuration{}, fmt.Errorf("parsing env 'SKIP_DHCP_RELOAD': %w", err)
+		}
+	}
+
 	config := Configuration{
 		Username:   os.Getenv("LOGIN_USER"),
 		Password:   os.Getenv("LOGIN_PASSWORD_HASH"),
@@ -67,9 +80,11 @@ func LoadConfig() Configuration {
 		ArgonMemory:  argonMemory,
 		ArgonThreads: argonThreads,
 		ArgonKeyLen:  argonKeyLength,
+
+		SkipDhcpNotification: skipDhcpNotification,
 	}
 	if (config == Configuration{}) {
-		panic("empty config")
+		return Configuration{}, errors.New("empty config")
 	}
-	return config
+	return config, nil
 }

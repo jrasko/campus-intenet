@@ -7,6 +7,7 @@ import (
 	"backend/service"
 	"backend/service/allocation"
 	"backend/service/confwriter"
+	"fmt"
 	"log"
 	"net/http"
 )
@@ -19,7 +20,10 @@ type application struct {
 }
 
 func main() {
-	config := model.LoadConfig()
+	config, err := model.LoadConfig()
+	if err != nil {
+		panic(fmt.Errorf("could not load config: %w", err))
+	}
 	log.Println("[INFO] Loaded config")
 
 	app, err := newApplication(config)
@@ -36,7 +40,7 @@ func newApplication(config model.Configuration) (*application, error) {
 		return nil, err
 	}
 
-	confWriter := confwriter.New(config.OutputFile)
+	confWriter := confwriter.New(config.OutputFile, config.SkipDhcpNotification)
 	ipAllocation := allocation.New(repo, config.CIDR)
 
 	srv := service.New(repo, confWriter, ipAllocation)

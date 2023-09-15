@@ -8,12 +8,14 @@ import (
 )
 
 type JsonWriter struct {
-	filename string
+	filename             string
+	skipDhcpNotification bool
 }
 
-func New(filename string) JsonWriter {
+func New(filename string, skipDhcpNotification bool) JsonWriter {
 	return JsonWriter{
-		filename: filename,
+		filename:             filename,
+		skipDhcpNotification: skipDhcpNotification,
 	}
 }
 
@@ -22,10 +24,10 @@ type reservation struct {
 	Mac string `json:"hw-address"`
 }
 
-func (dw JsonWriter) WhitelistUsers(member []model.MemberConfig) error {
+func (jw JsonWriter) WhitelistUsers(member []model.MemberConfig) error {
 	reservations := mapToReservationUser(member)
 
-	f, err := os.OpenFile(dw.filename, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0666)
+	f, err := os.OpenFile(jw.filename, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0666)
 	if err != nil {
 		return model.Error(http.StatusInternalServerError, err.Error(), "could not open output file")
 	}
@@ -42,7 +44,7 @@ func (dw JsonWriter) WhitelistUsers(member []model.MemberConfig) error {
 		return model.Error(http.StatusInternalServerError, err.Error(), "error when closing output file")
 	}
 
-	return reloadConfig()
+	return jw.reloadConfig()
 }
 
 func mapToReservationUser(configs []model.MemberConfig) []reservation {

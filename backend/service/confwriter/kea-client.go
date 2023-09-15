@@ -4,6 +4,7 @@ import (
 	"backend/model"
 	"bytes"
 	"fmt"
+	"log"
 	"net/http"
 )
 
@@ -12,7 +13,12 @@ const (
 	port    = "8000"
 )
 
-func reloadConfig() error {
+func (jw JsonWriter) reloadConfig() error {
+	if jw.skipDhcpNotification {
+		log.Println("[DEBUG] Skipping notification to dhcp server")
+		return nil
+	}
+
 	resp, err := http.DefaultClient.Post(
 		baseURL+":"+port,
 		"application/json",
