@@ -58,10 +58,6 @@ type Credentials struct {
 	Password string `json:"password"`
 }
 
-const (
-	MB = 1024
-)
-
 var (
 	expirationTime = 2 * time.Hour
 )

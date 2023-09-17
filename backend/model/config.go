@@ -1,44 +1,34 @@
 package model
 
 import (
-	"errors"
+	"context"
 	"fmt"
-	"os"
-	"strconv"
-)
 
-const (
-	defaultUrl  = ":8080"
-	defaultFile = "user-list.json"
-
-	argonKeyLength = 64              // 512 bits
-	argonThreads   = 8               // recommended: 2 x server cores
-	argonMemory    = 2 * 1024 * 1024 // [in KB] - 2 GiB
-	argonTime      = 4
+	"github.com/sethvargo/go-envconfig"
 )
 
 type Configuration struct {
-	Username string
-	Password string
+	Username string `env:"LOGIN_USER,required"`
+	Password string `env:"LOGIN_PASSWORD_HASH,required"`
+	Salt     string `env:"SALT,required"`
 
-	Salt         string
-	ArgonTime    uint32
-	ArgonMemory  uint32
-	ArgonThreads uint8
-	ArgonKeyLen  uint32
+	ArgonTime    uint32 `env:"ARGON_TIME,required"`
+	ArgonMemory  uint32 `env:"ARGON_MEMORY,required"`
+	ArgonThreads uint8  `env:"ARGON_THREADS,required"`
+	ArgonKeyLen  uint32 `env:"ARGON_KEY_LENGTH,required"`
 
-	HMACSecret string
+	HMACSecret string `env:"HMAC_SECRET,required"`
 
-	DBHost     string
-	DBDatabase string
-	DBUser     string
-	DBPassword string
+	DBHost     string `env:"POSTGRES_HOST,default=dhcp_db"`
+	DBDatabase string `env:"POSTGRES_DB,default=postgres"`
+	DBUser     string `env:"POSTGRES_USER,default=postgres"`
+	DBPassword string `env:"POSTGRES_PASSWORD,required"`
 
-	URL string
+	URL string `env:"URL,default=:8080"`
 
-	CIDR                 string
-	OutputFile           string
-	SkipDhcpNotification bool
+	CIDR                 string `env:"CIDR,required"`
+	OutputFile           string `env:"OUTPUT_FILE,default=user-list.json"`
+	SkipDhcpNotification bool   `env:"SKIP_DHCP_RELOAD,default=false"`
 }
 
 func (c Configuration) DSN() string {
@@ -51,40 +41,12 @@ func (c Configuration) DSN() string {
 	)
 }
 
-func LoadConfig() (Configuration, error) {
-	var err error
-	skipDhcpNotification := false
-
-	if os.Getenv("SKIP_DHCP_RELOAD") != "" {
-		skipDhcpNotification, err = strconv.ParseBool(os.Getenv("SKIP_DHCP_RELOAD"))
-		if err != nil {
-			return Configuration{}, fmt.Errorf("parsing env 'SKIP_DHCP_RELOAD': %w", err)
-		}
+func LoadConfig(ctx context.Context) (Configuration, error) {
+	var config Configuration
+	err := envconfig.Process(ctx, &config)
+	if err != nil {
+		return Configuration{}, err
 	}
 
-	config := Configuration{
-		Username:   os.Getenv("LOGIN_USER"),
-		Password:   os.Getenv("LOGIN_PASSWORD_HASH"),
-		Salt:       os.Getenv("SALT"),
-		HMACSecret: os.Getenv("HMAC_SECRET"),
-		DBHost:     os.Getenv("POSTGRES_HOST"),
-		DBDatabase: os.Getenv("POSTGRES_DB"),
-		DBUser:     os.Getenv("POSTGRES_USER"),
-		DBPassword: os.Getenv("POSTGRES_PASSWORD"),
-		CIDR:       os.Getenv("CIDR"),
-
-		URL:        defaultUrl,
-		OutputFile: defaultFile,
-
-		ArgonTime:    argonTime,
-		ArgonMemory:  argonMemory,
-		ArgonThreads: argonThreads,
-		ArgonKeyLen:  argonKeyLength,
-
-		SkipDhcpNotification: skipDhcpNotification,
-	}
-	if (config == Configuration{}) {
-		return Configuration{}, errors.New("empty config")
-	}
 	return config, nil
 }

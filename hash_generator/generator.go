@@ -8,11 +8,11 @@ import (
 	"golang.org/x/crypto/argon2"
 )
 
-// CARE! These must match the ones specified in backend/model/config.go to produce a valid hash
+// CARE! These must match the ones specified in .env to produce a valid hash
 const (
-	argonKeyLength = 64              // 512 bits
-	argonThreads   = 8               // recommended: 2 x server cores
-	argonMemory    = 2 * 1024 * 1024 // [in KB] - 2 GiB
+	argonKeyLength = 64      // 512 bits
+	argonThreads   = 8       // recommended: 2 x server cores
+	argonMemory    = 2097152 // [in KB] - 2 GiB
 	argonTime      = 4
 )
 

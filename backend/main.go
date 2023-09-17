@@ -7,6 +7,7 @@ import (
 	"backend/service"
 	"backend/service/allocation"
 	"backend/service/confwriter"
+	"context"
 	"fmt"
 	"log"
 	"net/http"
@@ -20,7 +21,7 @@ type application struct {
 }
 
 func main() {
-	config, err := model.LoadConfig()
+	config, err := model.LoadConfig(context.Background())
 	if err != nil {
 		panic(fmt.Errorf("could not load config: %w", err))
 	}

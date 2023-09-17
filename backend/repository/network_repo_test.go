@@ -18,7 +18,10 @@ var (
 )
 
 func setupDB() (MemberRepository, error) {
-	cfg := model.LoadConfig()
+	cfg, err := model.LoadConfig(context.Background())
+	if err != nil {
+		return MemberRepository{}, err
+	}
 	cfg.DBDatabase = "network_testing"
 	repo, err := New(cfg.DSN())
 	if err != nil {
@@ -35,7 +38,8 @@ func TestNew(t *testing.T) {
 		assert.Equal(t, MemberRepository{}, repo)
 	})
 	t.Run("it creates table on setup", func(t *testing.T) {
-		config := model.LoadConfig()
+		config, err := model.LoadConfig(context.Background())
+		require.NoError(t, err)
 		config.DBDatabase = "network_testing"
 		repo, err := New(config.DSN())
 		assert.NoError(t, err)
