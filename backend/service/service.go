@@ -41,7 +41,7 @@ type MemberRepository interface {
 	GetNonPayingMembers(ctx context.Context) ([]model.MemberConfig, error)
 }
 
-func New(repo MemberRepository, jsonWriter confwriter.JsonWriter, ipAllocation allocation.Service) Service {
+func New(repo MemberRepository, jsonWriter confwriter.JsonWriter, ipAllocation allocation.Service) *Service {
 	s := Service{
 		validate:          validator.New(),
 		memberRepo:        repo,
@@ -56,10 +56,10 @@ func New(repo MemberRepository, jsonWriter confwriter.JsonWriter, ipAllocation a
 		log.Printf("[ERROR] when updating dhcp file: %#v", err)
 		panic(err)
 	}
-	return s
+	return &s
 }
 
-func (s Service) UpdateMember(ctx context.Context, member model.MemberConfig) (model.MemberConfig, error) {
+func (s *Service) UpdateMember(ctx context.Context, member model.MemberConfig) (model.MemberConfig, error) {
 	err := s.validate.Struct(member)
 	if err != nil {
 		return model.MemberConfig{}, mapValidationError(err)
@@ -85,7 +85,7 @@ func (s Service) UpdateMember(ctx context.Context, member model.MemberConfig) (m
 	return member, err
 }
 
-func (s Service) UpdateDhcpFile(ctx context.Context) error {
+func (s *Service) UpdateDhcpFile(ctx context.Context) error {
 	users, err := s.memberRepo.GetEnabledUsers(ctx)
 	if err != nil {
 		return model.WrapGormError(err)
@@ -102,7 +102,7 @@ func (s Service) UpdateDhcpFile(ctx context.Context) error {
 	return nil
 }
 
-func (s Service) GetAllMembers(ctx context.Context, params model.RequestParams) ([]model.MemberConfig, error) {
+func (s *Service) GetAllMembers(ctx context.Context, params model.RequestParams) ([]model.MemberConfig, error) {
 	err := s.validate.Struct(params)
 	if err != nil {
 		return []model.MemberConfig{}, mapValidationError(err)
@@ -114,7 +114,7 @@ func (s Service) GetAllMembers(ctx context.Context, params model.RequestParams) 
 	return members, nil
 }
 
-func (s Service) GetMember(ctx context.Context, id int) (model.MemberConfig, error) {
+func (s *Service) GetMember(ctx context.Context, id int) (model.MemberConfig, error) {
 	member, err := s.memberRepo.GetMemberConfig(ctx, id)
 	if err != nil {
 		return model.MemberConfig{}, model.WrapGormError(err)
@@ -122,7 +122,7 @@ func (s Service) GetMember(ctx context.Context, id int) (model.MemberConfig, err
 	return member, nil
 }
 
-func (s Service) DeleteMember(ctx context.Context, id int) error {
+func (s *Service) DeleteMember(ctx context.Context, id int) error {
 	err := s.memberRepo.DeleteMemberConfig(ctx, id)
 	if err != nil {
 		return model.WrapGormError(err)
@@ -131,15 +131,15 @@ func (s Service) DeleteMember(ctx context.Context, id int) error {
 	return s.UpdateDhcpFile(ctx)
 }
 
-func (s Service) ResetPayment(ctx context.Context) error {
+func (s *Service) ResetPayment(ctx context.Context) error {
 	return model.WrapGormError(s.memberRepo.ResetPayment(ctx))
 }
 
-func (s Service) IsInconsistent() bool {
+func (s *Service) IsInconsistent() bool {
 	return s.inconsistentState
 }
 
-func (s Service) GetNotPayingMembers(ctx context.Context) ([]model.ReducedMember, error) {
+func (s *Service) GetNotPayingMembers(ctx context.Context) ([]model.ReducedMember, error) {
 	idiots, err := s.memberRepo.GetNonPayingMembers(ctx)
 	if err != nil {
 		return nil, model.WrapGormError(err)
@@ -159,7 +159,7 @@ func mapValidationError(err error) error {
 		for _, fieldError := range fieldErrors {
 			message += fmt.Sprintf("%s:%s-%s; ", fieldError.Field(), fieldError.Tag(), fieldError.Param())
 		}
-		return model.Error(http.StatusBadRequest, err.Error(), fmt.Sprintf(message))
+		return model.Error(http.StatusBadRequest, err.Error(), message)
 	}
 	return err
 }

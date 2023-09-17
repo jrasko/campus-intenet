@@ -23,11 +23,11 @@ type Service struct {
 }
 
 var (
-	// noIPsAllocatable if firstIP is >= broadcastIP
-	noIPsAllocatable = errors.New("no allocatable ips")
+	// errNoIPsAllocatable if firstIP is >= broadcastIP
+	errNoIPsAllocatable = errors.New("no allocatable ips")
 
-	// noUnallocatedIP occurs if all possible ips are allocated
-	noUnallocatedIP = model.Error(http.StatusInternalServerError,
+	// errNoUnallocatedIP occurs if all possible ips are allocated
+	errNoUnallocatedIP = model.Error(http.StatusInternalServerError,
 		"no unallocated ip available", "no unallocated ip available")
 )
 
@@ -69,7 +69,7 @@ func (s Service) getUnallocatedIP(allocatedIPs []string) (string, error) {
 		}
 	}
 
-	return "", noUnallocatedIP
+	return "", errNoUnallocatedIP
 }
 
 // createAllocationMap returns a maps IPv4 -> bool where every IP on allocatedIPs is mapped to true
@@ -101,7 +101,7 @@ func parseCIDR(cidr string) (firstIP IPv4, broadcast IPv4, err error) {
 
 	// check if there are allocatable ips
 	if firstIP >= broadcast {
-		return 0, 0, noIPsAllocatable
+		return 0, 0, errNoIPsAllocatable
 	}
 
 	return firstIP, broadcast, nil

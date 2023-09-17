@@ -125,7 +125,7 @@ func TestMemberRepository(t *testing.T) {
 			RoomNr: member.RoomNr,
 			IP:     member.IP,
 		}
-		newMember, err := repo.UpdateMemberConfig(ctx, newMember)
+		_, err := repo.UpdateMemberConfig(ctx, newMember)
 		assert.Equal(t, gorm.ErrDuplicatedKey, err)
 	})
 	t.Run("it retrevies a single member", func(t *testing.T) {
