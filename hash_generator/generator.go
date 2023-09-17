@@ -10,8 +10,8 @@ import (
 
 // CARE! These must match the ones specified in .env to produce a valid hash
 const (
-	argonKeyLength = 64      // 512 bits
-	argonThreads   = 8       // recommended: 2 x server cores
+	argonKeyLength = 32      // 256 bits, default config
+	argonThreads   = 8       // recommended: server cores - 2
 	argonMemory    = 2097152 // [in KB] - 2 GiB
 	argonTime      = 4
 )
