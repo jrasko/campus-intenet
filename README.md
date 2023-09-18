@@ -5,42 +5,39 @@ I use arch btw.
 
 ---
 <!-- TOC -->
-
 * [Schnelleinstieg](#schnelleinstieg)
 * [Übersicht](#übersicht)
-    * [Aufgabe](#aufgabe)
-    * [Die Anwendung](#die-anwendung)
-        * [DHCPv4-Server](#dhcpv4-server)
-        * [Frontend](#frontend)
-        * [Backend](#backend)
-        * [Datenbank](#datenbank)
-    * [Docker](#docker)
+  * [Aufgabe](#aufgabe)
+  * [Die Anwendung](#die-anwendung)
+    * [DHCPv4-Server](#dhcpv4-server)
+    * [Frontend](#frontend)
+    * [Backend](#backend)
+    * [Datenbank](#datenbank)
+  * [Docker](#docker)
 * [Installation](#installation)
-    * [Anforderungen an Hardware](#anforderungen-an-hardware)
-    * [Anforderungen an Software](#anforderungen-an-software)
-    * [Installation von Docker](#installation-von-docker)
-    * [Installation der Anwendung](#installation-der-anwendung)
-    * [Ordner](#ordner)
+  * [Anforderungen an Hardware](#anforderungen-an-hardware)
+  * [Anforderungen an Software](#anforderungen-an-software)
+  * [Installation von Docker](#installation-von-docker)
+  * [Installation der Anwendung](#installation-der-anwendung)
+  * [Ordner](#ordner)
 * [Konfiguration](#konfiguration)
-    * [Schnellconfig](#schnellconfig)
-    * [Konfiguration mit einer env-Datei](#konfiguration-mit-einer-env-datei)
-    * [DB/Postgres](#dbpostgres)
-    * [Authentifikation](#authentifikation)
-        * [Erläuterung](#erläuterung)
-        * [Konfiguration](#konfiguration-1)
-    * [Passwort Hash](#passwort-hash)
-        * [Erläuterung](#erläuterung-1)
-        * [Hash aus Passwort erstellen](#hash-aus-passwort-erstellen)
-    * [CIDR](#cidr)
-    * [Sonstiges](#sonstiges)
+  * [Schnellconfig](#schnellconfig)
+  * [Konfiguration mit einer env-Datei](#konfiguration-mit-einer-env-datei)
+  * [DB/Postgres](#dbpostgres)
+  * [Authentifikation](#authentifikation)
+    * [Erläuterung](#erläuterung)
+    * [Konfiguration](#konfiguration-1)
+  * [Passwort Hash](#passwort-hash)
+    * [Erläuterung](#erläuterung-1)
+    * [Hash aus Passwort erstellen](#hash-aus-passwort-erstellen)
+  * [CIDR](#cidr)
+  * [Sonstiges](#sonstiges)
 * [Nutzung und Debugging](#nutzung-und-debugging)
-    * [Starten und stoppen der Anwendung](#starten-und-stoppen-der-anwendung)
-    * [Logs](#logs)
-    * [Änderungen am Code](#änderungen-am-code)
-
+  * [Starten und stoppen der Anwendung](#starten-und-stoppen-der-anwendung)
+  * [Logs](#logs)
+  * [Bearbeitung am DHCPv4-Server oder am Code](#bearbeitung-am-dhcpv4-server-oder-am-code)
 <!-- TOC -->
 ---
-
 # Schnelleinstieg
 
 Du möchtest schnell loslegen ohne viel zu lesen? Los!
@@ -51,6 +48,7 @@ Du möchtest schnell loslegen ohne viel zu lesen? Los!
 4. Erstelle eine Konfigurationsdatei `.env`, dazu kann diese [Vorlage](#schnellconfig) verwendet werden
 5. Erstelle ein Docker Volume für die Datenbank mit `docker volume create dhcp-db`, falls nicht vorhanden
 6. Starte die Anwendung mit `docker-compose up -d`
+7. Prüfe mit `docker ps` ob alles funktioniert hat
 
 Etwas funktioniert nicht oder diese Anleitung ist zu ungenau? Dann hier die ausführliche Dokumentation:
 
@@ -179,7 +177,7 @@ LOGIN_USER= # beliebiger nutzername
 LOGIN_PASSWORD_HASH= # generiert mit generator.go
 SALT= # generiert mit generator.go
 HMAC_SECRET= # >150 zufällige Zeichen
-ARGON_TIME= # >=2
+ARGON_TIME= # >=2,
 ARGON_MEMORY= # Vefügbarer RAM / 4
 ARGON_THREADS= # Verfügbare Kerne - 2
 CIDR= # Subnetzmaske mit erster vergebenen IP
@@ -314,6 +312,28 @@ Die letzte IP eines Subnetzes ist die Broadcast-Adresse und bleibt daher unbeleg
 
 ## Starten und stoppen der Anwendung
 
+Zum Starten der Anwendung muss im Ordner **infrastructure** der Befehl `docker-compose up -d` ausgeführt werden. <br>
+Mit `docker-compose down` wird die Anwendung gestoppt.
+
+Mit `docker ps` lassen sich alle in Docker laufenden Services anzeigen. Es empfiehlt sich, nach dem Starten wenige
+Sekunden zu warten und mit dem Befehl zu prüfen, ob alle container den Status *UP* haben. Falls nicht, sollte mithilfe
+von [Logs](#logs) versucht werden, das Problem zu identifizieren
+
+Einzelne Services (container) lassen sich mit `docker stop <containername>` stoppen und mit
+`docker start <containername>` wieder starten. <br>
+
+Sollte ein Programm abstürzen, wird es von Docker automatisch neu gestartet.
+
+Alle wichtigen Daten werden mithilfe von sogenannten Docker volumes gespeichert, sodass sich alle container beliebig
+starten, stoppen und sogar löschen lassen, ohne das ein Datenverlust eintritt.
+
 ## Logs
 
-## Änderungen am Code
+`docker logs <containername>` zeigt die Logs von einem container. Mit `-f` werden die Logs auch fortlaufend angezeigt.
+
+Insbesondere die Logs vom Backend und vom DHCPv4-Server sind zur Fehlersuche relevant.
+
+## Bearbeitung am DHCPv4-Server oder am Code
+
+Sollte sich die Konfiguration des DHCPv4-Servers ändern, muss das container Image neu gebaut werden. Dazu muss
+`docker-compose up -d --build dhcp4` ausgeführt werden. Dies kann etwas länger dauern.
