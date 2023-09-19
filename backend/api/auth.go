@@ -3,7 +3,6 @@ package api
 import (
 	"backend/model"
 	"crypto/subtle"
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -11,8 +10,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/alexedwards/argon2id"
 	"github.com/golang-jwt/jwt/v5"
-	"golang.org/x/crypto/argon2"
 )
 
 type AuthHandler struct {
@@ -73,23 +72,16 @@ func (a AuthHandler) Login() http.HandlerFunc {
 			return
 		}
 
-		// hash given password
-		key := base64.StdEncoding.EncodeToString(
-			argon2.IDKey(
-				[]byte(c.Password),
-				[]byte(a.config.Salt),
-				a.config.ArgonTime,
-				a.config.ArgonMemory,
-				a.config.ArgonThreads,
-				a.config.ArgonKeyLen,
-			),
-		)
-
 		// check if username and password are equal
 		userCheck := subtle.ConstantTimeCompare([]byte(c.Username), []byte(a.config.Username))
-		pwCheck := subtle.ConstantTimeCompare([]byte(key), []byte(a.config.Password))
+		pwCheck, err := argon2id.ComparePasswordAndHash(c.Password, a.config.PasswordHash)
+		if err != nil {
+			log.Printf("[ERROR] when checking hash: %v", err)
+			w.WriteHeader(http.StatusForbidden)
+			return
+		}
 
-		if userCheck == 0 || pwCheck == 0 {
+		if userCheck == 0 || !pwCheck {
 			log.Printf("[DEBUG] auth error for user %s", c.Username)
 			w.WriteHeader(http.StatusForbidden)
 			return

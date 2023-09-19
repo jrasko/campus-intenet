@@ -5,39 +5,42 @@ I use arch btw.
 
 ---
 <!-- TOC -->
+
 * [Schnelleinstieg](#schnelleinstieg)
 * [Übersicht](#übersicht)
-  * [Aufgabe](#aufgabe)
-  * [Die Anwendung](#die-anwendung)
-    * [DHCPv4-Server](#dhcpv4-server)
-    * [Frontend](#frontend)
-    * [Backend](#backend)
-    * [Datenbank](#datenbank)
-  * [Docker](#docker)
+    * [Aufgabe](#aufgabe)
+    * [Die Anwendung](#die-anwendung)
+        * [DHCPv4-Server](#dhcpv4-server)
+        * [Frontend](#frontend)
+        * [Backend](#backend)
+        * [Datenbank](#datenbank)
+    * [Docker](#docker)
 * [Installation](#installation)
-  * [Anforderungen an Hardware](#anforderungen-an-hardware)
-  * [Anforderungen an Software](#anforderungen-an-software)
-  * [Installation von Docker](#installation-von-docker)
-  * [Installation der Anwendung](#installation-der-anwendung)
-  * [Ordner](#ordner)
+    * [Anforderungen an Hardware](#anforderungen-an-hardware)
+    * [Anforderungen an Software](#anforderungen-an-software)
+    * [Installation von Docker](#installation-von-docker)
+    * [Installation der Anwendung](#installation-der-anwendung)
+    * [Ordner](#ordner)
 * [Konfiguration](#konfiguration)
-  * [Schnellconfig](#schnellconfig)
-  * [Konfiguration mit einer env-Datei](#konfiguration-mit-einer-env-datei)
-  * [DB/Postgres](#dbpostgres)
-  * [Authentifikation](#authentifikation)
-    * [Erläuterung](#erläuterung)
-    * [Konfiguration](#konfiguration-1)
-  * [Passwort Hash](#passwort-hash)
-    * [Erläuterung](#erläuterung-1)
-    * [Hash aus Passwort erstellen](#hash-aus-passwort-erstellen)
-  * [CIDR](#cidr)
-  * [Sonstiges](#sonstiges)
+    * [Schnellconfig](#schnellconfig)
+    * [Konfiguration mit einer env-Datei](#konfiguration-mit-einer-env-datei)
+    * [DB/Postgres](#dbpostgres)
+    * [Authentifikation](#authentifikation)
+        * [Erläuterung](#erläuterung)
+        * [Konfiguration](#konfiguration-1)
+    * [Passwort Hash](#passwort-hash)
+        * [Erläuterung](#erläuterung-1)
+        * [Hash aus Passwort erstellen](#hash-aus-passwort-erstellen)
+    * [CIDR](#cidr)
+    * [Sonstiges](#sonstiges)
 * [Nutzung und Debugging](#nutzung-und-debugging)
-  * [Starten und stoppen der Anwendung](#starten-und-stoppen-der-anwendung)
-  * [Logs](#logs)
-  * [Bearbeitung am DHCPv4-Server oder am Code](#bearbeitung-am-dhcpv4-server-oder-am-code)
+    * [Starten und stoppen der Anwendung](#starten-und-stoppen-der-anwendung)
+    * [Logs](#logs)
+    * [Bearbeitung am DHCPv4-Server oder am Code](#bearbeitung-am-dhcpv4-server-oder-am-code)
+
 <!-- TOC -->
 ---
+
 # Schnelleinstieg
 
 Du möchtest schnell loslegen ohne viel zu lesen? Los!
@@ -154,10 +157,8 @@ Es existieren 2 Möglichkeiten, die Anwendung zu installieren:
 
 ## Ordner
 
-Im Ordner befinden sich neben dieser README.md Datei 4 Unterordner.
-Konfigurieren, Starten und Stoppen der Anwendung findet im Unterordner **infrastructure** statt. Der Unterordner
-**hash_generator** ist relevant, wenn das Passwort des Benutzers geändert werden soll, näheres dazu
-[hier](#hash-aus-passwort-erstellen).
+Im Ordner befinden sich neben dieser README.md Datei 3 Unterordner.
+Konfigurieren, Starten und Stoppen der Anwendung findet im Unterordner **infrastructure** statt.
 
 Die anderen beiden Ordner sind nur dann relevant, wenn an der Programmierung der Services etwas geändert
 werden soll.
@@ -174,12 +175,8 @@ Hier eine Vorlage für eine Standardkonfiguration:
 ```
 POSTGRES_PASSWORD= # >= 20 zufällige Zeichen
 LOGIN_USER= # beliebiger nutzername
-LOGIN_PASSWORD_HASH= # generiert mit generator.go
-SALT= # generiert mit generator.go
+LOGIN_PASSWORD_HASH= # generiert mit argon2
 HMAC_SECRET= # >150 zufällige Zeichen
-ARGON_TIME= # >=2,
-ARGON_MEMORY= # Vefügbarer RAM / 4
-ARGON_THREADS= # Verfügbare Kerne - 2
 CIDR= # Subnetzmaske mit erster vergebenen IP
 ```
 
@@ -199,24 +196,19 @@ ANDERE_UMGEBUNGSVARIABLE=anderer-Wert
 
 Es können die folgenden Konfigurationen in *.env* hinterlegt werden.
 
-| Name              | Pflicht | Services   | Details                               |
-|-------------------|---------|------------|---------------------------------------|
-| POSTGRES_HOST     |         | Backend,DB | [DB/Postgres](#dbpostgres)            |
-| POSTGRES_DB       |         | Backend,DB | [DB/Postgres](#dbpostgres)            |
-| POSTGRES_USER     |         | Backend,DB | [DB/Postgres](#dbpostgres)            |
-| POSTGRES_PASSWORD | X       | Backend,DB | [DB/Postgres](#dbpostgres)            |
-| LOGIN_USER        | X       | Backend    | [Authentifikation](#authentifikation) |
-| LOGIN_PASSWORD    | X       | Backend    | [Authentifikation](#authentifikation) |
-| SALT              | X       | Backend    | [Authentifikation](#authentifikation) |
-| HMAC_SECRET       | X       | Backend    | [Authentifikation](#authentifikation) |
-| ARGON_TIME        | X       | Backend    | [Passwort Hash](#passwort-hash)       |
-| ARGON_MEMORY      | X       | Backend    | [Passwort Hash](#passwort-hash)       |
-| ARGON_THREADS     | X       | Backend    | [Passwort Hash](#passwort-hash)       |
-| ARGON_KEY_LENGTH  |         | Backend    | [Passwort Hash](#passwort-hash)       |
-| CIDR              | X       | Backend    | [CIDR](#cidr)                         |
-| SKIP_DHCP_RELOAD  |         | Backend    | [Sonstiges](#sonstiges)               |
-| URL               |         | Backend    | [Sonstiges](#sonstiges)               |
-| OUTPUT_FILE       |         | Backend    | [Sonstiges](#sonstiges)               |
+| Name                | Pflicht | Services   | Details                               |
+|---------------------|---------|------------|---------------------------------------|
+| POSTGRES_HOST       |         | Backend,DB | [DB/Postgres](#dbpostgres)            |
+| POSTGRES_DB         |         | Backend,DB | [DB/Postgres](#dbpostgres)            |
+| POSTGRES_USER       |         | Backend,DB | [DB/Postgres](#dbpostgres)            |
+| POSTGRES_PASSWORD   | X       | Backend,DB | [DB/Postgres](#dbpostgres)            |
+| LOGIN_USER          | X       | Backend    | [Authentifikation](#authentifikation) |
+| LOGIN_PASSWORD_HASH | X       | Backend    | [Authentifikation](#authentifikation) |
+| HMAC_SECRET         | X       | Backend    | [Authentifikation](#authentifikation) |
+| CIDR                | X       | Backend    | [CIDR](#cidr)                         |
+| SKIP_DHCP_RELOAD    |         | Backend    | [Sonstiges](#sonstiges)               |
+| URL                 |         | Backend    | [Sonstiges](#sonstiges)               |
+| OUTPUT_FILE         |         | Backend    | [Sonstiges](#sonstiges)               |
 
 ## DB/Postgres
 
@@ -249,11 +241,9 @@ der .env Datei vorhanden sein.
 Damit ergeben sich folgende Konfigurationen:
 
 - *LOGIN_USER* ist der verwendete Nutzername, der auch im frontend angegeben werden muss
-- *LOGIN_PASSWORD* ist der Hash des Passwortes, näheres dazu im [nächsten Abschnitt](#passwort-hash)
-- *SALT* wird zusätzlich zu dem Hash erzeugt und benötigt, näheres dazu im [nächsten Abschnitt](#passwort-hash)
-- *HMAC_SECRET* ist das bereits erläuterte Secret, mit dem die Token signiert werden. Als Wert sollten 128 zufällige
-  bytes
-  mit einem kryptografischen Zufallsgenerator erzeugt und mit Base64 kodiert werden.
+- *LOGIN_PASSWORD_HASH* ist der Hash des Passwortes, näheres dazu im [nächsten Abschnitt](#passwort-hash)
+- *HMAC_SECRET* ist das bereits erläuterte Secret, mit dem die Token signiert werden. Als Wert können 128 zufällige
+  bytes mit einem kryptografischen Zufallsgenerator erzeugt und mit Base64 kodiert werden.
 
 ## Passwort Hash
 
@@ -264,29 +254,30 @@ verwendete Passwort im Klartext auslesen kann, wird in der .env Datei ein Hash-W
 kryptografischer Hash ist eine Einwegfunktion, sodass sich nicht aus dem Hash auf das Passwort schließen lässt.
 
 Als Hashfunktion nutzen wir Argon2ID, welche Schutzfunktionen gegen Angriffe mit spezialisierter Hardware oder mit
-mehreren Threads anbietet.
+mehreren Threads anbietet. Argon2ID kann über verschiedene Parameter eingestellt werden:
 
-- *ARGON_TIME* gibt an, wie lange die Berechnung dauert. Optimalerweise wird der Faktor so gewählt, dass das Hashing
-  etwa
-  eine Sekunde dauert.
-- *ARGON_MEMORY* (in KB) ist die Belastung des Arbeitsspeichers zur Berechnung des Caches. Sollte maximal ein viertel
-  des
-  verfügbaren RAMs betragen.
-- *ARGON_THREADS*: Die Anzahl an Parallelität. Ich empfehle die Anzahl an zur Verfügung stehenden CPU-Kerne - 2
-- *ARGON_KEY_LENGTH*: Optional, standardmässig 32, sollte nur aus gutem Grund konfiguriert werden
+- _Memory_ ist die Belastung des Arbeitsspeichers zur Berechnung des Hashes.
+- _Parallelism_: Die Anzahl an aufzuwendenden Threads. Muss eine Zahl zwischen 1 und den zur Verfügung stehenden
+  CPU-Kernen sein.
+- _Salt_ sollte etwa aus 16 Bytes an Daten (entspricht >= 20 Zeichen) lang sein und aus zufälligen Zeichen bestehen
+- _KeyLength_ 32 Bytes empfohlen, sollte nur aus gutem Grund geändert werden
+- _Iterations_ gibt an, wie lange die Berechnung dauert. Am besten werden erst alle anderen Faktoren eingestellt und
+  _Iterations_ auf 1 gesetzt. Erst danach sollte Iterations so eingestellt werden, dass Generierung eines Hashes etwa 1s
+  dauert.
 
+_Memory_ und _Parallelism_ sollten so eingestellt werden, ohne dass durch das Hashing so viele Ressourcen
+beansprucht werden, dass andere Prozesse gestört werden. So hoch wie möglich, so niedrig wie nötig.
 ### Hash aus Passwort erstellen
 
-Voraussetzung: Go muss installiert sein: https://go.dev/doc/install
+Unter Ubuntu kann das Programm _argon2_ benutzt werden. Es kann mit `sudo apt-get install argon2` installiert werden.<br>
+Es wird wie folgt benutzt:
+```
+echo -n <password> | argon2 <salt> -id -m <memory> -p <parallelism> -t <iterations>
+```
 
-Das kleine Programm in der Datei *generator.go* im Unterordner **hash_generator** dient dazu, aus gegebenem Passwort
-einen
-Salt und einen Hash zu erzeugen.
-Es muss sichergestellt werden, dass die Konstanten im `const( )` Block oben in *generator.go* mit den Argon
-Konfigurationen der *.env* Datei übereinstimmen.
+KeyLength 32 ist bereits der Standardwert. Mit `argon2 -h` wird der Befehl erklärt und Einheiten angezeigt.
 
-Das Programm lässt sich mit `go run generator.go <passwort>` ausführen. Die ausgegebenen Werte für Salt und Hash können
-in die *.env*-Datei an die entsprechende Stelle bei *SALT* und *LOGIN_PASSWORD* kopiert werden.
+Das Programm gibt sowohl den Hash, der in die Konfiguration übernommen werden kann, als auch die benötigte Zeit an.
 
 ## CIDR
 

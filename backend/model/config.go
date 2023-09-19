@@ -4,19 +4,14 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/alexedwards/argon2id"
 	"github.com/sethvargo/go-envconfig"
 )
 
 type Configuration struct {
-	Username   string `env:"LOGIN_USER,required"`
-	Password   string `env:"LOGIN_PASSWORD_HASH,required"`
-	Salt       string `env:"SALT,required"`
-	HMACSecret string `env:"HMAC_SECRET,required"`
-
-	ArgonTime    uint32 `env:"ARGON_TIME,required"`
-	ArgonMemory  uint32 `env:"ARGON_MEMORY,required"`
-	ArgonThreads uint8  `env:"ARGON_THREADS,required"`
-	ArgonKeyLen  uint32 `env:"ARGON_KEY_LENGTH,default=32"`
+	Username     string `env:"LOGIN_USER,required"`
+	PasswordHash string `env:"LOGIN_PASSWORD_HASH,required"`
+	HMACSecret   string `env:"HMAC_SECRET,required"`
 
 	DBHost     string `env:"POSTGRES_HOST,default=dhcp_db"`
 	DBDatabase string `env:"POSTGRES_DB,default=postgres"`
@@ -45,6 +40,10 @@ func LoadConfig(ctx context.Context) (Configuration, error) {
 	err := envconfig.Process(ctx, &config)
 	if err != nil {
 		return Configuration{}, err
+	}
+	_, _, _, err = argon2id.DecodeHash(config.PasswordHash)
+	if err != nil {
+		return Configuration{}, fmt.Errorf("when reading password hash: %w", err)
 	}
 
 	return config, nil

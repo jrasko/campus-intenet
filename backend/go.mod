@@ -3,12 +3,12 @@ module backend
 go 1.21
 
 require (
+	github.com/alexedwards/argon2id v0.0.0-20230305115115-4b3c3280a736
 	github.com/go-playground/validator/v10 v10.15.4
 	github.com/golang-jwt/jwt/v5 v5.0.0
 	github.com/gorilla/mux v1.8.0
 	github.com/sethvargo/go-envconfig v0.9.0
 	github.com/stretchr/testify v1.8.4
-	golang.org/x/crypto v0.13.0
 	gorm.io/driver/postgres v1.5.2
 	gorm.io/gorm v1.25.4
 )
@@ -28,6 +28,7 @@ require (
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/rogpeppe/go-internal v1.11.0 // indirect
 	github.com/stretchr/objx v0.5.0 // indirect
+	golang.org/x/crypto v0.13.0 // indirect
 	golang.org/x/net v0.15.0 // indirect
 	golang.org/x/sys v0.12.0 // indirect
 	golang.org/x/text v0.13.0 // indirect
