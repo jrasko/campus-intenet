@@ -2,6 +2,7 @@ package model
 
 import (
 	"regexp"
+	"slices"
 	"strings"
 
 	"gorm.io/gorm"
@@ -57,7 +58,7 @@ var (
 
 func toGormColumn(fieldname string) string {
 	column := strings.ToLower(matchFirstCap.ReplaceAllString(fieldname, "${1}_${2}"))
-	if toBoolMap(dbFields)[column] {
+	if slices.Contains(dbFields, column) {
 		return column
 	}
 	return ""

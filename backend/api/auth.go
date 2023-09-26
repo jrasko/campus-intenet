@@ -3,6 +3,7 @@ package api
 import (
 	"backend/model"
 	"crypto/subtle"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -110,5 +111,12 @@ func createJWT(hmacSecret string) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS512, jwt.RegisteredClaims{
 		ExpiresAt: jwt.NewNumericDate(time.Now().Add(expirationTime)),
 	})
+
+	bytes, err := base64.StdEncoding.DecodeString(hmacSecret)
+	if err != nil && len(bytes) >= 64 {
+		return token.SignedString(bytes)
+	}
+
+	fmt.Printf("[WARNING] could not parse hmac secret as Base64")
 	return token.SignedString([]byte(hmacSecret))
 }

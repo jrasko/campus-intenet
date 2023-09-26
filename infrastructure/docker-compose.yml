@@ -16,8 +16,7 @@ services:
     ports:
       - "80:80"
       - "443:443"
-      - "8080:8080"
-    command: --api.insecure=true --providers.docker --log.level=DEBUG
+    command: --providers.docker --log.level=DEBUG
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
   frontend:

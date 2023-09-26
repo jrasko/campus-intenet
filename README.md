@@ -24,6 +24,7 @@ I use arch btw.
 * [Konfiguration](#konfiguration)
     * [Schnellconfig](#schnellconfig)
     * [Konfiguration mit einer env-Datei](#konfiguration-mit-einer-env-datei)
+    * [Zufallszahlen](#zufallszahlen)
     * [DB/Postgres](#dbpostgres)
     * [Authentifikation](#authentifikation)
         * [Erläuterung](#erläuterung)
@@ -173,10 +174,10 @@ in einem [oberen Abschnitt](#frontend) beschrieben.
 Hier eine Vorlage für eine Standardkonfiguration:
 
 ```
-POSTGRES_PASSWORD= # >= 20 zufällige Zeichen
+POSTGRES_PASSWORD= # >= 20 zufällige Bytes
 LOGIN_USER= # beliebiger nutzername
 LOGIN_PASSWORD_HASH= # generiert mit argon2
-HMAC_SECRET= # >150 zufällige Zeichen
+HMAC_SECRET= # 64 zufällige Bytes
 CIDR= # Subnetzmaske mit erster vergebenen IP
 ```
 
@@ -210,6 +211,17 @@ Es können die folgenden Konfigurationen in *.env* hinterlegt werden.
 | URL                 |         | Backend    | [Sonstiges](#sonstiges)               |
 | OUTPUT_FILE         |         | Backend    | [Sonstiges](#sonstiges)               |
 
+## Zufallszahlen
+
+Mit folgendem Befehl lässt sich unter Linux eine zufällige Zeichenfolge erzeugen:
+
+```
+head -c <Bytes> /dev/random | base64 -w 0
+```
+
+_Bytes_ gibt dabei an, wie viele zufällige Bytes generiert werden sollen. Die zufälligen _Bytes_ werden danach mit
+Base64 kodiert, um eine lesbare Ausgabe zu erhalten. Die Ausgabe ist etwa 1/3 länger als _Bytes_.
+
 ## DB/Postgres
 
 Diese Konfigurationen betreffen die Datenbank. Außer *POSTGRES_HOST* werden diese Umgebungsvariablen sowohl von der
@@ -221,7 +233,7 @@ Datenbank als auch vom Backend eingelesen, damit das Backend eine Verbindung zur
 - *POSTGRES_DB* ist der Name der Standard-Datenbank. Dieser ist defaultmäßig `postgres`.
 - *POSTGRES_USER* ist der Standard-Benutzername der Datenbank. Defaultwert ist `postgres`.
 - *POSTGRES_PASSWORD* ist das Password für den Standard-Benutzer. Dies ist das einzige verpflichtende Feld. Ich empfehle
-  etwa 20 zufällige Zeichen.
+  etwa [20 zufällige Bytes](#zufallszahlen).
 
 ## Authentifikation
 
@@ -242,8 +254,8 @@ Damit ergeben sich folgende Konfigurationen:
 
 - *LOGIN_USER* ist der verwendete Nutzername, der auch im frontend angegeben werden muss
 - *LOGIN_PASSWORD_HASH* ist der Hash des Passwortes, näheres dazu im [nächsten Abschnitt](#passwort-hash)
-- *HMAC_SECRET* ist das bereits erläuterte Secret, mit dem die Token signiert werden. Als Wert können 128 zufällige
-  bytes mit einem kryptografischen Zufallsgenerator erzeugt und mit Base64 kodiert werden.
+- *HMAC_SECRET* ist das bereits erläuterte Secret, mit dem die Token signiert werden. Als Wert sollten 64 zufällige
+  Bytes mit einem [kryptografischen Zufallsgenerator](#zufallszahlen) erzeugt werden.
 
 ## Passwort Hash
 
@@ -259,7 +271,7 @@ mehreren Threads anbietet. Argon2ID kann über verschiedene Parameter eingestell
 - _Memory_ ist die Belastung des Arbeitsspeichers zur Berechnung des Hashes.
 - _Parallelism_: Die Anzahl an aufzuwendenden Threads. Muss eine Zahl zwischen 1 und den zur Verfügung stehenden
   CPU-Kernen sein.
-- _Salt_ sollte etwa aus 16 Bytes an Daten (entspricht >= 20 Zeichen) lang sein und aus zufälligen Zeichen bestehen
+- _Salt_ sollte mindestens aus 16 [zufälligen Bytes](#zufallszahlen) bestehen
 - _KeyLength_ 32 Bytes empfohlen, sollte nur aus gutem Grund geändert werden
 - _Iterations_ gibt an, wie lange die Berechnung dauert. Am besten werden erst alle anderen Faktoren eingestellt und
   _Iterations_ auf 1 gesetzt. Erst danach sollte Iterations so eingestellt werden, dass Generierung eines Hashes etwa 1s
@@ -269,7 +281,8 @@ _Memory_ und _Parallelism_ sollten so eingestellt werden, ohne dass durch das Ha
 beansprucht werden, dass andere Prozesse gestört werden. So hoch wie möglich, so niedrig wie nötig.
 ### Hash aus Passwort erstellen
 
-Unter Ubuntu kann das Programm _argon2_ benutzt werden. Es kann mit `sudo apt-get install argon2` installiert werden.<br>
+Unter Ubuntu kann das Programm _argon2_ benutzt werden. Es kann mit `sudo apt-get install argon2` installiert 
+werden.<br>
 Es wird wie folgt benutzt:
 ```
 echo -n <password> | argon2 <salt> -id -m <memory> -p <parallelism> -t <iterations>
