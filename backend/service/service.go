@@ -65,6 +65,9 @@ func (s *Service) UpdateMember(ctx context.Context, member model.MemberConfig) (
 		return model.MemberConfig{}, mapValidationError(err)
 	}
 
+	member.Sanitize()
+	member.Manufacturer = ouiMappings[member.Mac[:8]]
+
 	if member.IP == "" {
 		member.IP, err = s.ipService.GetUnusedIP(ctx)
 		if err != nil {
