@@ -91,19 +91,17 @@ an das **Backend** gesendet.
 ### Backend
 
 Alle im **Frontend** eingegebenen Informationen werden an das Backend gesendet. Hier werden zum Beispiel freie
-*IPv4-Adressen*überblick
-ermittelt und Nutzerdaten mithilfe der **Datenbank** abgespeichert. Das Backend erstellt und verwaltet die *Whitelist*.
-Wenn
-sich diese ändert, etwa durch einen neuen oder gelöschten Nutzer, sendet das Backend ein Signal an den **DHCPv4-Server
-**,
-wodurch dieser seine Konfiguration neu lädt. Auch der Login im **Frontend** wird im Backend behandelt.
+*IPv4-Adressen* ermittelt und Nutzerdaten mithilfe der **Datenbank** abgespeichert. Das Backend erstellt und verwaltet
+die *Whitelist*.
+Wenn sich diese ändert, etwa durch einen neuen oder gelöschten Nutzer, sendet das Backend ein Signal an den
+**DHCPv4-Server**, wodurch dieser seine Konfiguration neu lädt. Auch der Login im **Frontend** wird im Backend
+behandelt.
 
 ### Datenbank
 
 Wir nutzen *PostgreSQL 15* als Datenbank. Sie dient zur Persistierung der Nutzerdaten auf der Festplatte des Servers.
 Wie bei allen relationalen Datenbanken werden auch hier die Daten in Form von Tabellen gespeichert. Es werden
-regelmäßige
-Backups empfohlen, dazu später mehr.
+regelmäßige Backups empfohlen, dazu später mehr.
 
 ## Docker
 
@@ -115,32 +113,28 @@ Docker startet die einzelnen Services in sogenannten *Containern*. Ein Docker Co
 zusätlicher Arbeisspeicher- und Prozessorbelastung.
 
 Docker-Compose dient dazu, eine Anwendung mit mehreren Services und daher auch mehreren Containern zu managen. Wir
-benötigen
-also sowohl Docker als auch Docker-compose
+benötigen also sowohl Docker als auch Docker-Compose
 
 # Installation
 
 ## Anforderungen an Hardware
 
 Ich empfehle einen Rechner mit mindestens 4GB RAM und einem Prozessor, der mindestens dem an Leistung entspricht, was
-2020 mal Mittelklasse war. Wenn du, lieber Netzer, diese Dokumentation liest und darüber nachdenkst einen neuen Rechner
-anzuschaffen,
-sind wahrscheinlich ausnahmslos alle Prozessoren auf dem Markt ausreichend.
+2020 einmal Mittelklasse war. Wenn du, lieber Netzer, diese Dokumentation liest und darüber nachdenkst einen neuen
+Rechner anzuschaffen, sind wahrscheinlich ausnahmslos alle Prozessoren auf dem Markt ausreichend.
 
 ## Anforderungen an Software
 
 Es sollte ein modernes und verbreitetes Betriebssystem installiert werden, idealerweise eine aktuelle Linux-Distribution
 mit großer Community und einfacher Bedienung. Es sollte eine Long-Term-Support (LTS) Variante verwendet werden. Wir
-nutzen das
-aktuellste Ubuntu LTS 22.04
+nutzen das aktuellste Ubuntu LTS 22.04
 
 ## Installation von Docker
 
 Es gibt sowohl Docker mit grafischer Oberfläche als auch Docker ausschließlich für die Kommandozeile. Da unser Server
 keine grafische Oberfläche besitzt, sollte unbedingt Docker ohne grafische Oberfläche installiert werden. Bei Docker
 heißt das [Docker Engine](https://docs.docker.com/engine). Die Dokumentation für die Installation der Docker Engine
-findet
-man hier: https://docs.docker.com/engine/install.
+findet man hier: https://docs.docker.com/engine/install.
 
 ## Installation der Anwendung
 
@@ -241,12 +235,9 @@ Datenbank als auch vom Backend eingelesen, damit das Backend eine Verbindung zur
 
 Wenn sich ein Nutzer im Frontend anmeldet, prüft das Backend Benutzername und Passwort und erstellt dann ein sogenanntes
 Token (JWT), das 2 Stunden gültig ist und bei jeder Anfrage an das Backend mitgesendet wird. Das Token wird mithilfe
-einer
-kryptografischen Funktion signiert, dazu wird ein *Secret* benötigt. Jeder, der Kenntnis über das Secret hat, kann
-valide
-Token ausstellen. Daher sollte das *Secret* niemals auf irgendeine Weise mit irgendjemanden geteilt und ausschließlich
-in
-der .env Datei vorhanden sein.
+einer kryptografischen Funktion signiert, dazu wird ein *Secret* benötigt. Jeder, der Kenntnis über das Secret hat, kann
+valide Token ausstellen. Daher sollte das *Secret* niemals auf irgendeine Weise mit irgendjemanden geteilt und
+ausschließlich in der .env Datei vorhanden sein.
 
 ### Konfiguration
 
@@ -279,11 +270,13 @@ mehreren Threads anbietet. Argon2ID kann über verschiedene Parameter eingestell
 
 _Memory_ und _Parallelism_ sollten so eingestellt werden, ohne dass durch das Hashing so viele Ressourcen
 beansprucht werden, dass andere Prozesse gestört werden. So hoch wie möglich, so niedrig wie nötig.
+
 ### Hash aus Passwort erstellen
 
-Unter Ubuntu kann das Programm _argon2_ benutzt werden. Es kann mit `sudo apt-get install argon2` installiert 
+Unter Ubuntu kann das Programm _argon2_ benutzt werden. Es kann mit `sudo apt-get install argon2` installiert
 werden.<br>
 Es wird wie folgt benutzt:
+
 ```
 echo -n <password> | argon2 <salt> -id -m <memory> -p <parallelism> -t <iterations>
 ```
