@@ -38,6 +38,7 @@ I use arch btw.
     * [Starten und stoppen der Anwendung](#starten-und-stoppen-der-anwendung)
     * [Logs](#logs)
     * [Bearbeitung am DHCPv4-Server oder am Code](#bearbeitung-am-dhcpv4-server-oder-am-code)
+    * [Backups](#backups)
 
 <!-- TOC -->
 ---
@@ -334,3 +335,23 @@ Insbesondere die Logs vom Backend und vom DHCPv4-Server sind zur Fehlersuche rel
 
 Sollte sich die Konfiguration des DHCPv4-Servers ändern, muss das container Image neu gebaut werden. Dazu muss
 `docker-compose up -d --build dhcp4` ausgeführt werden. Dies kann etwas länger dauern.
+
+## Backups
+
+Ich beziehe mich auf einen Post in Stack Overflow für Linux Systeme: [https://stackoverflow.com/a/29913462]
+
+Folgendes Kommando erstellt ein Backup der Datenbank, die als Docker Container mit dem Namen `<containerName>` läuft
+und speichert es in der Datei `<Ordner>/backup_<Datum>`
+
+```
+docker exec -t <containerName> pg_dumpall -c -U postgres > <Ordner>/backup_`date +%d-%m-%Y"_"%H_%M_%S`.dump
+```
+
+Mit dem folgenden Befehl lässt sich ein backup in der Datenbank einspielen:
+
+```
+cat <dateiname> | docker exec -i <containerName> psql -U postgres
+```
+
+Man nutze das Programm `crontab -e` (ggf. als _sudo_ ausführen), um automatisch regelmäßig ein Backup zu erstellen.
+Es kann hilfreich sein, einen cron expression generator zu verwenden (einfach googlen).
