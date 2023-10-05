@@ -43,7 +43,7 @@ export default {
   },
   methods: {
     submit() {
-      updateConfig(this.person)
+      updateConfig(this.forUpdate(this.person))
         .then(() => {
           this.$router.push('/')
         })
@@ -55,6 +55,11 @@ export default {
     },
     updateMac() {
       this.person.mac = formatMac(this.person.mac)
+    },
+    forUpdate(person) {
+      let forUpdate = person
+      forUpdate.manufacturer = ''
+      return forUpdate
     }
   }
 }

@@ -46,7 +46,7 @@ func NewRouter(config model.Configuration, service DhcpService) http.Handler {
 		Methods(http.MethodPost)
 
 	router.
-		Handle("/dhcp/shame", h.WallOfShame()).
+		Handle("/dhcp/shame", auth.Middleware(h.WallOfShame())).
 		Methods(http.MethodGet)
 
 	router.

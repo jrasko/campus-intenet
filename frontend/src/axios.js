@@ -5,7 +5,6 @@ export async function getConfigs(search) {
   config.params = {
     search: search
   }
-  console.log(config)
   return await axios.get('/dhcp', config)
 }
 
@@ -38,7 +37,7 @@ export async function updateDhcp() {
 }
 
 export async function getShameList() {
-  return await axios.get('/dhcp/shame')
+  return await axios.get('/dhcp/shame', getTokenConfig())
 }
 
 function getTokenConfig() {

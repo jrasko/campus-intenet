@@ -37,7 +37,8 @@ export default {
       roomNr: '',
       phone: '',
       email: '',
-      hasPaid: false
+      hasPaid: false,
+      comment: ''
     }
   }),
   methods: {

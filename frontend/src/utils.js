@@ -7,7 +7,7 @@ export function formatMac(mac) {
   return str
 }
 
-export const noAuthPages = ['login', 'shame']
+export const noAuthPages = ['login']
 
 export function isLoggedIn() {
   return localStorage.getItem('jwt') != null

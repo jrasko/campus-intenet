@@ -30,7 +30,7 @@ func (m Matcher) Matches(config model.MemberConfig) bool {
 		m1 = m.FirstnameRegex.MatchString(firstname)
 	}
 	if m.LastnameRegex != nil {
-		m2 = m.FirstnameRegex.MatchString(lastname)
+		m2 = m.LastnameRegex.MatchString(lastname)
 	}
 
 	return m1 && m2

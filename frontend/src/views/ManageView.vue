@@ -1,16 +1,16 @@
 <template>
   <v-snackbar v-model="success" :timeout="2000" color="success"> Erfolg!</v-snackbar>
-  <v-snackbar v-model="failure" :timeout="3000" color="error"> {{ this.errorMessage }}</v-snackbar>
+  <v-snackbar v-model="failure" :timeout="3000" color="error"> {{ errorMessage }}</v-snackbar>
   <v-row>
-    <v-alert v-model="warning" type="warning" variant="tonal" closable="true">
+    <v-alert v-model="warning" closable type="warning" variant="tonal">
       <v-alert-title>
         inconsistent user-list.json file
         <v-spacer />
         <v-btn
-          density="compact"
           append-icon="mdi-reload-alert"
+          density="compact"
           variant="text"
-          @click="this.writeDhcp"
+          @click="writeDhcp"
         >
           Regenerate File
         </v-btn>
@@ -24,64 +24,61 @@
       </RouterLink>
     </v-col>
     <v-col>
-      <v-btn prepend-icon="mdi-credit-card-refresh" @click="this.resetPayments">
+      <v-btn prepend-icon="mdi-credit-card-refresh" @click="resetPaymentsForAll">
         Zahlungen zurücksetzen
       </v-btn>
     </v-col>
     <v-col>
-      <v-btn prepend-icon="mdi-content-copy" @click="this.copyEmails">Emails kopieren</v-btn>
+      <a :href="'mailto:' + copyEmails()"><v-btn prepend-icon="mdi-content-copy" @click="copyEmails">Emails kopieren</v-btn></a>
     </v-col>
   </v-row>
-  <v-row justify="center">
-    <v-col cols="4" @input="this.refresh()">
+  <v-row justify="center" align="baseline">
+    <v-col cols="0" md="4"></v-col>
+    <v-col cols="12" md="4" @input="refresh">
       <v-text-field
+        v-model="search"
+        append-inner-icon="mdi-magnify"
+        clearable
+        hide-details
         label="Suche"
         variant="underlined"
-        append-inner-icon="mdi-magnify"
-        v-model="this.search"
-        hide-details
-        clearable
-      ></v-text-field>
+      />
+    </v-col>
+    <v-col cols="12" md="4">
+      <v-select
+        v-model="columns"
+        :items="Object.values(tableData)"
+        item-title="header"
+        item-value="field"
+        multiple
+        label="Spalten"
+        variant="underlined"
+      />
     </v-col>
   </v-row>
   <v-row>
     <v-col cols="12">
-      <v-table hover="true">
+      <v-table hover>
         <thead>
           <tr>
-            <th>Status</th>
-            <th>Zahlung</th>
-            <th>Vorname</th>
-            <th>Nachname</th>
-            <th>MAC</th>
-            <th>IP</th>
-            <th>WG</th>
-            <th>Zimmer-Nr.</th>
-            <th>Telefonr.</th>
-            <th>E-Mail</th>
+            <th v-for="c in columns">
+              {{ tableData[c].header }}
+            </th>
             <th></th>
             <th></th>
           </tr>
         </thead>
         <tbody>
-          <tr v-for="p in this.people">
-            <td>
-              <v-icon :color="p.disabled ? 'orange' : 'green'" icon="mdi-circle-medium" />
+          <tr v-for="p in people">
+            <td v-for="c in columns">
+              <div v-if="tableData[c].kind === 'text'">
+                {{ p[c] }}
+              </div>
+              <div v-else-if="tableData[c].kind === 'icon'">
+                <v-icon v-if="p[c]" :color="tableData[c].trueColor" :icon="tableData[c].trueIcon" />
+                <v-icon v-else :color="tableData[c].falseColor" :icon="tableData[c].falseIcon" />
+              </div>
             </td>
-            <td v-if="p.hasPaid">
-              <v-icon color="green" icon="mdi-checkbox-marked-circle" />
-            </td>
-            <td v-else>
-              <v-icon color="red" icon="mdi-close-circle" />
-            </td>
-            <td>{{ p.firstname }}</td>
-            <td>{{ p.lastname }}</td>
-            <td>{{ p.mac }}</td>
-            <td>{{ p.ip }}</td>
-            <td>{{ p.wg }}</td>
-            <td>{{ p.roomNr }}</td>
-            <td>{{ p.phone }}</td>
-            <td>{{ p.email }}</td>
             <td>
               <v-row align="center" justify="center">
                 <v-col cols="1">
@@ -90,7 +87,7 @@
                   </RouterLink>
                 </v-col>
                 <v-col cols="1">
-                  <v-btn density="compact" icon="mdi-delete" @click="this.delete(p)" />
+                  <v-btn density="compact" icon="mdi-delete" @click="deleteUser(p)" />
                 </v-col>
               </v-row>
             </td>
@@ -101,6 +98,7 @@
     </v-col>
   </v-row>
 </template>
+
 <script>
 import { deleteConfigFor, getConfigs, resetPayments, updateDhcp } from '@/axios'
 
@@ -112,7 +110,8 @@ export default {
       failure: false,
       warning: false,
       errorMessage: '',
-      search: ''
+      search: '',
+      columns: ['disabled', 'hasPaid', 'firstname', 'lastname', 'wg', 'roomNr', 'comment']
     }
   },
   mounted() {
@@ -134,14 +133,14 @@ export default {
           console.log(e)
         })
     },
-    async copyEmails() {
+    copyEmails() {
       let mails = ''
       for (const p of this.people) {
-        mails += p.email + ';'
+        mails += p.email + ','
       }
-      await navigator.clipboard.writeText(mails)
+      return mails
     },
-    delete(p) {
+    deleteUser(p) {
       if (confirm('Wirklich löschen?')) {
         deleteConfigFor(p.id)
           .then(() => {
@@ -154,7 +153,7 @@ export default {
           })
       }
     },
-    resetPayments() {
+    resetPaymentsForAll() {
       if (confirm('Zahlungen zurücksetzen?')) {
         resetPayments()
           .then(() => {
@@ -178,6 +177,78 @@ export default {
           this.errorMessage = e.response.data
         })
     }
+  }
+}
+</script>
+<script setup>
+const tableData = {
+  firstname: {
+    header: 'Vorname',
+    field: 'firstname',
+    kind: 'text'
+  },
+  lastname: {
+    header: 'Nachname',
+    field: 'lastname',
+    kind: 'text'
+  },
+  mac: {
+    header: 'MAC',
+    field: 'mac',
+    kind: 'text'
+  },
+  roomNr: {
+    header: 'Zimmer-Nr.',
+    field: 'roomNr',
+    kind: 'text'
+  },
+  wg: {
+    header: 'WG',
+    field: 'wg',
+    kind: 'text'
+  },
+  email: {
+    header: 'E-Mail',
+    field: 'email',
+    kind: 'text'
+  },
+  phone: {
+    header: 'Telefonnr.',
+    field: 'phone',
+    kind: 'text'
+  },
+  ip: {
+    header: 'IP',
+    field: 'ip',
+    kind: 'text'
+  },
+  manufacturer: {
+    header: 'Hersteller',
+    field: 'manufacturer',
+    kind: 'text'
+  },
+  comment: {
+    header: 'Kommentar',
+    field: 'comment',
+    kind: 'text'
+  },
+  hasPaid: {
+    header: 'Zahlung',
+    kind: 'icon',
+    field: 'hasPaid',
+    trueIcon: 'mdi-checkbox-marked-circle',
+    trueColor: 'green',
+    falseIcon: 'mdi-close-circle',
+    falseColor: 'red'
+  },
+  disabled: {
+    header: 'Aktiv',
+    kind: 'icon',
+    field: 'disabled',
+    falseIcon: 'mdi-circle-medium',
+    falseColor: 'green',
+    trueIcon: 'mdi-circle-medium',
+    trueColor: 'orange'
   }
 }
 </script>

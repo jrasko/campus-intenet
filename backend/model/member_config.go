@@ -3,9 +3,13 @@ package model
 import (
 	"net"
 	"strings"
+
+	"gorm.io/gorm"
 )
 
 type MemberConfig struct {
+	gorm.Model `json:"-"`
+
 	ID           int    `json:"id" gorm:"primaryKey,autoIncrement"`
 	Firstname    string `json:"firstname" validate:"required"`
 	Lastname     string `json:"lastname" validate:"required"`
@@ -18,6 +22,7 @@ type MemberConfig struct {
 	Phone        string `json:"phone"`
 	IP           string `json:"ip" gorm:"unique" validate:"omitempty,ipv4"`
 	Manufacturer string `json:"manufacturer" validate:"omitempty,len=0"`
+	Comment      string `json:"comment"`
 }
 
 type ReducedMember struct {
