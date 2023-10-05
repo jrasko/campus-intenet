@@ -142,6 +142,16 @@ func (s *Service) IsInconsistent() bool {
 	return s.inconsistentState
 }
 
+func (s *Service) TogglePayment(ctx context.Context, id int) error {
+	config, err := s.memberRepo.GetMemberConfig(ctx, id)
+	if err != nil {
+		return err
+	}
+	config.HasPaid = !config.HasPaid
+	_, err = s.memberRepo.UpdateMemberConfig(ctx, config)
+	return err
+}
+
 func (s *Service) GetNotPayingMembers(ctx context.Context) ([]model.ReducedMember, error) {
 	idiots, err := s.memberRepo.GetNonPayingMembers(ctx)
 	if err != nil {

@@ -3,6 +3,7 @@ package api
 import (
 	"backend/model"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"strconv"
 
@@ -36,9 +37,8 @@ func (h Handler) PostConfigHandler() http.HandlerFunc {
 
 func (h Handler) PutConfigHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		idParam, ok := mux.Vars(r)["id"]
-		id, err := strconv.Atoi(idParam)
-		if !ok || err != nil {
+		id, err := readIDFromVar(r)
+		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
@@ -82,9 +82,8 @@ func (h Handler) GetAllConfigHandler() http.HandlerFunc {
 
 func (h Handler) GetConfigHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		idParam, ok := mux.Vars(r)["id"]
-		id, err := strconv.Atoi(idParam)
-		if !ok || err != nil {
+		id, err := readIDFromVar(r)
+		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
@@ -104,9 +103,8 @@ func (h Handler) GetConfigHandler() http.HandlerFunc {
 
 func (h Handler) DeleteConfigHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		idParam, ok := mux.Vars(r)["id"]
-		id, err := strconv.Atoi(idParam)
-		if !ok || err != nil {
+		id, err := readIDFromVar(r)
+		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
@@ -154,4 +152,28 @@ func (h Handler) WallOfShame() http.HandlerFunc {
 		}
 		sendJSONResponse(w, members)
 	}
+}
+
+func (h Handler) TogglePayment() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		id, err := readIDFromVar(r)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		err = h.service.TogglePayment(r.Context(), id)
+		if err != nil {
+			sendHttpError(w, err)
+			return
+		}
+		w.WriteHeader(http.StatusOK)
+	}
+}
+
+func readIDFromVar(r *http.Request) (int, error) {
+	idParam, ok := mux.Vars(r)["id"]
+	if !ok {
+		return 0, errors.New("could not read id param")
+	}
+	return strconv.Atoi(idParam)
 }

@@ -16,6 +16,7 @@ type DhcpService interface {
 	ResetPayment(ctx context.Context) error
 	UpdateDhcpFile(ctx context.Context) error
 	IsInconsistent() bool
+	TogglePayment(ctx context.Context, id int) error
 	GetNotPayingMembers(ctx context.Context) ([]model.ReducedMember, error)
 }
 
@@ -60,5 +61,9 @@ func NewRouter(config model.Configuration, service DhcpService) http.Handler {
 	router.
 		Handle("/dhcp/{id}", auth.Middleware(h.PutConfigHandler())).
 		Methods(http.MethodPut)
+
+	router.
+		Handle("/dhcp/{id]/togglePayment", auth.Middleware(h.TogglePayment())).
+		Methods(http.MethodPost)
 	return router
 }
