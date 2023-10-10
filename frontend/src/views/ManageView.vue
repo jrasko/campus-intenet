@@ -62,7 +62,12 @@
         <thead>
           <tr>
             <th v-for="c in columns">
-              {{ tableData[c].header }}
+              <div v-if="tableData[c].field === sortKey">
+                <b>{{ tableData[c].header }}</b>
+              </div>              
+              <div v-else @click="sort(tableData[c].field)">
+                {{ tableData[c].header }}
+              </div>
             </th>
             <th></th>
             <th></th>
@@ -111,7 +116,8 @@ export default {
       warning: false,
       errorMessage: '',
       search: '',
-      columns: ['disabled', 'hasPaid', 'firstname', 'lastname', 'wg', 'roomNr', 'comment']
+      columns: ['disabled', 'hasPaid', 'firstname', 'lastname', 'wg', 'roomNr', 'comment'],
+      sortKey: 'roomNr'
     }
   },
   mounted() {
@@ -122,6 +128,7 @@ export default {
       getConfigs(this.search)
         .then((resp) => {
           this.people = resp.data
+          this.sort(this.sortKey)
           if (resp.status === 210) {
             this.warning = true
           }
@@ -152,6 +159,21 @@ export default {
             this.failure = true
           })
       }
+    },
+    sort(field){
+      let sortKey = field
+      this.people.sort(function (a, b) {
+        let aVal = a[sortKey]
+        let bVal = b[sortKey]
+        if (typeof aVal === 'string'){
+          return aVal.localeCompare(bVal)
+        }
+        if (typeof aVal === 'boolean'){
+          return aVal === bVal?0:aVal?-1:1
+        }
+        return 0
+      })
+      this.sortKey = sortKey
     },
     resetPaymentsForAll() {
       if (confirm('Zahlungen zurücksetzen?')) {

@@ -65,7 +65,6 @@ func (h Handler) GetAllConfigHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		params := model.RequestParams{
 			Search: r.FormValue("search"),
-			Order:  r.FormValue("order"),
 		}
 		members, err := h.service.GetAllMembers(r.Context(), params)
 		if err != nil {

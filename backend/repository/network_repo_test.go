@@ -148,17 +148,6 @@ func TestMemberRepository(t *testing.T) {
 		assert.Len(t, members, 1)
 		assert.Contains(t, members, member)
 	})
-	t.Run("it orders the members", func(t *testing.T) {
-		members, err := repo.GetAllMemberConfigs(ctx, model.RequestParams{Order: "wg"})
-		assert.NoError(t, err)
-		assert.Len(t, members, 3)
-		assert.Equal(t, members[0], member2)
-	})
-	t.Run("it does not order by unknown", func(t *testing.T) {
-		members, err := repo.GetAllMemberConfigs(ctx, model.RequestParams{Order: "wg; SELECT id FROM member_configs"})
-		assert.NoError(t, err)
-		assert.Len(t, members, 3)
-	})
 	t.Run("it retreives all ips", func(t *testing.T) {
 		ips, err := repo.GetAllIPs(ctx)
 		assert.NoError(t, err)
