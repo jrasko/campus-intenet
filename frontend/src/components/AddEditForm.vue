@@ -20,9 +20,10 @@
       <v-col cols="12" sm="6">
         <v-text-field
           v-model="person.ip"
-          :disabled="disableIp"
+          :readonly="disableIp"
           hint="autogeneriert wenn leer"
           label="IP Addresse"
+          clearable
           persistent-hint
         />
       </v-col>
