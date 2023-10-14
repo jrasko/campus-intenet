@@ -64,7 +64,9 @@ func (h Handler) PutConfigHandler() http.HandlerFunc {
 func (h Handler) GetAllConfigHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		params := model.RequestParams{
-			Search: r.FormValue("search"),
+			Search:   r.FormValue("search"),
+			Disabled: boolFilter(r, "disabled"),
+			HasPaid:  boolFilter(r, "hasPaid"),
 		}
 		members, err := h.service.GetAllMembers(r.Context(), params)
 		if err != nil {
@@ -175,4 +177,13 @@ func readIDFromVar(r *http.Request) (int, error) {
 		return 0, errors.New("could not read id param")
 	}
 	return strconv.Atoi(idParam)
+}
+
+func boolFilter(r *http.Request, name string) *bool {
+	value := r.FormValue(name)
+	boolValue, err := strconv.ParseBool(value)
+	if err != nil {
+		return nil
+	}
+	return &boolValue
 }

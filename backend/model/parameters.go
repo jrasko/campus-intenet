@@ -7,7 +7,9 @@ import (
 )
 
 type RequestParams struct {
-	Search string
+	Search   string
+	HasPaid  *bool
+	Disabled *bool
 }
 
 var (
@@ -27,9 +29,14 @@ func (r RequestParams) Apply(db *gorm.DB) *gorm.DB {
 	if r.Search != "" {
 		db = db.Where(buildSearchQuery(), map[string]any{"s": "%" + r.Search + "%"})
 	}
+	if r.HasPaid != nil {
+		db = db.Where("has_paid = ?", *r.HasPaid)
+	}
+	if r.Disabled != nil {
+		db = db.Where("disabled = ?", *r.Disabled)
+	}
 
-	db.Order("lastname, firstname")
-	return db
+	return db.Order("lastname, firstname")
 }
 
 func buildSearchQuery() string {

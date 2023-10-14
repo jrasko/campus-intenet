@@ -39,6 +39,7 @@
         v-model="search"
         append-inner-icon="mdi-magnify"
         clearable
+        @click:clear="refresh"
         hide-details
         label="Suche"
         variant="underlined"
