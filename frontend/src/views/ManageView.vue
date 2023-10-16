@@ -51,6 +51,7 @@
         multiple
         label="Spalten"
         variant="underlined"
+        @update:modelValue="changeColumns"
       />
     </v-col>
   </v-row>
@@ -76,10 +77,7 @@
         <tbody>
           <tr v-for="p in people">
             <td>
-              <v-icon
-                :color="p.disabled?'orange':'green'"
-                icon="mdi-circle-medium"
-              />
+              <v-icon :color="p.disabled ? 'orange' : 'green'" icon="mdi-circle-medium" />
             </td>
             <td>
               <v-icon
@@ -88,12 +86,7 @@
                 icon="mdi-checkbox-marked-circle"
                 @click="swapPayment(p)"
               />
-              <v-icon
-                v-else
-                color="red"
-                icon="mdi-close-circle"
-                @click="swapPayment(p)"
-              />
+              <v-icon v-else color="red" icon="mdi-close-circle" @click="swapPayment(p)" />
             </td>
             <td v-for="c in columns">
               <div v-if="tableData[c].kind === 'text'">
@@ -124,7 +117,7 @@
 </template>
 
 <script>
-  import {deleteConfigFor, getConfigs, resetPayments, togglePayment, updateDhcp} from '@/axios'
+import { deleteConfigFor, getConfigs, resetPayments, togglePayment, updateDhcp } from '@/axios'
 
 export default {
   data() {
@@ -141,6 +134,9 @@ export default {
   },
   mounted() {
     this.refresh()
+    if (localStorage.getItem('columns') != null) {
+      this.columns = localStorage.getItem('columns').split(',')
+    }
   },
   methods: {
     refresh() {
@@ -234,7 +230,7 @@ export default {
           }
         })
     },
-    swapPayment(p){
+    swapPayment(p) {
       togglePayment(p.id)
         .then(() => {
           this.success = true
@@ -254,6 +250,9 @@ export default {
     formatDate(date) {
       let dateTime = new Date(date)
       return dateTime.toLocaleString('de-DE', { dateStyle: 'short', timeStyle: 'short' })
+    },
+    changeColumns() {
+      localStorage.setItem('columns', this.columns.toString())
     }
   }
 }
@@ -326,7 +325,7 @@ const tableData = {
     header: 'Editor',
     field: 'lastEditor',
     kind: 'text'
-  },  
+  }
 }
 </script>
 
