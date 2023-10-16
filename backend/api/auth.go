@@ -2,7 +2,7 @@ package api
 
 import (
 	"backend/model"
-	"crypto/subtle"
+	"context"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -19,9 +19,17 @@ type AuthHandler struct {
 	config model.Configuration
 }
 
+type Claims struct {
+	jwt.RegisteredClaims
+	Username string
+	Role     model.Role
+}
+
+type Permission func(role model.Role) bool
+
 // Middleware wraps a http.HandlerFunc and checks if the caller is authenticated with a valid token
 // if the caller has a valid token, the request will be forwarded to the wrapped http.HandlerFunc
-func (a AuthHandler) Middleware(next http.HandlerFunc) http.HandlerFunc {
+func (a AuthHandler) Middleware(next http.HandlerFunc, permission Permission) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// read http authorization header
 		header := r.Header.Get("Authorization")
@@ -30,15 +38,15 @@ func (a AuthHandler) Middleware(next http.HandlerFunc) http.HandlerFunc {
 			w.WriteHeader(http.StatusForbidden)
 			return
 		}
-		header = header[7:]
 
 		// parse and check jwt in header
-		token, err := jwt.Parse(header, func(token *jwt.Token) (interface{}, error) {
-			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-				return nil, fmt.Errorf("unexpected method: %s", token.Header["alg"])
-			}
-			return []byte(a.config.HMACSecret), nil
-		})
+		var claims Claims
+		token, err := jwt.ParseWithClaims(
+			header[7:],
+			&claims,
+			func(token *jwt.Token) (interface{}, error) { return []byte(a.config.HMACSecret), nil },
+			jwt.WithValidMethods([]string{jwt.SigningMethodHS512.Name}),
+		)
 		if err != nil {
 			log.Printf("[WARNING] when parsing jwt: %v", err)
 			w.WriteHeader(http.StatusForbidden)
@@ -49,7 +57,15 @@ func (a AuthHandler) Middleware(next http.HandlerFunc) http.HandlerFunc {
 			w.WriteHeader(http.StatusForbidden)
 			return
 		}
-		next.ServeHTTP(w, r)
+		if !permission(claims.Role) {
+			log.Printf("[DEBUG] insufficient permission for role %s", claims.Role)
+			w.WriteHeader(http.StatusForbidden)
+			return
+		}
+
+		ctx := context.WithValue(r.Context(), model.FieldUsername, claims.Username)
+		ctx = context.WithValue(ctx, model.FieldRole, claims.Role)
+		next.ServeHTTP(w, r.WithContext(ctx))
 	}
 }
 
@@ -73,23 +89,15 @@ func (a AuthHandler) Login() http.HandlerFunc {
 			return
 		}
 
-		// check if username and password are equal
-		userCheck := subtle.ConstantTimeCompare([]byte(c.Username), []byte(a.config.Username))
-		pwCheck, err := argon2id.ComparePasswordAndHash(c.Password, a.config.PasswordHash)
+		loginUser, err := a.checkCredentials(c)
 		if err != nil {
-			log.Printf("[ERROR] when checking hash: %v", err)
-			w.WriteHeader(http.StatusForbidden)
-			return
-		}
-
-		if userCheck == 0 || !pwCheck {
-			log.Printf("[DEBUG] auth error for user %s", c.Username)
+			log.Println(err)
 			w.WriteHeader(http.StatusForbidden)
 			return
 		}
 
 		// create a json web token
-		token, err := createJWT(a.config.HMACSecret)
+		token, err := a.createJWT(loginUser)
 		if err != nil {
 			log.Printf("[ERROR] when creating jwt: %v", err)
 			sendHttpError(w, err)
@@ -97,7 +105,7 @@ func (a AuthHandler) Login() http.HandlerFunc {
 		}
 
 		// send token back to user
-		_, err = w.Write([]byte(fmt.Sprintf(`{ "token": "%s" }`, token)))
+		_, err = w.Write([]byte(fmt.Sprintf(`{ "token": "%s", "role": "%s" }`, token, loginUser.Role)))
 		if err != nil {
 			log.Printf("[ERROR] when writing response: %v", err)
 			sendHttpError(w, err)
@@ -107,16 +115,48 @@ func (a AuthHandler) Login() http.HandlerFunc {
 	}
 }
 
-func createJWT(hmacSecret string) (string, error) {
-	token := jwt.NewWithClaims(jwt.SigningMethodHS512, jwt.RegisteredClaims{
-		ExpiresAt: jwt.NewNumericDate(time.Now().Add(expirationTime)),
+func (a AuthHandler) checkCredentials(credentials Credentials) (model.LoginUser, error) {
+	// search username in configured users
+	var loginUser model.LoginUser
+	for _, user := range a.config.Users {
+		if user.Username == credentials.Username {
+			loginUser = user
+		}
+	}
+
+	// check if username and password are equal
+	pwCheck, err := argon2id.ComparePasswordAndHash(credentials.Password, loginUser.PasswordHash)
+	// check if user is configured
+	if err != nil {
+		return model.LoginUser{}, fmt.Errorf("[ERROR] when checking hash: %v", err)
+	}
+
+	if loginUser == (model.LoginUser{}) {
+		return model.LoginUser{}, fmt.Errorf("[DEBUG] login for invalid username %s", credentials.Username)
+	}
+	if !pwCheck {
+		return model.LoginUser{}, fmt.Errorf("[DEBUG] wrong password for user %s", credentials.Username)
+	}
+
+	return loginUser, nil
+}
+
+func (a AuthHandler) createJWT(user model.LoginUser) (string, error) {
+	token := jwt.NewWithClaims(jwt.SigningMethodHS512, Claims{
+		Username: user.Username,
+		Role:     user.Role,
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(expirationTime)),
+			IssuedAt:  jwt.NewNumericDate(time.Now()),
+			NotBefore: jwt.NewNumericDate(time.Now()),
+		},
 	})
 
-	bytes, err := base64.StdEncoding.DecodeString(hmacSecret)
+	bytes, err := base64.StdEncoding.DecodeString(a.config.HMACSecret)
 	if err != nil && len(bytes) >= 64 {
 		return token.SignedString(bytes)
 	}
 
 	fmt.Printf("[WARNING] could not parse hmac secret as Base64")
-	return token.SignedString([]byte(hmacSecret))
+	return token.SignedString([]byte(a.config.HMACSecret))
 }

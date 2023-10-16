@@ -3,13 +3,12 @@ package model
 import (
 	"net"
 	"strings"
+	"time"
 
 	"gorm.io/gorm"
 )
 
 type MemberConfig struct {
-	gorm.Model `json:"-"`
-
 	ID           int    `json:"id" gorm:"primaryKey,autoIncrement"`
 	Firstname    string `json:"firstname" validate:"required"`
 	Lastname     string `json:"lastname" validate:"required"`
@@ -23,6 +22,11 @@ type MemberConfig struct {
 	IP           string `json:"ip" gorm:"unique" validate:"omitempty,ipv4"`
 	Manufacturer string `json:"manufacturer" validate:"omitempty,len=0"`
 	Comment      string `json:"comment"`
+	LastEditor   string `json:"lastEditor"`
+
+	CreatedAt time.Time      `json:"createdAt"`
+	UpdatedAt time.Time      `json:"updatedAt"`
+	DeletedAt gorm.DeletedAt `json:"-" gorm:"index"`
 }
 
 type ReducedMember struct {

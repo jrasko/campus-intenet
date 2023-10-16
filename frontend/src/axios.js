@@ -40,6 +40,10 @@ export async function getShameList() {
   return await axios.get('/dhcp/shame', getTokenConfig())
 }
 
+export async function togglePayment(id) {
+  return await axios.post('/dhcp/' + id + '/togglePayment', {}, getTokenConfig())
+}
+
 function getTokenConfig() {
   return {
     headers: {

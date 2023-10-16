@@ -44,6 +44,7 @@ services:
       traefik.http.routers.backend.rule: "PathPrefix(`/dhcp`)"
     volumes:
       - ./user-list.json:/app/user-list.json
+      - ./login-users.json:/app/login-users.json
   dhcp4:
     container_name: dhcp4-server
     build: kea-dhcp4

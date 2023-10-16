@@ -35,6 +35,7 @@ export default {
       login(this.credentials)
         .then((r) => {
           localStorage.setItem('jwt', r.data.token)
+          localStorage.setItem('role', r.data.role)
           this.$router.push('/')
         })
         .catch((e) => {

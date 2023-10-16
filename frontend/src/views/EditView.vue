@@ -48,8 +48,13 @@ export default {
           this.$router.push('/')
         })
         .catch((e) => {
-          this.errorMessage = e.response.data
-          this.failure = true
+          if (e.response.status === 403) {
+            this.errorMessage = 'no permissions for that'
+            this.failure = true
+          } else {
+            this.errorMessage = e.response.data
+            this.failure = true
+          }
           console.log(e)
         })
     },

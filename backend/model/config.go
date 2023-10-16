@@ -2,16 +2,17 @@ package model
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"os"
 
-	"github.com/alexedwards/argon2id"
 	"github.com/sethvargo/go-envconfig"
 )
 
 type Configuration struct {
-	Username     string `env:"LOGIN_USER,required"`
-	PasswordHash string `env:"LOGIN_PASSWORD_HASH,required"`
+	UserFilepath string `env:"USER_FILE_PATH,default=login-users.json"`
 	HMACSecret   string `env:"HMAC_SECRET,required"`
+	Users        []LoginUser
 
 	DBHost     string `env:"POSTGRES_HOST,default=dhcp_db"`
 	DBDatabase string `env:"POSTGRES_DB,default=postgres"`
@@ -39,12 +40,33 @@ func LoadConfig(ctx context.Context) (Configuration, error) {
 	var config Configuration
 	err := envconfig.Process(ctx, &config)
 	if err != nil {
-		return Configuration{}, err
+		return Configuration{}, fmt.Errorf("when reading configuration: %w", err)
 	}
-	_, _, _, err = argon2id.DecodeHash(config.PasswordHash)
+	config.Users, err = LoadUsers(config.UserFilepath)
 	if err != nil {
-		return Configuration{}, fmt.Errorf("when reading password hash: %w", err)
+		return Configuration{}, fmt.Errorf("when loading users: %w", err)
 	}
 
 	return config, nil
+}
+
+func LoadUsers(filepath string) ([]LoginUser, error) {
+	file, err := os.Open(filepath)
+	if err != nil {
+		return nil, err
+	}
+
+	var user []LoginUser
+	err = json.NewDecoder(file).Decode(&user)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, loginUser := range user {
+		if err = loginUser.Validate(); err != nil {
+			return nil, err
+		}
+	}
+
+	return user, nil
 }

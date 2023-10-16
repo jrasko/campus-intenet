@@ -6,12 +6,7 @@
       <v-alert-title>
         inconsistent user-list.json file
         <v-spacer />
-        <v-btn
-          append-icon="mdi-reload-alert"
-          density="compact"
-          variant="text"
-          @click="writeDhcp"
-        >
+        <v-btn append-icon="mdi-reload-alert" density="compact" variant="text" @click="writeDhcp">
           Regenerate File
         </v-btn>
       </v-alert-title>
@@ -29,7 +24,9 @@
       </v-btn>
     </v-col>
     <v-col>
-      <a :href="'mailto:' + copyEmails()"><v-btn prepend-icon="mdi-content-copy" @click="copyEmails">Emails kopieren</v-btn></a>
+      <a :href="'mailto:' + copyEmails()"
+        ><v-btn prepend-icon="mdi-content-copy" @click="copyEmails">Emails kopieren</v-btn></a
+      >
     </v-col>
   </v-row>
   <v-row justify="center" align="baseline">
@@ -62,10 +59,12 @@
       <v-table hover>
         <thead>
           <tr>
+            <th>Aktiv</th>
+            <th>Zahlung</th>
             <th v-for="c in columns">
               <div v-if="tableData[c].field === sortKey">
                 <b>{{ tableData[c].header }}</b>
-              </div>              
+              </div>
               <div v-else @click="sort(tableData[c].field)">
                 {{ tableData[c].header }}
               </div>
@@ -76,13 +75,32 @@
         </thead>
         <tbody>
           <tr v-for="p in people">
+            <td>
+              <v-icon
+                :color="p.disabled?'orange':'green'"
+                icon="mdi-circle-medium"
+              />
+            </td>
+            <td>
+              <v-icon
+                v-if="p.hasPaid"
+                color="green"
+                icon="mdi-checkbox-marked-circle"
+                @click="swapPayment(p)"
+              />
+              <v-icon
+                v-else
+                color="red"
+                icon="mdi-close-circle"
+                @click="swapPayment(p)"
+              />
+            </td>
             <td v-for="c in columns">
               <div v-if="tableData[c].kind === 'text'">
                 {{ p[c] }}
               </div>
-              <div v-else-if="tableData[c].kind === 'icon'">
-                <v-icon v-if="p[c]" :color="tableData[c].trueColor" :icon="tableData[c].trueIcon" />
-                <v-icon v-else :color="tableData[c].falseColor" :icon="tableData[c].falseIcon" />
+              <div v-else-if="tableData[c].kind === 'date'">
+                {{ formatDate(p[c]) }}
               </div>
             </td>
             <td>
@@ -106,7 +124,7 @@
 </template>
 
 <script>
-import { deleteConfigFor, getConfigs, resetPayments, updateDhcp } from '@/axios'
+  import {deleteConfigFor, getConfigs, resetPayments, togglePayment, updateDhcp} from '@/axios'
 
 export default {
   data() {
@@ -117,7 +135,7 @@ export default {
       warning: false,
       errorMessage: '',
       search: '',
-      columns: ['disabled', 'hasPaid', 'firstname', 'lastname', 'wg', 'roomNr', 'comment'],
+      columns: ['firstname', 'lastname', 'wg', 'roomNr', 'comment'],
       sortKey: 'roomNr'
     }
   },
@@ -156,21 +174,27 @@ export default {
             this.refresh()
           })
           .catch((e) => {
-            this.errorMessage = e.response.data
-            this.failure = true
+            console.log(e)
+            if (e.response.status === 403) {
+              this.errorMessage = 'no permissions for that'
+              this.failure = true
+            } else {
+              this.errorMessage = e.response.data
+              this.failure = true
+            }
           })
       }
     },
-    sort(field){
+    sort(field) {
       let sortKey = field
       this.people.sort(function (a, b) {
         let aVal = a[sortKey]
         let bVal = b[sortKey]
-        if (typeof aVal === 'string'){
+        if (typeof aVal === 'string') {
           return aVal.localeCompare(bVal)
         }
-        if (typeof aVal === 'boolean'){
-          return aVal === bVal?0:aVal?-1:1
+        if (typeof aVal === 'boolean') {
+          return aVal === bVal ? 0 : aVal ? -1 : 1
         }
         return 0
       })
@@ -184,8 +208,13 @@ export default {
             this.refresh()
           })
           .catch((e) => {
-            this.failure = true
-            this.errorMessage = e.response.data
+            if (e.response.status === 403) {
+              this.errorMessage = 'no permissions for that'
+              this.failure = true
+            } else {
+              this.errorMessage = e.response.data
+              this.failure = true
+            }
           })
       }
     },
@@ -196,14 +225,42 @@ export default {
           this.refresh()
         })
         .catch((e) => {
-          this.failure = true
-          this.errorMessage = e.response.data
+          if (e.response.status === 403) {
+            this.errorMessage = 'no permissions for that'
+            this.failure = true
+          } else {
+            this.errorMessage = e.response.data
+            this.failure = true
+          }
         })
+    },
+    swapPayment(p){
+      togglePayment(p.id)
+        .then(() => {
+          this.success = true
+          this.refresh()
+        })
+        .catch((e) => {
+          console.log(e)
+          if (e.response.status === 403) {
+            this.errorMessage = 'no permissions for that'
+            this.failure = true
+          } else {
+            this.errorMessage = e.response.data
+            this.failure = true
+          }
+        })
+    },
+    formatDate(date) {
+      let dateTime = new Date(date)
+      return dateTime.toLocaleString('de-DE', { dateStyle: 'short', timeStyle: 'short' })
     }
   }
 }
 </script>
 <script setup>
+import { deleteConfigFor, togglePayment } from '@/axios'
+
 const tableData = {
   firstname: {
     header: 'Vorname',
@@ -255,24 +312,21 @@ const tableData = {
     field: 'comment',
     kind: 'text'
   },
-  hasPaid: {
-    header: 'Zahlung',
-    kind: 'icon',
-    field: 'hasPaid',
-    trueIcon: 'mdi-checkbox-marked-circle',
-    trueColor: 'green',
-    falseIcon: 'mdi-close-circle',
-    falseColor: 'red'
+  createdAt: {
+    header: 'Erstellt',
+    field: 'createdAt',
+    kind: 'date'
   },
-  disabled: {
-    header: 'Aktiv',
-    kind: 'icon',
-    field: 'disabled',
-    falseIcon: 'mdi-circle-medium',
-    falseColor: 'green',
-    trueIcon: 'mdi-circle-medium',
-    trueColor: 'orange'
-  }
+  updatedAt: {
+    header: 'Bearbeitet',
+    field: 'updatedAt',
+    kind: 'date'
+  },
+  lastEditor: {
+    header: 'Editor',
+    field: 'lastEditor',
+    kind: 'text'
+  },  
 }
 </script>
 

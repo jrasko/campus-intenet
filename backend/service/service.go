@@ -31,7 +31,6 @@ type IPAllocationService interface {
 }
 
 type MemberRepository interface {
-	allocation.IPRepository
 	UpdateMemberConfig(ctx context.Context, conf model.MemberConfig) (model.MemberConfig, error)
 	GetAllMemberConfigs(ctx context.Context, params model.RequestParams) ([]model.MemberConfig, error)
 	GetMemberConfig(ctx context.Context, id int) (model.MemberConfig, error)
@@ -75,6 +74,7 @@ func (s *Service) UpdateMember(ctx context.Context, member model.MemberConfig) (
 		}
 	}
 
+	member.LastEditor, _ = ctx.Value(model.FieldUsername).(string)
 	member, err = s.memberRepo.UpdateMemberConfig(ctx, specialize(member))
 	if err != nil {
 		return model.MemberConfig{}, model.WrapGormError(err)

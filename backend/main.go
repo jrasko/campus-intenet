@@ -23,7 +23,7 @@ type application struct {
 func main() {
 	config, err := model.LoadConfig(context.Background())
 	if err != nil {
-		panic(fmt.Errorf("could not load config: %w", err))
+		panic(fmt.Errorf("when resolving config: %w", err))
 	}
 	log.Println("[INFO] Loaded config")
 

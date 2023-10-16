@@ -31,39 +31,51 @@ func NewRouter(config model.Configuration, service DhcpService) http.Handler {
 		Methods(http.MethodPost)
 
 	router.
-		Handle("/dhcp", auth.Middleware(h.GetAllConfigHandler())).
+		Handle("/dhcp", auth.Middleware(h.GetAllConfigHandler(), PermissionView)).
 		Methods(http.MethodGet)
 
 	router.
-		Handle("/dhcp", auth.Middleware(h.PostConfigHandler())).
+		Handle("/dhcp", auth.Middleware(h.PostConfigHandler(), PermissionModify)).
 		Methods(http.MethodPost)
 
 	router.
-		Handle("/dhcp/write", auth.Middleware(h.WriteConfigHandler())).
+		Handle("/dhcp/write", auth.Middleware(h.WriteConfigHandler(), PermissionModify)).
 		Methods(http.MethodPost)
 
 	router.
-		Handle("/dhcp/resetPayment", auth.Middleware(h.ResetPaymentConfigHandler())).
+		Handle("/dhcp/resetPayment", auth.Middleware(h.ResetPaymentConfigHandler(), PermissionFinance)).
 		Methods(http.MethodPost)
 
 	router.
-		Handle("/dhcp/shame", auth.Middleware(h.WallOfShame())).
+		Handle("/dhcp/shame", auth.Middleware(h.WallOfShame(), PermissionView)).
 		Methods(http.MethodGet)
 
 	router.
-		Handle("/dhcp/{id}", auth.Middleware(h.GetConfigHandler())).
+		Handle("/dhcp/{id}", auth.Middleware(h.GetConfigHandler(), PermissionView)).
 		Methods(http.MethodGet)
 
 	router.
-		Handle("/dhcp/{id}", auth.Middleware(h.DeleteConfigHandler())).
+		Handle("/dhcp/{id}", auth.Middleware(h.DeleteConfigHandler(), PermissionModify)).
 		Methods(http.MethodDelete)
 
 	router.
-		Handle("/dhcp/{id}", auth.Middleware(h.PutConfigHandler())).
+		Handle("/dhcp/{id}", auth.Middleware(h.PutConfigHandler(), PermissionModify)).
 		Methods(http.MethodPut)
 
 	router.
-		Handle("/dhcp/{id]/togglePayment", auth.Middleware(h.TogglePayment())).
+		Handle("/dhcp/{id}/togglePayment", auth.Middleware(h.TogglePayment(), PermissionFinance)).
 		Methods(http.MethodPost)
 	return router
+}
+
+func PermissionModify(role model.Role) bool {
+	return role == model.RoleAdmin
+}
+
+func PermissionFinance(role model.Role) bool {
+	return role == model.RoleAdmin || role == model.RoleFinance
+}
+
+func PermissionView(_ model.Role) bool {
+	return true
 }
