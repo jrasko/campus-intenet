@@ -24,22 +24,47 @@
       </v-btn>
     </v-col>
     <v-col>
-      <a :href="'mailto:' + copyEmails()"
-        ><v-btn prepend-icon="mdi-content-copy" @click="copyEmails">Emails kopieren</v-btn></a
-      >
+      <a :href="'mailto:' + copyEmails()">
+        <v-btn prepend-icon="mdi-content-copy" @click="copyEmails">Emails kopieren</v-btn>
+      </a>
     </v-col>
   </v-row>
-  <v-row justify="center" align="baseline">
-    <v-col cols="0" md="4"></v-col>
+  <v-row align="baseline" justify="center">
+    <v-col cols="6" md="2">
+      <v-select
+        v-model="filterPayment"
+        :items="filter.payment"
+        item-title="header"
+        item-value="value"
+        append-inner-icon="mdi-filter"
+        hide-details
+        label="Bezahlung"
+        variant="underlined"
+        @update:modelValue="refresh"
+      />
+    </v-col>
+    <v-col cols="6" md="2">
+      <v-select
+        v-model="filterDisabled"
+        :items="filter.disabled"
+        item-title="header"
+        item-value="value"
+        append-inner-icon="mdi-filter"
+        hide-details
+        label="Status"
+        variant="underlined"
+        @update:modelValue="refresh"
+      />
+    </v-col>
     <v-col cols="12" md="4" @input="refresh">
       <v-text-field
         v-model="search"
         append-inner-icon="mdi-magnify"
         clearable
-        @click:clear="refresh"
         hide-details
         label="Suche"
         variant="underlined"
+        @click:clear="refresh"
       />
     </v-col>
     <v-col cols="12" md="4">
@@ -48,8 +73,8 @@
         :items="Object.values(tableData)"
         item-title="header"
         item-value="field"
-        multiple
         label="Spalten"
+        multiple
         variant="underlined"
         @update:modelValue="changeColumns"
       />
@@ -128,6 +153,8 @@ export default {
       warning: false,
       errorMessage: '',
       search: '',
+      filterPayment: null,
+      filterDisabled: null,
       columns: ['firstname', 'lastname', 'wg', 'roomNr', 'comment'],
       sortKey: 'roomNr'
     }
@@ -140,7 +167,7 @@ export default {
   },
   methods: {
     refresh() {
-      getConfigs(this.search)
+      getConfigs(this.search, this.filterDisabled, this.filterPayment)
         .then((resp) => {
           this.people = resp.data
           this.sort(this.sortKey)
@@ -326,6 +353,36 @@ const tableData = {
     field: 'lastEditor',
     kind: 'text'
   }
+}
+const filter = {
+  payment: [
+    {
+      header: 'Alle',
+      value: null
+    },
+    {
+      header: 'Bezahlt',
+      value: true
+    },
+    {
+      header: 'Nicht Bezahlt',
+      value: false
+    }
+  ],
+  disabled: [
+    {
+      header: 'Alle',
+      value: null
+    },
+    {
+      header: 'Aktiviert',
+      value: false
+    },
+    {
+      header: 'Deaktiviert',
+      value: true
+    }
+  ]
 }
 </script>
 

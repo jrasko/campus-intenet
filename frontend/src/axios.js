@@ -1,9 +1,14 @@
 import axios from 'axios'
 
-export async function getConfigs(search) {
+export async function getConfigs(search, disabled, hasPaid) {
   let config = getTokenConfig()
+  if (search === '') {
+    search = null
+  }
   config.params = {
-    search: search
+    search: search,
+    disabled: disabled,
+    hasPaid: hasPaid
   }
   return await axios.get('/dhcp', config)
 }
