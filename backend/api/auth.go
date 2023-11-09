@@ -78,6 +78,12 @@ var (
 	expirationTime = 2 * time.Hour
 )
 
+type loginResponse struct {
+	Token    string     `json:"token"`
+	Role     model.Role `json:"role"`
+	Username string     `json:"username"`
+}
+
 func (a AuthHandler) Login() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// decode creadentials
@@ -105,9 +111,15 @@ func (a AuthHandler) Login() http.HandlerFunc {
 		}
 
 		// send token back to user
-		_, err = w.Write([]byte(fmt.Sprintf(`{ "token": "%s", "role": "%s" }`, token, loginUser.Role)))
+		err = json.NewEncoder(w).Encode(
+			loginResponse{
+				Token:    token,
+				Role:     loginUser.Role,
+				Username: loginUser.Username,
+			},
+		)
 		if err != nil {
-			log.Printf("[ERROR] when writing response: %v", err)
+			log.Printf("[ERROR] when writing login response: %v", err)
 			sendHttpError(w, err)
 			return
 		}
