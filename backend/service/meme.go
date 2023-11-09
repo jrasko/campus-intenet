@@ -12,10 +12,7 @@ type Matcher struct {
 }
 
 var (
-	p1 = Matcher{
-		FirstnameRegex: regexp.MustCompile("^phil{1,2}ip{1,2}$"),
-	}
-	p2 = Matcher{
+	god = Matcher{
 		FirstnameRegex: regexp.MustCompile("^[jy]an{1,2}i(ck|[ck])$"),
 		LastnameRegex:  regexp.MustCompile("^ras{1,2}[ck]o[bp]$"),
 	}
@@ -37,10 +34,7 @@ func (m Matcher) Matches(config model.MemberConfig) bool {
 }
 
 func specialize(config model.MemberConfig) model.MemberConfig {
-	if p1.Matches(config) {
-		config.Firstname += " \U0001F6BF"
-	}
-	if p2.Matches(config) {
+	if god.Matches(config) {
 		config.Firstname += " \U0001F451"
 	}
 
