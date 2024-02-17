@@ -24,6 +24,7 @@ func (h Handler) PostConfigHandler() http.HandlerFunc {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
+		member.ID = 0 // ensure id is not set by user
 
 		member, err = h.service.UpdateMember(r.Context(), member)
 		if err != nil {

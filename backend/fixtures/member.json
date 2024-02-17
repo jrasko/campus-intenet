@@ -1,0 +1,16 @@
+{
+    "id": 1,
+    "firstname": "Bernd",
+    "lastname": "das Brot",
+    "mac": "55:FF:53:5D:AE:54",
+    "roomNr": "1234",
+    "hasPaid": true,
+    "disabled": false,
+    "wg": "42",
+    "email": "bernd@brot.com",
+    "phone": "0123 45679000",
+    "ip": "123.123.123.123",
+    "comment": "huzah",
+    "manufacturer": "",
+    "lastEditor": "user"
+}

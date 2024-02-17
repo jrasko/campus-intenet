@@ -103,7 +103,7 @@ func (a AuthHandler) Login() http.HandlerFunc {
 		}
 
 		// create a json web token
-		token, err := a.createJWT(loginUser)
+		token, err := CreateJWT(loginUser, a.config.HMACSecret)
 		if err != nil {
 			log.Printf("[ERROR] when creating jwt: %v", err)
 			sendHttpError(w, err)
@@ -153,7 +153,7 @@ func (a AuthHandler) checkCredentials(credentials Credentials) (model.LoginUser,
 	return loginUser, nil
 }
 
-func (a AuthHandler) createJWT(user model.LoginUser) (string, error) {
+func CreateJWT(user model.LoginUser, secret string) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS512, Claims{
 		Username: user.Username,
 		Role:     user.Role,
@@ -164,11 +164,11 @@ func (a AuthHandler) createJWT(user model.LoginUser) (string, error) {
 		},
 	})
 
-	bytes, err := base64.StdEncoding.DecodeString(a.config.HMACSecret)
+	bytes, err := base64.StdEncoding.DecodeString(secret)
 	if err != nil && len(bytes) >= 64 {
 		return token.SignedString(bytes)
 	}
 
 	fmt.Printf("[WARNING] could not parse hmac secret as Base64")
-	return token.SignedString([]byte(a.config.HMACSecret))
+	return token.SignedString([]byte(secret))
 }

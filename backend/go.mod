@@ -5,8 +5,10 @@ go 1.22
 require (
 	github.com/alexedwards/argon2id v1.0.0
 	github.com/go-playground/validator/v10 v10.18.0
+	github.com/go-resty/resty/v2 v2.11.0
 	github.com/golang-jwt/jwt/v5 v5.2.0
 	github.com/gorilla/mux v1.8.1
+	github.com/lib/pq v1.10.9
 	github.com/sethvargo/go-envconfig v1.0.0
 	github.com/stretchr/testify v1.8.4
 	gorm.io/driver/postgres v1.5.6
