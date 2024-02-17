@@ -111,6 +111,6 @@ func TestService_GetUnusedIP(t *testing.T) {
 
 		ip, err := ipService.GetUnusedIP(ctx)
 		assert.Equal(t, "", ip)
-		assert.Equal(t, "no unallocated ip available", err.(model.HttpError).Message())
+		assert.ErrorIs(t, err, errNoUnallocatedIP)
 	})
 }

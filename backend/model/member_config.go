@@ -13,7 +13,7 @@ type MemberConfig struct {
 	Firstname    string `json:"firstname" validate:"required"`
 	Lastname     string `json:"lastname" validate:"required"`
 	Mac          string `json:"mac" validate:"required,mac" gorm:"unique"`
-	RoomNr       string `json:"roomNr" validate:"required" gorm:"unique"`
+	RoomNr       string `json:"roomNr" validate:"required,numeric" gorm:"unique"`
 	HasPaid      bool   `json:"hasPaid" gorm:"not null"`
 	Disabled     bool   `json:"disabled" gorm:"not null"`
 	WG           string `json:"wg"`

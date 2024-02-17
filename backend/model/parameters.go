@@ -36,7 +36,7 @@ func (r RequestParams) Apply(db *gorm.DB) *gorm.DB {
 		db = db.Where("disabled = ?", *r.Disabled)
 	}
 
-	return db.Order("lastname, firstname")
+	return db.Order("room_nr, lastname, firstname")
 }
 
 func buildSearchQuery() string {

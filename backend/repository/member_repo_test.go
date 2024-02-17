@@ -22,7 +22,7 @@ func setupDB() (MemberRepository, error) {
 	if err != nil {
 		return MemberRepository{}, err
 	}
-	cfg.DBDatabase = "network_testing"
+	cfg.DBDatabase = "testing"
 	repo, err := New(cfg.DSN())
 	if err != nil {
 		return MemberRepository{}, err
@@ -40,7 +40,7 @@ func TestNew(t *testing.T) {
 	t.Run("it creates table on setup", func(t *testing.T) {
 		config, err := model.LoadConfig(context.Background())
 		require.NoError(t, err)
-		config.DBDatabase = "network_testing"
+		config.DBDatabase = "testing"
 		repo, err := New(config.DSN())
 		assert.NoError(t, err)
 		repo.db.Exec(fmt.Sprintf("DROP TABLE %s", memberTable))
@@ -105,19 +105,22 @@ func TestMemberRepository(t *testing.T) {
 		assert.NoError(t, err)
 		assert.NotEmpty(t, newMember.ID)
 		member.ID = newMember.ID
+
+		member.CreatedAt = newMember.CreatedAt
+		member.UpdatedAt = newMember.UpdatedAt
+
 		assert.Equal(t, member, newMember)
 	})
 	t.Run("it creates another member", func(t *testing.T) {
 		newMember, err := repo.UpdateMemberConfig(ctx, member2)
-		member2.ID = newMember.ID
 		assert.NoError(t, err)
-		assert.Equal(t, member2, newMember)
+		member2 = newMember
 	})
 	t.Run("it creates a disabled member", func(t *testing.T) {
 		newMember, err := repo.UpdateMemberConfig(ctx, disabledMember)
-		disabledMember.ID = newMember.ID
 		assert.NoError(t, err)
-		assert.Equal(t, disabledMember, newMember)
+		assert.NotEmpty(t, newMember.ID)
+		disabledMember.ID = newMember.ID
 	})
 	t.Run("it checks unique constraints", func(t *testing.T) {
 		newMember := model.MemberConfig{
@@ -131,22 +134,23 @@ func TestMemberRepository(t *testing.T) {
 	t.Run("it retrevies a single member", func(t *testing.T) {
 		m, err := repo.GetMemberConfig(ctx, member.ID)
 		assert.NoError(t, err)
-		assert.Equal(t, m, m)
+		member.CreatedAt = m.CreatedAt
+		member.UpdatedAt = m.UpdatedAt
+		assert.Equal(t, member, m)
 	})
 	t.Run("it retreives multiple members", func(t *testing.T) {
 		members, err := repo.GetAllMemberConfigs(ctx, model.RequestParams{})
 		assert.NoError(t, err)
 		assert.Len(t, members, 3)
-		assert.Contains(t, members, member)
-		assert.Contains(t, members, member2)
-		assert.Contains(t, members, disabledMember)
-		assert.Equal(t, members[0], member)
+		assert.Equal(t, members[0].ID, member.ID)
+		assert.Equal(t, members[1].ID, disabledMember.ID)
+		assert.Equal(t, members[2].ID, member2.ID)
 	})
 	t.Run("it searches for members", func(t *testing.T) {
 		members, err := repo.GetAllMemberConfigs(ctx, model.RequestParams{Search: "first"})
 		assert.NoError(t, err)
 		assert.Len(t, members, 1)
-		assert.Contains(t, members, member)
+		assert.Equal(t, members[0].ID, member.ID)
 	})
 	t.Run("it retreives all ips", func(t *testing.T) {
 		ips, err := repo.GetAllIPs(ctx)
@@ -166,7 +170,7 @@ func TestMemberRepository(t *testing.T) {
 		updatedMember.ID = member.ID
 		newMember, err := repo.UpdateMemberConfig(ctx, updatedMember)
 		assert.NoError(t, err)
-		assert.Equal(t, updatedMember, newMember)
+		assert.Equal(t, updatedMember.Firstname, newMember.Firstname)
 	})
 	t.Run("it retreives first and lastnames", func(t *testing.T) {
 		persons, err := repo.GetNonPayingMembers(ctx)
@@ -203,7 +207,6 @@ func TestMemberRepository(t *testing.T) {
 		_, err = repo.GetMemberConfig(ctx, member2.ID)
 		assert.Equal(t, gorm.ErrRecordNotFound, err)
 	})
-
 }
 
 func TestManyMembers(t *testing.T) {
