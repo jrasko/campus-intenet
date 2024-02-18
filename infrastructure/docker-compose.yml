@@ -50,7 +50,8 @@ services:
     image: docker.cloudsmith.io/isc/docker/kea-dhcp4:2.4.1
     restart: unless-stopped
     networks:
-      kea-10-ipvlan:
+      - default
+      - kea-10-ipvlan
     volumes:
       - ./user-list.json:/app/user-list.json
       - ./kea-dhcp4:/etc/kea
