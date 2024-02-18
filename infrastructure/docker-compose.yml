@@ -45,17 +45,27 @@ services:
     volumes:
       - ./user-list.json:/app/user-list.json
       - ./login-users.json:/app/login-users.json
-#  dhcp4:
-#    container_name: dhcp4-server
-#    image: docker.cloudsmith.io/isc/docker/kea-dhcp4:2.4.1
-#    restart: unless-stopped
-#    ports:
-#      - "67:67"
-#    volumes:
-#      - ./user-list.json:/app/user-list.json
-#      - ./kea-dhcp4:/etc/kea
-#      - kea4-var:/var/lib/kea
+  dhcp4:
+    container_name: dhcp4-server
+    image: docker.cloudsmith.io/isc/docker/kea-dhcp4:2.4.1
+    restart: unless-stopped
+    networks:
+      kea-10-ipvlan:
+    volumes:
+      - ./user-list.json:/app/user-list.json
+      - ./kea-dhcp4:/etc/kea
+      - kea4-var:/var/lib/kea
 volumes:
   dhcp-db:
     external: true
-#  kea4-var:
+  kea4-var:
+
+networks:
+  kea-10-ipvlan: # network that binds container to host network interface.
+    name: kea-10-ipvlan
+    driver: ipvlan
+    driver_opts:
+      parent: eno1 #  host interface that kea containers will use !!!!!!
+    ipam:
+      config:
+        - subnet: 149.201.243.0/24 # subnet for kea4 server
