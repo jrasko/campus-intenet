@@ -42,6 +42,9 @@ services:
       traefik.enable: true
       traefik.http.routers.backend.tls: true
       traefik.http.routers.backend.rule: "PathPrefix(`/dhcp`)"
+    networks:
+      - default
+      - kea-10-ipvlan
     volumes:
       - ./user-list.json:/app/user-list.json
       - ./login-users.json:/app/login-users.json
@@ -50,7 +53,6 @@ services:
     image: docker.cloudsmith.io/isc/docker/kea-dhcp4:2.4.1
     restart: unless-stopped
     networks:
-      - default
       - kea-10-ipvlan
     volumes:
       - ./user-list.json:/app/user-list.json
