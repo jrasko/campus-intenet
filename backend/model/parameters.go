@@ -22,6 +22,7 @@ var (
 		"email",
 		"phone",
 		"ip",
+		"comment",
 	}
 )
 
@@ -42,12 +43,9 @@ func (r RequestParams) Apply(db *gorm.DB) *gorm.DB {
 func buildSearchQuery() string {
 	var builder strings.Builder
 	for i, field := range searchableFields {
-		builder.WriteString("lower(")
-		builder.WriteString(field)
-		builder.WriteString(") LIKE lower(@s)")
+		builder.WriteString(field + " ILIKE @s")
 		if i < len(searchableFields)-1 {
 			builder.WriteString(" OR ")
-
 		}
 	}
 	return builder.String()
