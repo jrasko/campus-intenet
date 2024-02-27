@@ -3,86 +3,53 @@ package repository
 import (
 	"backend/model"
 	"context"
-	"fmt"
-	"log"
 
-	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
-
-const (
-	memberTable = "member_configs"
-)
-
-type AllocatedIP struct {
-	IP string
-}
-
-func New(dsn string) (MemberRepository, error) {
-	log.Println("[INFO] Connecting to Database...")
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
-		TranslateError: true,
-	})
-	if err != nil {
-		return MemberRepository{}, err
-	}
-	log.Println("[INFO] Successfully connected to DB")
-
-	// check if db has needed table
-	if !db.Migrator().HasTable(memberTable) {
-		if err = db.Migrator().CreateTable(&model.MemberConfig{}); err != nil {
-			return MemberRepository{}, fmt.Errorf("could not create table: %w", err)
-		}
-	}
-	return MemberRepository{db: db}, nil
-}
 
 type MemberRepository struct {
 	db *gorm.DB
 }
 
-func (mr MemberRepository) UpdateMemberConfig(ctx context.Context, conf model.MemberConfig) (model.MemberConfig, error) {
-	err := mr.db.
+func (mr MemberRepository) CreateOrUpdateMember(ctx context.Context, conf model.Member) (model.Member, error) {
+	var err error
+
+	err = mr.db.
+		Debug().
 		WithContext(ctx).
 		Save(&conf).
 		Error
 	return conf, err
 }
 
-func (mr MemberRepository) GetAllMemberConfigs(ctx context.Context, params model.RequestParams) ([]model.MemberConfig, error) {
-	var configs []model.MemberConfig
+func (mr MemberRepository) ListMembers(ctx context.Context, params model.MemberRequestParams) ([]model.Member, error) {
+	var configs []model.Member
 	db := mr.db.WithContext(ctx)
 	db = params.Apply(db)
 	err := db.
+		Preload("Room").
+		Preload("DhcpConfig").
 		Find(&configs).
 		Error
 	return configs, err
 }
 
-func (mr MemberRepository) GetEnabledUsers(ctx context.Context) ([]model.MemberConfig, error) {
-	var members []model.MemberConfig
-	err := mr.db.
-		WithContext(ctx).
-		Where("disabled = false").
-		Find(&members).
-		Error
-	return members, err
-}
-
-func (mr MemberRepository) GetMemberConfig(ctx context.Context, id int) (model.MemberConfig, error) {
-	config := model.MemberConfig{}
+func (mr MemberRepository) GetMember(ctx context.Context, id int) (model.Member, error) {
+	config := model.Member{}
 	err := mr.db.
 		WithContext(ctx).
 		Where("id = ?", id).
+		Preload("Room").
+		Preload("DhcpConfig").
 		First(&config).
 		Error
 	return config, err
 }
 
-func (mr MemberRepository) DeleteMemberConfig(ctx context.Context, id int) error {
+func (mr MemberRepository) DeleteMembers(ctx context.Context, id int) error {
 	return mr.db.
 		WithContext(ctx).
-		Delete(&model.MemberConfig{}, id).
+		Delete(&model.Member{}, id).
 		Error
 }
 
@@ -93,27 +60,4 @@ func (mr MemberRepository) ResetPayment(ctx context.Context) error {
 		Where("true").
 		Updates(map[string]interface{}{"has_paid": false}).
 		Error
-}
-
-func (mr MemberRepository) GetAllIPs(ctx context.Context) ([]string, error) {
-	var ips []string
-	err := mr.db.
-		WithContext(ctx).
-		Table(memberTable).
-		Select("ip").
-		Order("ip").
-		Find(&ips).
-		Error
-	return ips, err
-}
-
-func (mr MemberRepository) GetNonPayingMembers(ctx context.Context) ([]model.MemberConfig, error) {
-	var members []model.MemberConfig
-	err := mr.db.
-		WithContext(ctx).
-		Select("firstname", "lastname").
-		Where("has_paid = false").
-		Find(&members).
-		Error
-	return members, err
 }

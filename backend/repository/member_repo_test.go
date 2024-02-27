@@ -3,9 +3,6 @@ package repository
 import (
 	"backend/model"
 	"context"
-	"encoding/hex"
-	"fmt"
-	"strconv"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -43,185 +40,141 @@ func TestNew(t *testing.T) {
 		config.DBDatabase = "testing"
 		repo, err := New(config.DSN())
 		assert.NoError(t, err)
-		repo.db.Exec(fmt.Sprintf("DROP TABLE %s", memberTable))
+		err = repo.db.Migrator().DropTable(&model.Member{}, &model.Room{}, &model.DhcpConfig{})
+		require.NoError(t, err)
 
 		_, err = New(config.DSN())
 		assert.NoError(t, err)
 	})
 }
 
+var (
+	member = model.Member{
+		Firstname: "first",
+		Lastname:  "name",
+		DhcpConfig: model.DhcpConfig{
+			Mac: "00:11:22:33:44:55",
+			IP:  "192.168.1.1",
+		},
+		RoomNr: "00-11",
+		Room: model.Room{
+			Number: "00-11",
+			WG:     "25a",
+		},
+		HasPaid: false,
+		Email:   "bernd-das-brot@alumni.test-provider.com",
+		Phone:   "012345678901",
+	}
+	member2 = model.Member{
+		Firstname: "mister",
+		Lastname:  "x",
+		DhcpConfig: model.DhcpConfig{
+			Mac: "aa:aa:aa:aa:aa:aa",
+			IP:  "10.0.0.1",
+		},
+		HasPaid: false,
+		Room: model.Room{
+			Number: "99-99",
+			WG:     "13x",
+		},
+		Email: "mail@email.email",
+		Phone: "0999888777666",
+	}
+	updatedMember = model.Member{
+		Firstname: "Bernd",
+		Lastname:  "Das Brot",
+		DhcpConfig: model.DhcpConfig{
+			Mac: "55:44:33:22:11:00",
+			IP:  "172.0.0.1",
+		},
+		HasPaid: true,
+		RoomNr:  "11-00",
+		Room: model.Room{
+			Number: "11-00",
+			WG:     "29b",
+		},
+		Email: "other-email@alumni.test-provider.com",
+		Phone: "987654321",
+	}
+)
+
 func TestMemberRepository(t *testing.T) {
 	repo, creationErr := setupDB()
 	require.NoError(t, creationErr)
 
-	member := model.MemberConfig{
-		Firstname: "first",
-		Lastname:  "name",
-		Mac:       "00:11:22:33:44:55",
-		RoomNr:    "00-11",
-		HasPaid:   false,
-		WG:        "25a",
-		Email:     "bernd-das-brot@alumni.test-provider.com",
-		Phone:     "012345678901",
-		IP:        "192.168.1.1",
-	}
-	member2 := model.MemberConfig{
-		Firstname: "mister",
-		Lastname:  "x",
-		Mac:       "aa:aa:aa:aa:aa:aa",
-		RoomNr:    "99-99",
-		HasPaid:   false,
-		WG:        "13x",
-		Email:     "mail@email.email",
-		Phone:     "0999888777666",
-		IP:        "10.0.0.1",
-	}
-	updatedMember := model.MemberConfig{
-		Firstname: "Bernd",
-		Lastname:  "Das Brot",
-		Mac:       "55:44:33:22:11:00",
-		RoomNr:    "11-00",
-		HasPaid:   true,
-		WG:        "29b",
-		Email:     "other-email@alumni.test-provider.com",
-		Phone:     "987654321",
-		IP:        "172.0.0.1",
-	}
-	disabledMember := model.MemberConfig{
-		Firstname: "john",
-		Lastname:  "cena",
-		Mac:       "01:aa:bb:dd:aa:cc",
-		RoomNr:    "4-20",
-		HasPaid:   false,
-		Disabled:  true,
-		WG:        "99",
-		Email:     "other@email.lol",
-		Phone:     "27813917239",
-		IP:        "10.0.0.4",
-	}
-
 	t.Run("it creates a member", func(t *testing.T) {
-		newMember, err := repo.UpdateMemberConfig(ctx, member)
+		newMember, err := repo.CreateOrUpdateMember(ctx, member)
 		assert.NoError(t, err)
 		assert.NotEmpty(t, newMember.ID)
 		member.ID = newMember.ID
 
-		member.CreatedAt = newMember.CreatedAt
-		member.UpdatedAt = newMember.UpdatedAt
-
+		overwrite(t, &newMember, &member)
 		assert.Equal(t, member, newMember)
 	})
 	t.Run("it creates another member", func(t *testing.T) {
-		newMember, err := repo.UpdateMemberConfig(ctx, member2)
+		newMember, err := repo.CreateOrUpdateMember(ctx, member2)
 		assert.NoError(t, err)
 		member2 = newMember
 	})
-	t.Run("it creates a disabled member", func(t *testing.T) {
-		newMember, err := repo.UpdateMemberConfig(ctx, disabledMember)
-		assert.NoError(t, err)
-		assert.NotEmpty(t, newMember.ID)
-		disabledMember.ID = newMember.ID
-	})
-	t.Run("it checks unique constraints", func(t *testing.T) {
-		newMember := model.MemberConfig{
-			Mac:    member.Mac,
-			RoomNr: member.RoomNr,
-			IP:     member.IP,
-		}
-		_, err := repo.UpdateMemberConfig(ctx, newMember)
-		assert.Equal(t, gorm.ErrDuplicatedKey, err)
-	})
 	t.Run("it retrevies a single member", func(t *testing.T) {
-		m, err := repo.GetMemberConfig(ctx, member.ID)
+		m, err := repo.GetMember(ctx, member.ID)
 		assert.NoError(t, err)
-		member.CreatedAt = m.CreatedAt
-		member.UpdatedAt = m.UpdatedAt
+		overwrite(t, &m, &member)
 		assert.Equal(t, member, m)
 	})
 	t.Run("it retreives multiple members", func(t *testing.T) {
-		members, err := repo.GetAllMemberConfigs(ctx, model.RequestParams{})
+		members, err := repo.ListMembers(ctx, model.MemberRequestParams{})
 		assert.NoError(t, err)
 		assert.Len(t, members, 3)
 		assert.Equal(t, members[0].ID, member.ID)
-		assert.Equal(t, members[1].ID, disabledMember.ID)
 		assert.Equal(t, members[2].ID, member2.ID)
 	})
 	t.Run("it searches for members", func(t *testing.T) {
-		members, err := repo.GetAllMemberConfigs(ctx, model.RequestParams{Search: "first"})
+		members, err := repo.ListMembers(ctx, model.MemberRequestParams{Search: "first"})
 		assert.NoError(t, err)
 		assert.Len(t, members, 1)
 		assert.Equal(t, members[0].ID, member.ID)
 	})
-	t.Run("it retreives all ips", func(t *testing.T) {
-		ips, err := repo.GetAllIPs(ctx)
-		assert.NoError(t, err)
-		assert.Len(t, ips, 3)
-		assert.Contains(t, ips, member.IP)
-		assert.Contains(t, ips, member2.IP)
-	})
-	t.Run("it retreives all macs", func(t *testing.T) {
-		users, err := repo.GetEnabledUsers(ctx)
-		assert.NoError(t, err)
-		assert.Len(t, users, 2)
-		assert.Equal(t, users[0].Mac, member.Mac)
-		assert.Contains(t, users[1].Mac, member2.Mac)
-	})
+
 	t.Run("it updates a member", func(t *testing.T) {
 		updatedMember.ID = member.ID
-		newMember, err := repo.UpdateMemberConfig(ctx, updatedMember)
+		newMember, err := repo.CreateOrUpdateMember(ctx, updatedMember)
 		assert.NoError(t, err)
 		assert.Equal(t, updatedMember.Firstname, newMember.Firstname)
 	})
-	t.Run("it retreives first and lastnames", func(t *testing.T) {
-		persons, err := repo.GetNonPayingMembers(ctx)
-		assert.NoError(t, err)
-		assert.Len(t, persons, 2)
-		assert.Contains(t, persons,
-			model.MemberConfig{
-				Firstname: member2.Firstname,
-				Lastname:  member2.Lastname,
-			},
-		)
-		assert.Contains(t, persons,
-			model.MemberConfig{
-				Firstname: disabledMember.Firstname,
-				Lastname:  disabledMember.Lastname,
-			},
-		)
 
-	})
 	t.Run("it resets payments", func(t *testing.T) {
 		err := repo.ResetPayment(ctx)
 		assert.NoError(t, err)
 
-		members, err := repo.GetAllMemberConfigs(ctx, model.RequestParams{})
+		members, err := repo.ListMembers(ctx, model.MemberRequestParams{})
 		assert.NoError(t, err)
 		for _, m := range members {
 			assert.False(t, m.HasPaid)
 		}
 	})
 	t.Run("it deletes a member", func(t *testing.T) {
-		err := repo.DeleteMemberConfig(ctx, member2.ID)
+		err := repo.DeleteMembers(ctx, member2.ID)
 		assert.NoError(t, err)
 
-		_, err = repo.GetMemberConfig(ctx, member2.ID)
+		_, err = repo.GetMember(ctx, member2.ID)
 		assert.Equal(t, gorm.ErrRecordNotFound, err)
 	})
 }
 
-func TestManyMembers(t *testing.T) {
-	t.SkipNow()
-	repo, creationErr := setupDB()
-	require.NoError(t, creationErr)
-	for i := 0; i < 100; i++ {
-		member := model.MemberConfig{
-			Firstname: strconv.Itoa(i),
-			Lastname:  strconv.Itoa(i),
-			Mac:       "00:00:00:00:00:" + hex.EncodeToString([]byte{byte(i)}),
-			RoomNr:    strconv.Itoa(i),
-			IP:        strconv.Itoa(i),
-		}
-		member, err := repo.UpdateMemberConfig(ctx, member)
-		require.NoError(t, err)
-	}
+func overwrite(t *testing.T, fromDB *model.Member, compare *model.Member) {
+	assert.NotEmpty(t, fromDB.DhcpID)
+	assert.NotEmpty(t, fromDB.DhcpConfig.ID)
+	assert.NotEmpty(t, fromDB.RoomNr)
+	assert.NotEmpty(t, fromDB.Room.Number)
+
+	assert.NotEmpty(t, fromDB.CreatedAt)
+	assert.NotEmpty(t, fromDB.UpdatedAt)
+	fromDB.CreatedAt = compare.CreatedAt
+	fromDB.UpdatedAt = compare.UpdatedAt
+
+	fromDB.DhcpID = compare.DhcpID
+	fromDB.DhcpConfig.ID = compare.DhcpConfig.ID
+	fromDB.DhcpConfig.CreatedAt = compare.DhcpConfig.CreatedAt
+	fromDB.DhcpConfig.UpdatedAt = compare.DhcpConfig.UpdatedAt
 }

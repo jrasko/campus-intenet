@@ -9,15 +9,17 @@ import (
 )
 
 type DhcpService interface {
-	UpdateMember(ctx context.Context, member model.MemberConfig) (model.MemberConfig, error)
-	GetAllMembers(ctx context.Context, params model.RequestParams) ([]model.MemberConfig, error)
-	GetMember(ctx context.Context, id int) (model.MemberConfig, error)
+	CreateOrUpdateMember(ctx context.Context, member model.Member) (model.Member, error)
+	ListMembers(ctx context.Context, params model.MemberRequestParams) ([]model.Member, error)
+	GetMember(ctx context.Context, id int) (model.Member, error)
 	DeleteMember(ctx context.Context, id int) error
 	ResetPayment(ctx context.Context) error
 	UpdateDhcpFile(ctx context.Context) error
 	IsInconsistent() bool
 	TogglePayment(ctx context.Context, id int) error
 	GetNotPayingMembers(ctx context.Context) ([]model.ReducedMember, error)
+
+	ListRooms(ctx context.Context, params model.RoomRequestParams) ([]model.Room, error)
 }
 
 func NewRouter(config model.Configuration, service DhcpService) http.Handler {
@@ -65,6 +67,10 @@ func NewRouter(config model.Configuration, service DhcpService) http.Handler {
 	router.
 		Handle("/dhcp/{id}/togglePayment", auth.Middleware(h.TogglePayment(), PermissionFinance)).
 		Methods(http.MethodPost)
+
+	router.
+		Handle("/api/rooms", auth.Middleware(h.ListRooms(), PermissionView)).
+		Methods(http.MethodGet)
 	return router
 }
 

@@ -43,7 +43,7 @@ func newApplication(config model.Configuration) (*application, error) {
 		return nil, err
 	}
 
-	confWriter := confwriter.New(config.OutputFile, config.SkipDhcpNotification)
+	confWriter := confwriter.New(config.OutputFilepath, config.SkipDhcpNotification)
 	ipAllocation := allocation.New(repo, config.CIDR)
 
 	srv := service.New(repo, confWriter, ipAllocation)
