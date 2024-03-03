@@ -7,6 +7,8 @@ import (
 	"gorm.io/gorm"
 )
 
+const memberTable = "members"
+
 type MemberRepository struct {
 	db *gorm.DB
 }

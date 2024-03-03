@@ -2,65 +2,13 @@ package service
 
 import (
 	"backend/model"
-	"backend/service/allocation"
-	"backend/service/confwriter"
 	"context"
 	"errors"
 	"fmt"
-	"log"
 	"net/http"
 
 	"github.com/go-playground/validator/v10"
 )
-
-type Service struct {
-	validate   *validator.Validate
-	memberRepo MemberRepository
-	ipService  IPAllocationService
-	dhcpWriter ConfWriter
-
-	inconsistentState bool // indicates if the db has another state than the user-list.json file
-}
-
-type ConfWriter interface {
-	WhitelistMacs(netConfigs []model.NetConfig) error
-}
-
-type IPAllocationService interface {
-	GetUnusedIP(ctx context.Context) (string, error)
-}
-
-type MemberRepository interface {
-	CreateOrUpdateMember(ctx context.Context, member model.Member) (model.Member, error)
-	GetMember(ctx context.Context, id int) (model.Member, error)
-	ListMembers(ctx context.Context, params model.MemberRequestParams) ([]model.Member, error)
-	DeleteMembers(ctx context.Context, id int) error
-	ResetPayment(ctx context.Context) error
-
-	GetEnabledNets(ctx context.Context) ([]model.NetConfig, error)
-	ListRooms(ctx context.Context, params model.RoomRequestParams) ([]model.Room, error)
-	GetRoom(ctx context.Context, number string) (model.Room, error)
-
-	SaveNetConfig(ctx context.Context, config model.NetConfig) (model.NetConfig, error)
-}
-
-func New(repo MemberRepository, jsonWriter confwriter.JsonWriter, ipAllocation allocation.Service) *Service {
-	s := Service{
-		validate:          validator.New(),
-		memberRepo:        repo,
-		dhcpWriter:        jsonWriter,
-		ipService:         ipAllocation,
-		inconsistentState: false,
-	}
-
-	// generate config from db initially
-	err := s.UpdateDhcpFile(context.Background())
-	if err != nil {
-		log.Printf("[ERROR] when updating dhcp file: %#v", err)
-		panic(err)
-	}
-	return &s
-}
 
 func (s *Service) CreateOrUpdateMember(ctx context.Context, member model.Member) (model.Member, error) {
 	err := s.validate.Struct(member)
@@ -69,7 +17,7 @@ func (s *Service) CreateOrUpdateMember(ctx context.Context, member model.Member)
 	}
 
 	// test if room exists
-	_, err = s.memberRepo.GetRoom(ctx, member.RoomNr)
+	_, err = s.roomRepo.GetRoom(ctx, member.RoomNr)
 	if err != nil {
 		return model.Member{}, model.WrapGormError(err)
 	}
@@ -85,7 +33,7 @@ func (s *Service) CreateOrUpdateMember(ctx context.Context, member model.Member)
 		}
 	}
 	// save net config
-	config, err := s.memberRepo.SaveNetConfig(ctx, member.NetConfig)
+	config, err := s.netRepo.CreateOrUpdateNetConfig(ctx, member.NetConfig)
 	if err != nil {
 		return model.Member{}, model.WrapGormError(err)
 	}
@@ -103,23 +51,6 @@ func (s *Service) CreateOrUpdateMember(ctx context.Context, member model.Member)
 	}
 
 	return member, err
-}
-
-func (s *Service) UpdateDhcpFile(ctx context.Context) error {
-	users, err := s.memberRepo.GetEnabledNets(ctx)
-	if err != nil {
-		return model.WrapGormError(err)
-	}
-
-	err = s.dhcpWriter.WhitelistMacs(users)
-	if err != nil {
-		s.inconsistentState = true
-		return fmt.Errorf("when updating dhcp file: %w", err)
-	}
-
-	log.Println("[DEBUG] Successfully updated whitelist")
-	s.inconsistentState = false
-	return nil
 }
 
 func (s *Service) ListMembers(ctx context.Context, params model.MemberRequestParams) ([]model.Member, error) {
@@ -153,10 +84,6 @@ func (s *Service) DeleteMember(ctx context.Context, id int) error {
 
 func (s *Service) ResetPayment(ctx context.Context) error {
 	return model.WrapGormError(s.memberRepo.ResetPayment(ctx))
-}
-
-func (s *Service) IsInconsistent() bool {
-	return s.inconsistentState
 }
 
 func (s *Service) TogglePayment(ctx context.Context, id int) error {

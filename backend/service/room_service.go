@@ -5,8 +5,8 @@ import (
 	"context"
 )
 
-func (s Service) ListRooms(ctx context.Context, params model.RoomRequestParams) ([]model.Room, error) {
-	rooms, err := s.memberRepo.ListRooms(ctx, params)
+func (s *Service) ListRooms(ctx context.Context, params model.RoomRequestParams) ([]model.Room, error) {
+	rooms, err := s.roomRepo.ListRooms(ctx, params)
 	if err != nil {
 		return nil, err
 	}

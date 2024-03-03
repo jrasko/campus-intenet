@@ -5,20 +5,30 @@ import (
 	"context"
 )
 
-func (mr MemberRepository) SaveNetConfig(ctx context.Context, config model.NetConfig) (model.NetConfig, error) {
+func (mr MemberRepository) CreateOrUpdateNetConfig(ctx context.Context, config model.NetConfig) (model.NetConfig, error) {
 	err := mr.db.
-		Debug().
 		WithContext(ctx).
 		Save(&config).
 		Error
 	return config, err
 }
 
-func (mr MemberRepository) GetEnabledNets(ctx context.Context) ([]model.NetConfig, error) {
-	var members []model.NetConfig
+func (mr MemberRepository) GetNetConfig(ctx context.Context, id int) (model.NetConfig, error) {
+	var member model.NetConfig
 	err := mr.db.
 		WithContext(ctx).
-		Where("disabled = false").
+		First(&member, id).
+		Error
+	return member, err
+}
+
+func (mr MemberRepository) ListNetConfigs(ctx context.Context, params model.NetworkRequestParams) ([]model.NetConfig, error) {
+	var members []model.NetConfig
+	tx := mr.db.
+		WithContext(ctx)
+
+	tx = params.Apply(tx)
+	err := tx.
 		Find(&members).
 		Error
 	return members, err

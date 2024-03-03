@@ -5,6 +5,8 @@ import (
 	"context"
 )
 
+const netTable = "net_configs"
+
 func (mr MemberRepository) ListRooms(ctx context.Context, params model.RoomRequestParams) ([]model.Room, error) {
 	var rooms []model.Room
 

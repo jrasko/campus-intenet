@@ -8,6 +8,7 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"slices"
 )
 
 //go:generate mockery --name IPRepository
@@ -61,27 +62,13 @@ func (s Service) GetUnusedIP(ctx context.Context) (string, error) {
 }
 
 func (s Service) getUnallocatedIP(allocatedIPs []string) (string, error) {
-	allocated := createAllocationMap(allocatedIPs)
-
 	for ip := s.firstIP; ip < s.broadcast; ip++ {
-		if !allocated[ip] {
+		if !slices.Contains(allocatedIPs, ip.String()) {
 			return ip.String(), nil
 		}
 	}
 
 	return "", errNoUnallocatedIP
-}
-
-// createAllocationMap returns a maps IPv4 -> bool where every IP on allocatedIPs is mapped to true
-// the trick behind that is, that one can simply query the map and get true, if the ip is already allocated
-// or else false
-func createAllocationMap(allocatedIPs []string) map[IPv4]bool {
-	m := map[IPv4]bool{}
-	for _, ipString := range allocatedIPs {
-		ip := NewIPv4(net.ParseIP(ipString).To4())
-		m[ip] = true
-	}
-	return m
 }
 
 // parseCIDR parses a cidr string like 192.168.1.4/24

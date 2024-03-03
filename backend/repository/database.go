@@ -9,11 +9,6 @@ import (
 	"gorm.io/gorm"
 )
 
-const (
-	memberTable = "members"
-	netTable    = "net_configs"
-)
-
 func New(dsn string) (MemberRepository, error) {
 	log.Println("[INFO] Connecting to Database...")
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
