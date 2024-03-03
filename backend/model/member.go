@@ -19,8 +19,8 @@ type Member struct {
 	RoomNr string `json:"-" gorm:"unique;not null"`
 	Room   Room   `json:"room" gorm:"foreignKey:RoomNr;references:Number"`
 
-	DhcpID     int        `json:"-" gorm:"unique"`
-	DhcpConfig DhcpConfig `json:"dhcpConfig" gorm:"foreignKey:DhcpID"`
+	NetConfigID int       `gorm:"unique"`
+	NetConfig   NetConfig `json:"dhcpConfig" gorm:"foreignKey:NetConfigID"`
 
 	CreatedAt time.Time `json:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt"`
@@ -39,6 +39,6 @@ func (c *Member) ToReduced() ReducedMember {
 }
 
 func (c *Member) Sanitize() {
-	mac, _ := net.ParseMAC(c.DhcpConfig.Mac)
-	c.DhcpConfig.Mac = strings.ToUpper(mac.String())
+	mac, _ := net.ParseMAC(c.NetConfig.Mac)
+	c.NetConfig.Mac = strings.ToUpper(mac.String())
 }

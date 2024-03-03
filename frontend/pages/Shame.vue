@@ -32,12 +32,11 @@
   onMounted(() => nextTick(() => refresh()))
 
   async function refresh() {
-    const {data, error} = await getShameList()
-    if (error.value == undefined) {
-      moochers.value = data.value
-      return
+    try {
+      moochers.value = await getShameList()
+    } catch (e) {
+      console.log(e)
     }
-    console.log(error)
   }
 </script>
 <style scoped></style>

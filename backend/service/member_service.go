@@ -23,7 +23,7 @@ type Service struct {
 }
 
 type ConfWriter interface {
-	WhitelistMacs(netConfigs []model.DhcpConfig) error
+	WhitelistMacs(netConfigs []model.NetConfig) error
 }
 
 type IPAllocationService interface {
@@ -37,8 +37,11 @@ type MemberRepository interface {
 	DeleteMembers(ctx context.Context, id int) error
 	ResetPayment(ctx context.Context) error
 
-	GetEnabledNets(ctx context.Context) ([]model.DhcpConfig, error)
+	GetEnabledNets(ctx context.Context) ([]model.NetConfig, error)
 	ListRooms(ctx context.Context, params model.RoomRequestParams) ([]model.Room, error)
+	GetRoom(ctx context.Context, number string) (model.Room, error)
+
+	SaveNetConfig(ctx context.Context, config model.NetConfig) (model.NetConfig, error)
 }
 
 func New(repo MemberRepository, jsonWriter confwriter.JsonWriter, ipAllocation allocation.Service) *Service {
@@ -65,17 +68,30 @@ func (s *Service) CreateOrUpdateMember(ctx context.Context, member model.Member)
 		return model.Member{}, mapValidationError(err)
 	}
 
-	member.Sanitize()
-	member.DhcpConfig.Manufacturer = ouiMappings[member.DhcpConfig.Mac[:8]]
+	// test if room exists
+	_, err = s.memberRepo.GetRoom(ctx, member.RoomNr)
+	if err != nil {
+		return model.Member{}, model.WrapGormError(err)
+	}
 
-	if member.DhcpConfig.IP == "" {
-		member.DhcpConfig.IP, err = s.ipService.GetUnusedIP(ctx)
+	member.Sanitize()
+	member.LastEditor, _ = ctx.Value(model.FieldUsername).(string)
+	member.NetConfig.Manufacturer = ouiMappings[member.NetConfig.Mac[:8]]
+
+	if member.NetConfig.IP == "" {
+		member.NetConfig.IP, err = s.ipService.GetUnusedIP(ctx)
 		if err != nil {
 			return model.Member{}, err
 		}
 	}
-
-	member.LastEditor, _ = ctx.Value(model.FieldUsername).(string)
+	// save net config
+	config, err := s.memberRepo.SaveNetConfig(ctx, member.NetConfig)
+	if err != nil {
+		return model.Member{}, model.WrapGormError(err)
+	}
+	member.NetConfig = config
+	member.NetConfigID = config.ID
+	// save member
 	member, err = s.memberRepo.CreateOrUpdateMember(ctx, specialize(member))
 	if err != nil {
 		return model.Member{}, model.WrapGormError(err)

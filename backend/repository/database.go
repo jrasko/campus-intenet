@@ -11,7 +11,7 @@ import (
 
 const (
 	memberTable = "members"
-	netTable    = "dhcp_configs"
+	netTable    = "net_configs"
 )
 
 func New(dsn string) (MemberRepository, error) {

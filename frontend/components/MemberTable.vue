@@ -15,7 +15,7 @@
     <tbody>
     <tr v-for="p in props.people">
       <td>
-        <v-icon :color="p.disabled ? 'orange' : 'green'" icon="mdi-circle-medium"/>
+        <v-icon :color="p.dhcpConfig.disabled ? 'orange' : 'green'" icon="mdi-circle-medium"/>
       </td>
       <td>
         <v-icon
@@ -32,7 +32,7 @@
       <td>
         <v-row align="center" justify="center">
           <v-col cols="1">
-            <NuxtLink :to="'/edit/' + p.id">
+            <NuxtLink :to="'/members/edit/' + p.id">
               <v-btn density="compact" icon="mdi-square-edit-outline"/>
             </NuxtLink>
           </v-col>
@@ -62,24 +62,26 @@
   })
 
   async function swapPayment(p: MemberConfig) {
-    const {error} = await togglePayment(p.id)
-    if (error.value == null) {
+    try {
+      await togglePayment(p.id)
       modals.value.success = true
       emit('refresh')
       return
+    } catch (e) {
+      handleError(e)
     }
-    handleError(error)
   }
 
   async function deleteUser(u: MemberConfig) {
     if (confirm('Wirklich löschen?')) {
-      const {error} = await deleteConfigFor(u.id)
-      if (error.value == null) {
+      try {
+        await deleteConfigFor(u.id)
         modals.value.success = true
         emit('refresh')
-        return
       }
-      handleError(error)
+      catch (e) {
+        handleError(e)
+      }
     }
   }
 
@@ -98,7 +100,7 @@
     return value
   }
 
-  function handleError(error: Ref<any>) {
+  function handleError(error: any) {
     console.log(error.value)
     if (error.value.status === 403) {
       modals.value.errorMessage = 'no permissions for that'
@@ -107,7 +109,4 @@
     }
     modals.value.failure = true
   }
-
-
 </script>
-<style scoped/>

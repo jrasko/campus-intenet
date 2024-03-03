@@ -16,11 +16,13 @@ var (
 	searchableFields = []string{
 		"firstname",
 		"lastname",
-		"mac",
 		"email",
 		"phone",
-		"ip",
 		"comment",
+		"room_nr",
+		`"NetConfig".mac`,
+		`"NetConfig".ip`,
+		`"Room".wg`,
 	}
 )
 

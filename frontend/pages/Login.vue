@@ -21,7 +21,8 @@
 </template>
 
 <script lang="ts" setup>
-  import {loginUser} from "~/composables/fetch";
+  import {loginUser} from "~/utils/fetch";
+
   const emit = defineEmits(['login'])
 
   const failure = ref(false)
@@ -30,21 +31,21 @@
     password: ''
   })
 
+
   async function login() {
-    let {data, error} = await loginUser(credentials.value)
-    if (data.value != null) {
-      localStorage.setItem('jwt', data.value.token)
-      localStorage.setItem('role', data.value.role)
+    try {
+      const login = await <any>loginUser(credentials.value)
+      localStorage.setItem('jwt', login.token)
+      localStorage.setItem('role', login.role)
       emit('login')
       navigateTo('/')
-      return
+    } catch (error: any) {
+      console.log(error)
+      if (error.status === 403) {
+        window.location.href = 'https://youtu.be/dQw4w9WgXcQ'
+        return
+      }
+      failure.value = true
     }
-    if (error.value.statusCode === 403) {
-      window.location.href = 'https://youtu.be/dQw4w9WgXcQ'
-      return
-    }
-    failure.value = true
-    console.log(error.value)
   }
 </script>
-<style scoped></style>

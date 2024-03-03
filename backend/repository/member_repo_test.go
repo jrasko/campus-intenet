@@ -40,7 +40,7 @@ func TestNew(t *testing.T) {
 		config.DBDatabase = "testing"
 		repo, err := New(config.DSN())
 		assert.NoError(t, err)
-		err = repo.db.Migrator().DropTable(&model.Member{}, &model.Room{}, &model.DhcpConfig{})
+		err = repo.db.Migrator().DropTable(&model.Member{}, &model.Room{}, &model.NetConfig{})
 		require.NoError(t, err)
 
 		_, err = New(config.DSN())
@@ -52,7 +52,7 @@ var (
 	member = model.Member{
 		Firstname: "first",
 		Lastname:  "name",
-		DhcpConfig: model.DhcpConfig{
+		NetConfig: model.NetConfig{
 			Mac: "00:11:22:33:44:55",
 			IP:  "192.168.1.1",
 		},
@@ -68,7 +68,7 @@ var (
 	member2 = model.Member{
 		Firstname: "mister",
 		Lastname:  "x",
-		DhcpConfig: model.DhcpConfig{
+		NetConfig: model.NetConfig{
 			Mac: "aa:aa:aa:aa:aa:aa",
 			IP:  "10.0.0.1",
 		},
@@ -83,7 +83,7 @@ var (
 	updatedMember = model.Member{
 		Firstname: "Bernd",
 		Lastname:  "Das Brot",
-		DhcpConfig: model.DhcpConfig{
+		NetConfig: model.NetConfig{
 			Mac: "55:44:33:22:11:00",
 			IP:  "172.0.0.1",
 		},
@@ -163,8 +163,8 @@ func TestMemberRepository(t *testing.T) {
 }
 
 func overwrite(t *testing.T, fromDB *model.Member, compare *model.Member) {
-	assert.NotEmpty(t, fromDB.DhcpID)
-	assert.NotEmpty(t, fromDB.DhcpConfig.ID)
+	assert.NotEmpty(t, fromDB.NetConfigID)
+	assert.NotEmpty(t, fromDB.NetConfig.ID)
 	assert.NotEmpty(t, fromDB.RoomNr)
 	assert.NotEmpty(t, fromDB.Room.Number)
 
@@ -173,8 +173,8 @@ func overwrite(t *testing.T, fromDB *model.Member, compare *model.Member) {
 	fromDB.CreatedAt = compare.CreatedAt
 	fromDB.UpdatedAt = compare.UpdatedAt
 
-	fromDB.DhcpID = compare.DhcpID
-	fromDB.DhcpConfig.ID = compare.DhcpConfig.ID
-	fromDB.DhcpConfig.CreatedAt = compare.DhcpConfig.CreatedAt
-	fromDB.DhcpConfig.UpdatedAt = compare.DhcpConfig.UpdatedAt
+	fromDB.NetConfigID = compare.NetConfigID
+	fromDB.NetConfig.ID = compare.NetConfig.ID
+	fromDB.NetConfig.CreatedAt = compare.NetConfig.CreatedAt
+	fromDB.NetConfig.UpdatedAt = compare.NetConfig.UpdatedAt
 }

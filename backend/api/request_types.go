@@ -12,19 +12,19 @@ type requestMember struct {
 	Phone     string `json:"phone"`
 	Comment   string `json:"comment"`
 
-	RoomNr     string           `json:"roomNr" gorm:"unique;not null"`
-	DhcpConfig model.DhcpConfig `json:"dhcpConfig" gorm:"foreignKey:DhcpID"`
+	RoomNr     string          `json:"roomNr" gorm:"unique;not null"`
+	DhcpConfig model.NetConfig `json:"dhcpConfig" gorm:"foreignKey:NetConfigID"`
 }
 
 func (r requestMember) toModel() model.Member {
 	return model.Member{
-		Firstname:  r.Firstname,
-		Lastname:   r.Lastname,
-		HasPaid:    r.HasPaid,
-		Email:      r.Email,
-		Phone:      r.Phone,
-		Comment:    r.Comment,
-		RoomNr:     r.RoomNr,
-		DhcpConfig: r.DhcpConfig,
+		Firstname: r.Firstname,
+		Lastname:  r.Lastname,
+		HasPaid:   r.HasPaid,
+		Email:     r.Email,
+		Phone:     r.Phone,
+		Comment:   r.Comment,
+		RoomNr:    r.RoomNr,
+		NetConfig: r.DhcpConfig,
 	}
 }

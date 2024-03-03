@@ -55,10 +55,10 @@
           <td>{{ r.member?.firstname }}</td>
           <td>{{ r.member?.lastname }}</td>
           <td>
-            <NuxtLink v-if="r.member != undefined" :to="'/edit/'+r.member?.id">
+            <NuxtLink v-if="r.member != undefined" :to="'/members/edit/'+r.member?.id">
               <v-icon density="compact" icon="mdi-account-edit"/>
             </NuxtLink>
-            <NuxtLink v-else :to="'/add?room='+r.roomNr">
+            <NuxtLink v-else :to="'/members/add?room='+r.roomNr">
               <v-icon density="compact" icon="mdi-account-plus"/>
             </NuxtLink>
           </td>
@@ -69,13 +69,13 @@
   </v-row>
 </template>
 <script lang="ts" setup>
-  import {fetchRooms} from "~/composables/fetch";
   import {roomFiler} from "~/utils/constants";
+  import {fetchRooms} from "~/utils/fetch";
 
   const emits = defineEmits(['logout'])
 
   const rooms = ref<Room[]>([])
-  
+
   const filters = ref<RoomFilters>({
     occupied: null,
     block: [],
@@ -87,16 +87,15 @@
   })
 
   async function refresh() {
-    const {data, error} = await fetchRooms(filters.value);
-    if (error.value == null) {
-      rooms.value = data.value
+    try {
+      rooms.value = await fetchRooms(filters.value)
       return
-    }
-    if (error.value.statusCode === 403) {
-      emits('logout')
-      navigateTo('/login')
-      return
+    } catch (error: any) {
+      if (error.value.statusCode === 403) {
+        emits('logout')
+        return
+      }
+      console.error(error)
     }
   }
-
 </script>

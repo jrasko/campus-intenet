@@ -3,7 +3,7 @@
     <v-container fluid>
       <AppBar :logged-in="loggedIn" @logout="logout"/>
       <v-main>
-        <NuxtPage @login="setLogin"/>
+        <NuxtPage @login="setLogin" @logout="logout"/>
       </v-main>
     </v-container>
   </v-app>

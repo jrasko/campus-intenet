@@ -24,7 +24,7 @@ type reservation struct {
 	Mac string `json:"hw-address"`
 }
 
-func (jw JsonWriter) WhitelistMacs(netConfigs []model.DhcpConfig) error {
+func (jw JsonWriter) WhitelistMacs(netConfigs []model.NetConfig) error {
 	reservations := mapToReservationUser(netConfigs)
 
 	f, err := os.OpenFile(jw.filename, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0666)
@@ -47,7 +47,7 @@ func (jw JsonWriter) WhitelistMacs(netConfigs []model.DhcpConfig) error {
 	return jw.reloadConfig()
 }
 
-func mapToReservationUser(configs []model.DhcpConfig) []reservation {
+func mapToReservationUser(configs []model.NetConfig) []reservation {
 	reservations := make([]reservation, 0, len(configs))
 	for _, config := range configs {
 		reservations = append(reservations, reservation{

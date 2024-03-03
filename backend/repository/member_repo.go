@@ -12,10 +12,7 @@ type MemberRepository struct {
 }
 
 func (mr MemberRepository) CreateOrUpdateMember(ctx context.Context, conf model.Member) (model.Member, error) {
-	var err error
-
-	err = mr.db.
-		Debug().
+	err := mr.db.
 		WithContext(ctx).
 		Save(&conf).
 		Error
@@ -24,11 +21,13 @@ func (mr MemberRepository) CreateOrUpdateMember(ctx context.Context, conf model.
 
 func (mr MemberRepository) ListMembers(ctx context.Context, params model.MemberRequestParams) ([]model.Member, error) {
 	var configs []model.Member
-	db := mr.db.WithContext(ctx)
+	db := mr.db.
+		WithContext(ctx).
+		InnerJoins("Room").
+		InnerJoins("NetConfig")
+
 	db = params.Apply(db)
 	err := db.
-		Preload("Room").
-		Preload("DhcpConfig").
 		Find(&configs).
 		Error
 	return configs, err
@@ -38,10 +37,9 @@ func (mr MemberRepository) GetMember(ctx context.Context, id int) (model.Member,
 	config := model.Member{}
 	err := mr.db.
 		WithContext(ctx).
-		Where("id = ?", id).
-		Preload("Room").
-		Preload("DhcpConfig").
-		First(&config).
+		InnerJoins("Room").
+		InnerJoins("NetConfig").
+		First(&config, id).
 		Error
 	return config, err
 }

@@ -17,7 +17,8 @@ export function MemberCompare(field: keyof MemberConfig) {
         return aVal === bVal ? 0 : aVal ? -1 : 1
     }
 }
-export function toInputMember(i: MemberConfig):MemberInput{
+
+export function toInputMember(i: MemberConfig): InputMember {
     return {
         id: i.id,
         comment: i.comment,
@@ -28,5 +29,18 @@ export function toInputMember(i: MemberConfig):MemberInput{
         lastname: i.lastname,
         phone: i.phone,
         roomNr: i.room.roomNr
+    }
+}
+
+export function jsonTransform<T>(r: string): T | null {
+    if (r == ''){
+        return null
+    }
+    return JSON.parse(r)
+}
+
+export function authHeader() {
+    return {
+        "Authorization": 'Bearer ' + localStorage.getItem('jwt')
     }
 }
