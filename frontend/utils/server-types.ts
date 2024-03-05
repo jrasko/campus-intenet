@@ -4,5 +4,4 @@ interface Server {
     mac: string,
     ip: string,
     disabled: boolean,
-    comment: string
 }

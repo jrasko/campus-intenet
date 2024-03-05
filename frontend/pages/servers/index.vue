@@ -1,5 +1,12 @@
 <template>
-  <v-row align="baseline" justify="center">
+  <v-row align="end" justify="center">
+    <v-col cols="6" md="2">
+      <NuxtLink to="/servers/add">
+        <v-btn prepend-icon="mdi-view-grid-plus">
+          Server Hinzufügen
+        </v-btn>
+      </NuxtLink>
+    </v-col>
     <v-col cols="6" md="2">
       <v-select
         v-model="filters.disabled"
@@ -9,19 +16,6 @@
         item-title="header"
         item-value="value"
         label="Deaktiviert"
-        variant="underlined"
-        @update:modelValue="refresh"
-      />
-    </v-col>
-    <v-col cols="6" md="2">
-      <v-select
-        v-model="filters.server"
-        :items="serverFilter.server"
-        append-inner-icon="mdi-filter"
-        hide-details
-        item-title="header"
-        item-value="value"
-        label="Server"
         variant="underlined"
         @update:modelValue="refresh"
       />
@@ -37,8 +31,7 @@
           <th>Name</th>
           <th>MAC</th>
           <th>IP</th>
-          <th>Kommentar</th>
-          <th />
+          <th/>
         </tr>
         </thead>
         <tbody>
@@ -49,12 +42,11 @@
           <td>{{ s.name }}</td>
           <td>{{ s.mac }}</td>
           <td>{{ s.ip }}</td>
-          <td>{{ s.comment }}</td>
           <td>
             <v-row align="center" justify="center">
               <v-col cols="1">
-                <NuxtLink :to="'/servers/edit/'+s.id">
-                  <v-icon density="compact" icon="mdi-square-edit-outline"/>
+                <NuxtLink :to="'/servers/edit/' + s.id">
+                  <v-btn density="compact" icon="mdi-square-edit-outline"/>
                 </NuxtLink>
               </v-col>
               <v-col cols="1">
@@ -94,8 +86,8 @@
       console.log(e)
     }
   }
-  
-  async function removeServer(id: number){
+
+  async function removeServer(id: number) {
     try {
       await deleteServer(id)
       refresh()

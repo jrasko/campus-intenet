@@ -30,8 +30,19 @@ func (s *Service) UpdateDhcpFile(ctx context.Context) error {
 }
 
 func (s *Service) CreateOrUpdateNetConfig(ctx context.Context, config model.NetConfig) error {
-	_, err := s.netRepo.CreateOrUpdateNetConfig(ctx, config)
-	return err
+	err := s.validate.Var(config.IP, model.IPValidation)
+	if err != nil {
+		return mapValidationError(err)
+	}
+	err = s.validate.Struct(config)
+	if err != nil {
+		return mapValidationError(err)
+	}
+	_, err = s.netRepo.CreateOrUpdateNetConfig(ctx, config)
+	if err != nil {
+		return err
+	}
+	return s.UpdateDhcpFile(ctx)
 }
 
 func (s *Service) ListNetConfigs(ctx context.Context, params model.NetworkRequestParams) ([]model.NetConfig, error) {
@@ -43,5 +54,9 @@ func (s *Service) GetNetConfig(ctx context.Context, id int) (model.NetConfig, er
 }
 
 func (s *Service) DeleteNetConfig(ctx context.Context, id int) error {
-	return s.netRepo.DeleteNetConfig(ctx, id)
+	err := s.netRepo.DeleteNetConfig(ctx, id)
+	if err != nil {
+		return err
+	}
+	return s.UpdateDhcpFile(ctx)
 }

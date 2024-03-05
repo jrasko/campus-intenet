@@ -172,5 +172,3 @@
     localStorage.setItem('columns', columns.value.toString())
   }
 </script>
-
-<style scoped></style>

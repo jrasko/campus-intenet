@@ -1,15 +1,18 @@
 <template>
   <v-form @submit.prevent="">
     <v-row>
-      <v-col>
+      <v-col cols="8">
         <v-text-field
           v-model="server.name"
           label="Name"
         />
       </v-col>
+      <v-col cols="4">
+        <v-switch v-model="server.disabled" color="green" label="Deaktiviert"/>
+      </v-col>
     </v-row>
     <v-row>
-      <v-col cols="12" sm="6">
+      <v-col cols="6">
         <v-text-field
           v-model="server.mac"
           :maxlength="17"
@@ -17,25 +20,12 @@
           @input="updateMac"
         />
       </v-col>
-      <v-col cols="12" sm="6">
+      <v-col cols="6">
         <v-text-field
           v-model="server.ip"
-          :readonly="true"
-          clearable
-          hint="autogeneriert wenn leer"
           label="IP Addresse"
           persistent-hint
         />
-      </v-col>
-    </v-row>
-    <v-row>
-      <v-col cols="6" sm="2">
-        <v-switch v-model="server.disabled" color="green" label="Deaktiviert"/>
-      </v-col>
-    </v-row>
-    <v-row>
-      <v-col cols="12">
-        <v-text-field v-model="server.comment" label="Kommentar"/>
       </v-col>
     </v-row>
     <v-row>
@@ -61,7 +51,6 @@
     mac: '',
     ip: '',
     disabled: false,
-    comment: ''
   })
 
   onMounted(() => nextTick(() => {

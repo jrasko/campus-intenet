@@ -25,8 +25,8 @@ func (mr MemberRepository) ListMembers(ctx context.Context, params model.MemberR
 	var configs []model.Member
 	db := mr.db.
 		WithContext(ctx).
-		InnerJoins("Room").
-		InnerJoins("NetConfig")
+		Joins("Room").
+		Joins("NetConfig")
 
 	db = params.Apply(db)
 	err := db.
