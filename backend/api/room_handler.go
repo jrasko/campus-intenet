@@ -11,7 +11,7 @@ func (h Handler) ListRooms() http.HandlerFunc {
 			IsOccupied: boolFilter(req, "occupied"),
 			Blocks:     req.URL.Query()["block"],
 		}
-		rooms, err := h.service.ListRooms(req.Context(), params)
+		rooms, err := h.roomService.ListRooms(req.Context(), params)
 		if err != nil {
 			sendHttpError(w, err)
 			return

@@ -4,11 +4,31 @@ interface ManageFilters {
     disabled: boolean | null
 }
 
+interface ManageFilterList {
+    payment: { header: string, value: boolean | null }[]
+    disabled: { header: string, value: boolean | null }[]
+}
+
 type Block = '1' | '2' | '3' | '4' | '5'
 
 interface RoomFilters {
     occupied: boolean | null,
     block: Block[]
+}
+
+interface RoomFilterList {
+    occupied: { header: string, value: boolean | null }[]
+    block: { header: string, value: Block | null }[]
+}
+
+interface ServerFilters{
+    disabled: boolean | null
+    server: boolean | null
+}
+
+interface ServerFilterList {
+    disabled: { header: string, value: boolean | null }[]
+    server: { header: string, value: boolean | null }[]
 }
 
 type ColumnFormat = 'text' | 'date'
@@ -36,14 +56,3 @@ type Column =
     'lastEditor'
 
 type Columns = Record<Column, ColumnOptions>
-
-interface ManageFilterList {
-    payment: { header: string, value: boolean | null }[]
-    disabled: { header: string, value: boolean | null }[]
-}
-
-interface RoomFilterList {
-    occupied: { header: string, value: boolean | null }[]
-    block: { header: string, value: Block | null }[]
-}
-

@@ -5,7 +5,8 @@ import (
 )
 
 type NetConfig struct {
-	ID           int    `gorm:"primaryKey"`
+	ID           int    `json:"id" gorm:"primaryKey"`
+	Name         string `json:"name"`
 	Mac          string `json:"mac" validate:"required,mac" gorm:"unique;not null"`
 	IP           string `json:"ip" validate:"omitempty,ipv4" gorm:"unique;not null"`
 	Manufacturer string `json:"manufacturer" validate:"omitempty,len=0"`

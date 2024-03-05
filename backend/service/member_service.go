@@ -74,9 +74,19 @@ func (s *Service) GetMember(ctx context.Context, id int) (model.Member, error) {
 }
 
 func (s *Service) DeleteMember(ctx context.Context, id int) error {
-	err := s.memberRepo.DeleteMembers(ctx, id)
+	member, err := s.GetMember(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	err = s.memberRepo.DeleteMember(ctx, id)
 	if err != nil {
 		return model.WrapGormError(err)
+	}
+
+	err = s.netRepo.DeleteNetConfig(ctx, member.NetConfigID)
+	if err != nil {
+		return model.WrapGormError(fmt.Errorf("deleting net config, %w", err))
 	}
 
 	return s.UpdateDhcpFile(ctx)

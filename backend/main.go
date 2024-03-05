@@ -17,7 +17,7 @@ import (
 
 type application struct {
 	url        string
-	service    api.DhcpService
+	service    api.MemberService
 	repository service.MemberRepository
 	router     http.Handler
 }
@@ -46,8 +46,8 @@ func newApplication(config model.Configuration) (*application, error) {
 	confWriter := confwriter.New(config.OutputFilepath, config.SkipDhcpNotification)
 	ipAllocation := allocation.New(repo, config.CIDR)
 
-	srv := service.New(repo, confWriter, ipAllocation)
-	router := api.NewRouter(config, srv)
+	srv := service.New(repo, repo, repo, confWriter, ipAllocation)
+	router := api.NewRouter(config, srv, srv, srv)
 
 	return &application{
 		repository: repo,

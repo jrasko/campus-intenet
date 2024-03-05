@@ -75,7 +75,7 @@
   async function deleteUser(u: MemberConfig) {
     if (confirm('Wirklich löschen?')) {
       try {
-        await deleteConfigFor(u.id)
+        await deleteMemberConfigFor(u.id)
         modals.value.success = true
         emit('refresh')
       }
@@ -102,7 +102,7 @@
 
   function handleError(error: any) {
     console.log(error.value)
-    if (error.value.status === 403) {
+    if (error.statusCode === 403) {
       modals.value.errorMessage = 'no permissions for that'
     } else {
       modals.value.errorMessage = 'something went wrong'

@@ -5,24 +5,20 @@
 </template>
 
 <script lang="ts" setup>
-
-  import {updateConfig} from "~/utils/fetch";
-
   const route = useRoute()
   const modal = ref({
     failure: false,
     errorMessage: ''
   })
 
-  async function submit(server: InputMember) {
-    const {error} = await updateConfig(server)
-    if (error.value == null){
-      navigateTo('/')
-      return
+  async function submit(server: Server) {
+    try {
+      await updateServer(server.id,server)
+      navigateTo('/servers')
+    } catch (error: any) {
+      modal.value.failure = true
+      modal.value.errorMessage = error.data
+      console.log(error)
     }
-
-    modal.value.failure = true
-    modal.value.errorMessage = error.value.data
-    console.log(error)
   }
 </script>

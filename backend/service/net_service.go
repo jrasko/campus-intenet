@@ -38,6 +38,10 @@ func (s *Service) ListNetConfigs(ctx context.Context, params model.NetworkReques
 	return s.netRepo.ListNetConfigs(ctx, params)
 }
 
-func (s *Service) GetNetConfigs(ctx context.Context, id int) (model.NetConfig, error) {
+func (s *Service) GetNetConfig(ctx context.Context, id int) (model.NetConfig, error) {
 	return s.netRepo.GetNetConfig(ctx, id)
+}
+
+func (s *Service) DeleteNetConfig(ctx context.Context, id int) error {
+	return s.netRepo.DeleteNetConfig(ctx, id)
 }

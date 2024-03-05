@@ -76,10 +76,9 @@
 
   async function prefetchForID(id: string) {
     try {
-      const resp = await getConfigFor(id)
+      server.value = await fetchServer(id)
     } catch (e) {
       console.log(e)
-
     }
   }
 </script>

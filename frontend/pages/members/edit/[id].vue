@@ -5,8 +5,6 @@
 </template>
 
 <script lang="ts" setup>
-  import {updateConfig} from "~/utils/fetch";
-
   const route = useRoute()
   const modal = ref({
     failure: false,
@@ -15,8 +13,8 @@
 
   async function submit(person: InputMember) {
     try {
-      await updateConfig(person)
-      navigateTo('/')
+      await updateMemberConfig(person)
+      navigateTo('/manage')
     } catch (error: any) {
       modal.value.failure = true
       modal.value.errorMessage = error.data

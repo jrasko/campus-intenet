@@ -21,8 +21,6 @@
 </template>
 
 <script lang="ts" setup>
-  import {loginUser} from "~/utils/fetch";
-
   const emit = defineEmits(['login'])
 
   const failure = ref(false)

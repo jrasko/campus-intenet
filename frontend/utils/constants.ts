@@ -111,12 +111,7 @@ export const manageFilter: ManageFilterList = {
 }
 
 export const roomFiler: RoomFilterList = {
-    block: [
-        {
-            header: 'Alle',
-            value: null
-        }
-    ],
+    block: [],
     occupied: [
         {
             header: 'Alle',
@@ -128,6 +123,37 @@ export const roomFiler: RoomFilterList = {
         },
         {
             header: 'Unbelegt',
+            value: false
+        }
+    ]
+}
+
+export const serverFilter : ServerFilterList = {
+    server: [
+        {
+            header: 'Alle',
+            value: null
+        },
+        {
+            header: 'Server',
+            value: true
+        },
+        {
+            header: 'Mitglieder',
+            value: false
+        }
+    ],
+    disabled: [
+        {
+            header: 'Alle',
+            value: null
+        },
+        {
+            header: 'Deaktiviert',
+            value: true
+        },
+        {
+            header: 'Aktiviert',
             value: false
         }
     ]

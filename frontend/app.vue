@@ -21,7 +21,7 @@
 
   function logout() {
     localStorage.removeItem('jwt')
-    setLogin()
+    loggedIn.value = false
     navigateTo('/login')
   }
 </script>

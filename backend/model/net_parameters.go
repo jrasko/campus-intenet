@@ -15,9 +15,9 @@ func (r NetworkRequestParams) Apply(db *gorm.DB) *gorm.DB {
 	}
 	if r.Servers != nil {
 		if *r.Servers {
-			db = db.Where(`"Member".id IS NULL`)
+			db = db.Where(`members.id IS NULL`)
 		} else {
-			db = db.Where(`"Member".id IS NOT NULL`)
+			db = db.Where(`members.id IS NOT NULL`)
 		}
 	}
 

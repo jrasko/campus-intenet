@@ -4,9 +4,6 @@
 </template>
 
 <script lang="ts" setup>
-
-  import {createConfig} from "~/utils/fetch";
-
   const route = useRoute()
 
   const modal = ref({
@@ -16,7 +13,7 @@
 
   async function submit(person: InputMember) {
     try {
-      await createConfig(person)
+      await createMemberConfig(person)
       navigateTo('/')
     } catch (error: any) {
       modal.value.failure = true

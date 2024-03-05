@@ -8,32 +8,42 @@ import (
 	"github.com/gorilla/mux"
 )
 
-type DhcpService interface {
+type MemberService interface {
 	CreateOrUpdateMember(ctx context.Context, member model.Member) (model.Member, error)
 	ListMembers(ctx context.Context, params model.MemberRequestParams) ([]model.Member, error)
 	GetMember(ctx context.Context, id int) (model.Member, error)
 	DeleteMember(ctx context.Context, id int) error
-	ResetPayment(ctx context.Context) error
-	UpdateDhcpFile(ctx context.Context) error
-	IsInconsistent() bool
-	TogglePayment(ctx context.Context, id int) error
-	GetNotPayingMembers(ctx context.Context) ([]model.ReducedMember, error)
 
+	GetNotPayingMembers(ctx context.Context) ([]model.ReducedMember, error)
+	TogglePayment(ctx context.Context, id int) error
+	ResetPayment(ctx context.Context) error
+}
+type RoomService interface {
 	ListRooms(ctx context.Context, params model.RoomRequestParams) ([]model.Room, error)
 }
 
-func NewRouter(config model.Configuration, service DhcpService) http.Handler {
+type NetworkService interface {
+	CreateOrUpdateNetConfig(ctx context.Context, config model.NetConfig) error
+	ListNetConfigs(ctx context.Context, params model.NetworkRequestParams) ([]model.NetConfig, error)
+	GetNetConfig(ctx context.Context, id int) (model.NetConfig, error)
+	DeleteNetConfig(ctx context.Context, id int) error
+
+	UpdateDhcpFile(ctx context.Context) error
+	IsInconsistent() bool
+}
+
+func NewRouter(config model.Configuration, memberService MemberService, roomService RoomService, netService NetworkService) http.Handler {
 	router := mux.NewRouter()
 
 	auth := AuthHandler{config: config}
-	h := Handler{service: service}
+	h := Handler{
+		memberService:  memberService,
+		roomService:    roomService,
+		networkService: netService,
+	}
 
 	router.
 		Handle("/api/login", auth.Login()).
-		Methods(http.MethodPost)
-
-	router.
-		Handle("/api/write", auth.Middleware(h.WriteConfigHandler(), PermissionModify)).
 		Methods(http.MethodPost)
 
 	router.
@@ -66,6 +76,25 @@ func NewRouter(config model.Configuration, service DhcpService) http.Handler {
 	router.
 		Handle("/api/rooms", auth.Middleware(h.ListRooms(), PermissionView)).
 		Methods(http.MethodGet)
+
+	router.
+		Handle("/api/write", auth.Middleware(h.WriteConfigHandler(), PermissionModify)).
+		Methods(http.MethodPost)
+	router.
+		Handle("/api/net-configs", auth.Middleware(h.PostNetworkHandler(), PermissionModify)).
+		Methods(http.MethodPost)
+	router.
+		Handle("/api/net-configs", auth.Middleware(h.ListNetworkHandler(), PermissionModify)).
+		Methods(http.MethodGet)
+	router.
+		Handle("/api/net-configs/{id}", auth.Middleware(h.GetNetworkHandler(), PermissionModify)).
+		Methods(http.MethodGet)
+	router.
+		Handle("/api/net-configs/{id}", auth.Middleware(h.PutNetworkHandler(), PermissionModify)).
+		Methods(http.MethodPut)
+	router.
+		Handle("/api/net-configs/{id}", auth.Middleware(h.DeleteNetworkHandler(), PermissionModify)).
+		Methods(http.MethodDelete)
 	return router
 }
 

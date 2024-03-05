@@ -13,7 +13,9 @@ import (
 const StatusInconsistent = 210
 
 type Handler struct {
-	service DhcpService
+	memberService  MemberService
+	roomService    RoomService
+	networkService NetworkService
 }
 
 func (h Handler) PostConfigHandler() http.HandlerFunc {
@@ -25,7 +27,7 @@ func (h Handler) PostConfigHandler() http.HandlerFunc {
 			return
 		}
 		member := reqMember.toModel()
-		member, err = h.service.CreateOrUpdateMember(r.Context(), member)
+		member, err = h.memberService.CreateOrUpdateMember(r.Context(), member)
 		if err != nil {
 			sendHttpError(w, err)
 			return
@@ -46,13 +48,13 @@ func (h Handler) PutConfigHandler() http.HandlerFunc {
 		}
 
 		member := reqMember.toModel()
-		member.ID, err = readIDFromVar(r)
+		member.ID, err = readIntFromVar(r, "id")
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
 
-		member, err = h.service.CreateOrUpdateMember(r.Context(), member)
+		member, err = h.memberService.CreateOrUpdateMember(r.Context(), member)
 		if err != nil {
 			sendHttpError(w, err)
 			return
@@ -69,13 +71,13 @@ func (h Handler) GetAllConfigHandler() http.HandlerFunc {
 			Disabled: boolFilter(r, "disabled"),
 			HasPaid:  boolFilter(r, "hasPaid"),
 		}
-		members, err := h.service.ListMembers(r.Context(), params)
+		members, err := h.memberService.ListMembers(r.Context(), params)
 		if err != nil {
 			sendHttpError(w, err)
 			return
 		}
 
-		if h.service.IsInconsistent() {
+		if h.networkService.IsInconsistent() {
 			w.WriteHeader(StatusInconsistent)
 		}
 		sendJSONResponse(w, members)
@@ -84,19 +86,19 @@ func (h Handler) GetAllConfigHandler() http.HandlerFunc {
 
 func (h Handler) GetConfigHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		id, err := readIDFromVar(r)
+		id, err := readIntFromVar(r, "id")
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
 
-		member, err := h.service.GetMember(r.Context(), id)
+		member, err := h.memberService.GetMember(r.Context(), id)
 		if err != nil {
 			sendHttpError(w, err)
 			return
 		}
 
-		if h.service.IsInconsistent() {
+		if h.networkService.IsInconsistent() {
 			w.WriteHeader(StatusInconsistent)
 		}
 		sendJSONResponse(w, member)
@@ -105,13 +107,13 @@ func (h Handler) GetConfigHandler() http.HandlerFunc {
 
 func (h Handler) DeleteConfigHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		id, err := readIDFromVar(r)
+		id, err := readIntFromVar(r, "id")
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
 
-		err = h.service.DeleteMember(r.Context(), id)
+		err = h.memberService.DeleteMember(r.Context(), id)
 		if err != nil {
 			sendHttpError(w, err)
 			return
@@ -123,7 +125,7 @@ func (h Handler) DeleteConfigHandler() http.HandlerFunc {
 
 func (h Handler) ResetPaymentConfigHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		err := h.service.ResetPayment(r.Context())
+		err := h.memberService.ResetPayment(r.Context())
 		if err != nil {
 			sendHttpError(w, err)
 			return
@@ -133,21 +135,9 @@ func (h Handler) ResetPaymentConfigHandler() http.HandlerFunc {
 	}
 }
 
-func (h Handler) WriteConfigHandler() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		err := h.service.UpdateDhcpFile(r.Context())
-		if err != nil {
-			sendHttpError(w, err)
-			return
-		}
-
-		w.WriteHeader(http.StatusOK)
-	}
-}
-
 func (h Handler) WallOfShame() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		members, err := h.service.GetNotPayingMembers(r.Context())
+		members, err := h.memberService.GetNotPayingMembers(r.Context())
 		if err != nil {
 			sendHttpError(w, err)
 			return
@@ -158,12 +148,12 @@ func (h Handler) WallOfShame() http.HandlerFunc {
 
 func (h Handler) TogglePayment() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		id, err := readIDFromVar(r)
+		id, err := readIntFromVar(r, "id")
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
-		err = h.service.TogglePayment(r.Context(), id)
+		err = h.memberService.TogglePayment(r.Context(), id)
 		if err != nil {
 			sendHttpError(w, err)
 			return
@@ -172,8 +162,8 @@ func (h Handler) TogglePayment() http.HandlerFunc {
 	}
 }
 
-func readIDFromVar(r *http.Request) (int, error) {
-	idParam, ok := mux.Vars(r)["id"]
+func readIntFromVar(r *http.Request, field string) (int, error) {
+	idParam, ok := mux.Vars(r)[field]
 	if !ok {
 		return 0, errors.New("could not read id param")
 	}

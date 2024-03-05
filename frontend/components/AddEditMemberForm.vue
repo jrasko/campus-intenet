@@ -110,8 +110,7 @@
 
   async function prefetchForID(id: string) {
     try {
-      const data = await getConfigFor(id)
-      console.log(data)
+      const data: MemberConfig = await getMemberConfigFor(id)
       member.value = toInputMember(data)
       availableRooms.value.unshift({
         roomNr: data.room.roomNr,
@@ -125,7 +124,7 @@
 
   async function fetchAvailableRooms() {
     try {
-      const data = await fetchRooms({occupied: false, block: []})
+      const data : Room[] = await fetchRooms({occupied: false, block: []})
       availableRooms.value = availableRooms.value.concat(data)
     } catch (error) {
       console.error(error)

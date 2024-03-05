@@ -154,7 +154,7 @@ func TestMemberRepository(t *testing.T) {
 		}
 	})
 	t.Run("it deletes a member", func(t *testing.T) {
-		err := repo.DeleteMembers(ctx, member2.ID)
+		err := repo.DeleteMember(ctx, member2.ID)
 		assert.NoError(t, err)
 
 		_, err = repo.GetMember(ctx, member2.ID)

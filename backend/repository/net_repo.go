@@ -23,15 +23,22 @@ func (mr MemberRepository) GetNetConfig(ctx context.Context, id int) (model.NetC
 }
 
 func (mr MemberRepository) ListNetConfigs(ctx context.Context, params model.NetworkRequestParams) ([]model.NetConfig, error) {
-	var members []model.NetConfig
+	var netConfigs []model.NetConfig
 	tx := mr.db.
-		WithContext(ctx)
+		WithContext(ctx).
+		Joins("LEFT JOIN members ON members.net_config_id = net_configs.id")
 
 	tx = params.Apply(tx)
 	err := tx.
-		Find(&members).
+		Find(&netConfigs).
 		Error
-	return members, err
+	return netConfigs, err
+}
+func (mr MemberRepository) DeleteNetConfig(ctx context.Context, id int) error {
+	return mr.db.
+		WithContext(ctx).
+		Delete(&model.NetConfig{}, id).
+		Error
 }
 
 func (mr MemberRepository) GetAllIPs(ctx context.Context) ([]string, error) {

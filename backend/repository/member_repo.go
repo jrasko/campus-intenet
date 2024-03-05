@@ -46,7 +46,7 @@ func (mr MemberRepository) GetMember(ctx context.Context, id int) (model.Member,
 	return config, err
 }
 
-func (mr MemberRepository) DeleteMembers(ctx context.Context, id int) error {
+func (mr MemberRepository) DeleteMember(ctx context.Context, id int) error {
 	return mr.db.
 		WithContext(ctx).
 		Delete(&model.Member{}, id).

@@ -44,3 +44,8 @@ export function authHeader() {
         "Authorization": 'Bearer ' + localStorage.getItem('jwt')
     }
 }
+
+export function getBaseURL() {
+    const config = useRuntimeConfig()
+    return config.public.baseURL
+}

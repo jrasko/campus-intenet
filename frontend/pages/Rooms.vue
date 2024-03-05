@@ -70,9 +70,8 @@
 </template>
 <script lang="ts" setup>
   import {roomFiler} from "~/utils/constants";
-  import {fetchRooms} from "~/utils/fetch";
 
-  const emits = defineEmits(['logout'])
+  const emit = defineEmits(['logout'])
 
   const rooms = ref<Room[]>([])
 
@@ -91,8 +90,8 @@
       rooms.value = await fetchRooms(filters.value)
       return
     } catch (error: any) {
-      if (error.value.statusCode === 403) {
-        emits('logout')
+      if (error.statusCode === 403) {
+        emit('logout')
         return
       }
       console.error(error)

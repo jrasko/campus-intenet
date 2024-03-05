@@ -4,7 +4,6 @@
 </template>
 
 <script lang="ts" setup>
-  import {createConfig} from "~/utils/fetch";
 
   const route = useRoute()
 
@@ -14,19 +13,16 @@
   })
 
 
-  async function submit(person: InputMember) {
-    const {error} = await createConfig(person)
-    if (error.value == null) {
-      navigateTo('/')
-      return
+  async function submit(server: Server) {
+    try {
+      await createServer(server)
+      navigateTo('/servers')
+    } catch (e: any) {
+      modal.value.failure = true
+      modal.value.errorMessage = e.value.data
+      console.log(e.value)
     }
-
-    modal.value.failure = true
-    modal.value.errorMessage = error.value.data
-    console.log(error.value)
-    return
   }
 </script>
-
 
 <style scoped></style>

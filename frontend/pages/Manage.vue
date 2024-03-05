@@ -94,7 +94,6 @@
 
 <script lang="ts" setup>
   import {manageFilter, tableData} from "~/utils/constants";
-  import {getConfigs} from "~/utils/fetch";
 
   const members = ref<MemberConfig[]>([])
   const modals = ref({
@@ -124,11 +123,10 @@
 
   async function refresh() {
     try {
-      members.value = await getConfigs(filters.value)
+      members.value = await getMemberConfigs(filters.value)
     } catch (error: any) {
-      if (error.value.statusCode === 403) {
+      if (error.statusCode === 403) {
         emit('logout')
-        navigateTo('/login')
         return
       }
       handleError(error)

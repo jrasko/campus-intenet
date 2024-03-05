@@ -35,7 +35,7 @@ type MemberRepository interface {
 	CreateOrUpdateMember(ctx context.Context, member model.Member) (model.Member, error)
 	GetMember(ctx context.Context, id int) (model.Member, error)
 	ListMembers(ctx context.Context, params model.MemberRequestParams) ([]model.Member, error)
-	DeleteMembers(ctx context.Context, id int) error
+	DeleteMember(ctx context.Context, id int) error
 }
 
 type RoomRepository interface {
@@ -47,6 +47,7 @@ type NetworkRepository interface {
 	CreateOrUpdateNetConfig(ctx context.Context, config model.NetConfig) (model.NetConfig, error)
 	GetNetConfig(ctx context.Context, id int) (model.NetConfig, error)
 	ListNetConfigs(ctx context.Context, params model.NetworkRequestParams) ([]model.NetConfig, error)
+	DeleteNetConfig(ctx context.Context, id int) error
 }
 
 func New(

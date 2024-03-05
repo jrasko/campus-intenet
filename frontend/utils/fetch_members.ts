@@ -1,16 +1,11 @@
 import type {AsyncData} from "#app";
-import {authHeader} from "~/utils/utils";
+import {authHeader, getBaseURL} from "~/utils/utils";
 
-export function getBaseURL() {
-    const config = useRuntimeConfig()
-    return config.public.baseURL
-}
-
-export async function getConfigs(filters: ManageFilters): Promise<AsyncData<MemberConfig[], any>> {
+export async function getMemberConfigs(filters: ManageFilters): Promise<AsyncData<MemberConfig[], any>> {
     if (filters.search === '') {
         filters.search = null
     }
-    return $fetch('/dhcp', {
+    return $fetch('/api/members', {
             baseURL: getBaseURL(),
             method: "GET",
             headers: authHeader(),
@@ -25,8 +20,8 @@ export async function getConfigs(filters: ManageFilters): Promise<AsyncData<Memb
     )
 }
 
-export function createConfig(cfg: InputMember): Promise<AsyncData<any, any>> {
-    return $fetch('/dhcp', {
+export function createMemberConfig(cfg: InputMember): Promise<AsyncData<any, any>> {
+    return $fetch('/api/members', {
             baseURL: getBaseURL(),
             method: "POST",
             headers: authHeader(),
@@ -35,8 +30,8 @@ export function createConfig(cfg: InputMember): Promise<AsyncData<any, any>> {
     )
 }
 
-export function updateConfig(cfg: InputMember): Promise<AsyncData<any, any>> {
-    return $fetch('/dhcp/' + cfg.id, {
+export function updateMemberConfig(cfg: InputMember): Promise<AsyncData<any, any>> {
+    return $fetch('/api/members/' + cfg.id, {
             baseURL: getBaseURL(),
             method: "PUT",
             headers: authHeader(),
@@ -45,8 +40,8 @@ export function updateConfig(cfg: InputMember): Promise<AsyncData<any, any>> {
     )
 }
 
-export function getConfigFor(id: string): Promise<AsyncData<MemberConfig, any>> {
-    return $fetch('/dhcp/' + id, {
+export function getMemberConfigFor(id: string): Promise<AsyncData<MemberConfig, any>> {
+    return $fetch('/api/members/' + id, {
             baseURL: getBaseURL(),
             method: "GET",
             headers: authHeader(),
@@ -55,8 +50,8 @@ export function getConfigFor(id: string): Promise<AsyncData<MemberConfig, any>> 
     )
 }
 
-export function deleteConfigFor(id: number): Promise<AsyncData<any, any>> {
-    return $fetch('/dhcp/' + id, {
+export function deleteMemberConfigFor(id: number): Promise<AsyncData<any, any>> {
+    return $fetch('/api/members/' + id, {
             baseURL: getBaseURL(),
             method: "DELETE",
             headers: authHeader(),
@@ -65,27 +60,7 @@ export function deleteConfigFor(id: number): Promise<AsyncData<any, any>> {
 }
 
 export function resetPayments(): Promise<AsyncData<any, any>> {
-    return $fetch('/dhcp/resetPayment', {
-            baseURL: getBaseURL(),
-            method: "POST",
-            headers: authHeader(),
-        }
-    )
-}
-
-export function loginUser(credentials: Credentials): Promise<AsyncData<LoginResponse, any>> {
-    return $fetch('/dhcp/login', {
-            baseURL: getBaseURL(),
-            method: "POST",
-            headers: authHeader(),
-            body: credentials,
-            parseResponse: jsonTransform<LoginResponse>
-        }
-    );
-}
-
-export function updateDhcp(): Promise<AsyncData<any, any>> {
-    return $fetch('/dhcp/write', {
+    return $fetch('/api/members/resetPayment', {
             baseURL: getBaseURL(),
             method: "POST",
             headers: authHeader(),
@@ -94,7 +69,7 @@ export function updateDhcp(): Promise<AsyncData<any, any>> {
 }
 
 export function getShameList(): Promise<AsyncData<any, any>> {
-    return $fetch('/dhcp/shame', {
+    return $fetch('/api/shame', {
             baseURL: getBaseURL(),
             method: "GET",
             headers: authHeader(),
@@ -104,7 +79,7 @@ export function getShameList(): Promise<AsyncData<any, any>> {
 }
 
 export function togglePayment(id: number): Promise<AsyncData<any, any>> {
-    return $fetch('/dhcp/' + id + '/togglePayment', {
+    return $fetch('/api/members/' + id + '/togglePayment', {
             baseURL: getBaseURL(),
             method: "POST",
             headers: authHeader(),
@@ -112,16 +87,13 @@ export function togglePayment(id: number): Promise<AsyncData<any, any>> {
     )
 }
 
-export function fetchRooms(filters: RoomFilters): Promise<AsyncData<Room[], any>> {
-    return $fetch('/api/rooms', {
+export function loginUser(credentials: Credentials): Promise<AsyncData<LoginResponse, any>> {
+    return $fetch('/api/login', {
             baseURL: getBaseURL(),
-            method: "GET",
+            method: "POST",
             headers: authHeader(),
-            params: {
-                occupied: filters.occupied,
-                block: filters.block
-            },
-            parseResponse: jsonTransform<Room[]>
+            body: credentials,
+            parseResponse: jsonTransform<LoginResponse>
         }
-    )
+    );
 }
