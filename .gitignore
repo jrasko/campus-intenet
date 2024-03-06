@@ -1,5 +1,5 @@
 .idea
 /frontend-legacy/node_modules
 .env
-user-list.json
+whitelist.json
 login-users.json

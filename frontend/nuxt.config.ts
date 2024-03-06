@@ -21,7 +21,7 @@ export default defineNuxtConfig({
     },
     runtimeConfig:{
       public: {
-          baseURL: "http://localhost:8080"
+          baseURL: process.env.BASE_URL
       }  
     },
     devtools: { enabled: true }

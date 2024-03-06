@@ -24,7 +24,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
   frontend:
     restart: unless-stopped
-    build: ../frontend-legacy
+    build: ../frontend
     container_name: dhcp_frontend
     labels:
       traefik.enable: true
@@ -42,9 +42,9 @@ services:
     labels:
       traefik.enable: true
       traefik.http.routers.backend.tls: true
-      traefik.http.routers.backend.rule: "PathPrefix(`/dhcp`)"
+      traefik.http.routers.backend.rule: "PathPrefix(`/api`)"
     volumes:
-      - ./user-list.json:/app/user-list.json
+      - ./whitelist.json:/app/whitelist.json
       - ./login-users.json:/app/login-users.json
   dhcp4:
     container_name: dhcp4-server

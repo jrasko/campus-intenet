@@ -7,6 +7,6 @@ RUN npm run build
 
 FROM build
 COPY --from=build /app/.output /app/.output
-
+EXPOSE 3000
 CMD [ "node", ".output/server/index.mjs" ]
 
