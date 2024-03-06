@@ -5,10 +5,7 @@ import (
 	"backend/service/allocation"
 	"backend/service/confwriter"
 	"context"
-	"errors"
-	"fmt"
 	"log"
-	"net/http"
 
 	"github.com/go-playground/validator/v10"
 )
@@ -16,6 +13,8 @@ import (
 type Service struct {
 	validate   *validator.Validate
 	memberRepo MemberRepository
+	roomRepo   RoomRepository
+	netRepo    NetworkRepository
 	ipService  IPAllocationService
 	dhcpWriter ConfWriter
 
@@ -23,7 +22,7 @@ type Service struct {
 }
 
 type ConfWriter interface {
-	WhitelistUsers(macs []model.MemberConfig) error
+	WhitelistMacs(netConfigs []model.NetConfig) error
 }
 
 type IPAllocationService interface {
@@ -31,19 +30,38 @@ type IPAllocationService interface {
 }
 
 type MemberRepository interface {
-	UpdateMemberConfig(ctx context.Context, conf model.MemberConfig) (model.MemberConfig, error)
-	GetAllMemberConfigs(ctx context.Context, params model.RequestParams) ([]model.MemberConfig, error)
-	GetMemberConfig(ctx context.Context, id int) (model.MemberConfig, error)
-	DeleteMemberConfig(ctx context.Context, id int) error
 	ResetPayment(ctx context.Context) error
-	GetEnabledUsers(ctx context.Context) ([]model.MemberConfig, error)
-	GetNonPayingMembers(ctx context.Context) ([]model.MemberConfig, error)
+
+	CreateOrUpdateMember(ctx context.Context, member model.Member) (model.Member, error)
+	GetMember(ctx context.Context, id int) (model.Member, error)
+	ListMembers(ctx context.Context, params model.MemberRequestParams) ([]model.Member, error)
+	DeleteMember(ctx context.Context, id int) error
 }
 
-func New(repo MemberRepository, jsonWriter confwriter.JsonWriter, ipAllocation allocation.Service) *Service {
+type RoomRepository interface {
+	GetRoom(ctx context.Context, number string) (model.Room, error)
+	ListRooms(ctx context.Context, params model.RoomRequestParams) ([]model.Room, error)
+}
+
+type NetworkRepository interface {
+	CreateOrUpdateNetConfig(ctx context.Context, config model.NetConfig) (model.NetConfig, error)
+	GetNetConfig(ctx context.Context, id int) (model.NetConfig, error)
+	ListNetConfigs(ctx context.Context, params model.NetworkRequestParams) ([]model.NetConfig, error)
+	DeleteNetConfig(ctx context.Context, id int) error
+}
+
+func New(
+	memberRepo MemberRepository,
+	roomRepo RoomRepository,
+	netRepo NetworkRepository,
+	jsonWriter confwriter.JsonWriter,
+	ipAllocation allocation.Service,
+) *Service {
 	s := Service{
 		validate:          validator.New(),
-		memberRepo:        repo,
+		memberRepo:        memberRepo,
+		roomRepo:          roomRepo,
+		netRepo:           netRepo,
 		dhcpWriter:        jsonWriter,
 		ipService:         ipAllocation,
 		inconsistentState: false,
@@ -56,123 +74,4 @@ func New(repo MemberRepository, jsonWriter confwriter.JsonWriter, ipAllocation a
 		panic(err)
 	}
 	return &s
-}
-
-func (s *Service) UpdateMember(ctx context.Context, member model.MemberConfig) (model.MemberConfig, error) {
-	err := s.validate.Struct(member)
-	if err != nil {
-		return model.MemberConfig{}, mapValidationError(err)
-	}
-
-	member.Sanitize()
-	member.Manufacturer = ouiMappings[member.Mac[:8]]
-
-	if member.IP == "" {
-		member.IP, err = s.ipService.GetUnusedIP(ctx)
-		if err != nil {
-			return model.MemberConfig{}, err
-		}
-	}
-
-	member.LastEditor, _ = ctx.Value(model.FieldUsername).(string)
-	member, err = s.memberRepo.UpdateMemberConfig(ctx, specialize(member))
-	if err != nil {
-		return model.MemberConfig{}, model.WrapGormError(err)
-	}
-
-	err = s.UpdateDhcpFile(ctx)
-	if err != nil {
-		return model.MemberConfig{}, err
-	}
-
-	return member, err
-}
-
-func (s *Service) UpdateDhcpFile(ctx context.Context) error {
-	users, err := s.memberRepo.GetEnabledUsers(ctx)
-	if err != nil {
-		return model.WrapGormError(err)
-	}
-
-	err = s.dhcpWriter.WhitelistUsers(users)
-	if err != nil {
-		s.inconsistentState = true
-		return fmt.Errorf("when updating dhcp file: %w", err)
-	}
-
-	log.Println("[DEBUG] Successfully updated whitelist")
-	s.inconsistentState = false
-	return nil
-}
-
-func (s *Service) GetAllMembers(ctx context.Context, params model.RequestParams) ([]model.MemberConfig, error) {
-	err := s.validate.Struct(params)
-	if err != nil {
-		return []model.MemberConfig{}, mapValidationError(err)
-	}
-	members, err := s.memberRepo.GetAllMemberConfigs(ctx, params)
-	if err != nil {
-		return []model.MemberConfig{}, model.WrapGormError(err)
-	}
-	return members, nil
-}
-
-func (s *Service) GetMember(ctx context.Context, id int) (model.MemberConfig, error) {
-	member, err := s.memberRepo.GetMemberConfig(ctx, id)
-	if err != nil {
-		return model.MemberConfig{}, model.WrapGormError(err)
-	}
-	return member, nil
-}
-
-func (s *Service) DeleteMember(ctx context.Context, id int) error {
-	err := s.memberRepo.DeleteMemberConfig(ctx, id)
-	if err != nil {
-		return model.WrapGormError(err)
-	}
-
-	return s.UpdateDhcpFile(ctx)
-}
-
-func (s *Service) ResetPayment(ctx context.Context) error {
-	return model.WrapGormError(s.memberRepo.ResetPayment(ctx))
-}
-
-func (s *Service) IsInconsistent() bool {
-	return s.inconsistentState
-}
-
-func (s *Service) TogglePayment(ctx context.Context, id int) error {
-	config, err := s.memberRepo.GetMemberConfig(ctx, id)
-	if err != nil {
-		return err
-	}
-	config.HasPaid = !config.HasPaid
-	_, err = s.memberRepo.UpdateMemberConfig(ctx, config)
-	return err
-}
-
-func (s *Service) GetNotPayingMembers(ctx context.Context) ([]model.ReducedMember, error) {
-	idiots, err := s.memberRepo.GetNonPayingMembers(ctx)
-	if err != nil {
-		return nil, model.WrapGormError(err)
-	}
-
-	reducedIdiots := make([]model.ReducedMember, 0, len(idiots))
-	for _, member := range idiots {
-		reducedIdiots = append(reducedIdiots, member.ToReduced())
-	}
-	return reducedIdiots, nil
-}
-
-func mapValidationError(err error) error {
-	var fieldErrors validator.ValidationErrors
-	if errors.As(err, &fieldErrors) {
-		message := ""
-		for _, fieldError := range fieldErrors {
-			message += fmt.Sprintf("%s:%s-%s; ", fieldError.Field(), fieldError.Tag(), fieldError.Param())
-		}
-		return model.Error(http.StatusBadRequest, err.Error(), message)
-	}
-	return err
 }

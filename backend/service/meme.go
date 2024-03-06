@@ -18,7 +18,7 @@ var (
 	}
 )
 
-func (m Matcher) Matches(config model.MemberConfig) bool {
+func (m Matcher) Matches(config model.Member) bool {
 	firstname := strings.TrimSpace(strings.ToLower(config.Firstname))
 	lastname := strings.TrimSpace(strings.ToLower(config.Lastname))
 
@@ -33,7 +33,7 @@ func (m Matcher) Matches(config model.MemberConfig) bool {
 	return m1 && m2
 }
 
-func specialize(config model.MemberConfig) model.MemberConfig {
+func specialize(config model.Member) model.Member {
 	if god.Matches(config) {
 		config.Firstname += " \U0001F451"
 	}

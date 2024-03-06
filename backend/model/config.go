@@ -10,9 +10,9 @@ import (
 )
 
 type Configuration struct {
-	UserFilepath string `env:"USER_FILE_PATH,default=login-users.json"`
-	HMACSecret   string `env:"HMAC_SECRET,required"`
-	Users        []LoginUser
+	HMACSecret    string `env:"HMAC_SECRET,required"`
+	LoginFilepath string `env:"USER_FILE_PATH,default=login-users.json"`
+	Users         []LoginUser
 
 	DBHost     string `env:"POSTGRES_HOST,default=dhcp_db"`
 	DBDatabase string `env:"POSTGRES_DB,default=postgres"`
@@ -22,7 +22,7 @@ type Configuration struct {
 	URL string `env:"URL,default=:8080"`
 
 	CIDR                 string `env:"CIDR,required"`
-	OutputFile           string `env:"OUTPUT_FILE,default=user-list.json"`
+	OutputFilepath       string `env:"OUTPUT_FILE,default=whitelist.json"`
 	SkipDhcpNotification bool   `env:"SKIP_DHCP_RELOAD,default=false"`
 }
 
@@ -42,7 +42,7 @@ func LoadConfig(ctx context.Context) (Configuration, error) {
 	if err != nil {
 		return Configuration{}, fmt.Errorf("when reading configuration: %w", err)
 	}
-	config.Users, err = LoadUsers(config.UserFilepath)
+	config.Users, err = LoadUsers(config.LoginFilepath)
 	if err != nil {
 		return Configuration{}, fmt.Errorf("when loading users: %w", err)
 	}

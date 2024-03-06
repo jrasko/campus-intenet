@@ -16,7 +16,6 @@ func sendJSONResponse(w http.ResponseWriter, v any) {
 }
 
 func sendHttpError(w http.ResponseWriter, err error) {
-
 	var httpError model.HttpError
 	if errors.As(err, &httpError) {
 		logError(httpError)

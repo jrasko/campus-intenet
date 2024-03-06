@@ -42,12 +42,12 @@ services:
     labels:
       traefik.enable: true
       traefik.http.routers.backend.tls: true
-      traefik.http.routers.backend.rule: "PathPrefix(`/dhcp`)"
+      traefik.http.routers.backend.rule: "PathPrefix(`/api`)"
     networks:
       - default
       - kea-10-ipvlan
     volumes:
-      - ./user-list.json:/app/user-list.json
+      - ./whitelist.json:/app/whitelist.json
       - ./login-users.json:/app/login-users.json
   dhcp4:
     container_name: dhcp4-server
@@ -56,7 +56,7 @@ services:
     networks:
       - kea-10-ipvlan
     volumes:
-      - ./user-list.json:/app/user-list.json
+      - ./whitelist.json:/app/whitelist.json
       - ./kea-dhcp4:/etc/kea
       - kea4-var:/var/lib/kea
 volumes:

@@ -5,11 +5,8 @@ RUN npm clean-install
 COPY . .
 RUN npm run build
 
-
-# production stage
-FROM nginx:stable-alpine as production
-COPY ./nginx.conf /etc/nginx/conf.d/default.conf
-COPY --from=build /app/dist /app
-EXPOSE 80
-CMD ["nginx", "-g", "daemon off;"]
+FROM build
+COPY --from=build /app/.output /app/.output
+EXPOSE 3000
+CMD [ "node", ".output/server/index.mjs" ]
 
