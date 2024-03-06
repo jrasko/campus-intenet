@@ -56,7 +56,7 @@ services:
     networks:
       - kea-10-ipvlan
     volumes:
-      - ./user-list.json:/app/user-list.json
+      - ./whitelist.json:/app/whitelist.json
       - ./kea-dhcp4:/etc/kea
       - kea4-var:/var/lib/kea
 volumes:
