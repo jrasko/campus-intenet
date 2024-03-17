@@ -1,6 +1,7 @@
 export function formatMac(mac: string): string {
     const macLen = 17
     let str = mac.toUpperCase()
+    str = str.replace(/([-/ ])/g,':')
     if (str.length < macLen) {
         str = str.replace(/([0-9A-F]{2}$)/g, '$1:')
     }
