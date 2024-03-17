@@ -10,29 +10,11 @@ import (
 	"gorm.io/gorm"
 )
 
-var (
-	ctx = context.Background()
-)
-
-func setupDB() (MemberRepository, error) {
-	cfg, err := model.LoadConfig(context.Background())
-	if err != nil {
-		return MemberRepository{}, err
-	}
-	cfg.DBDatabase = "testing"
-	repo, err := New(cfg.DSN())
-	if err != nil {
-		return MemberRepository{}, err
-	}
-	repo.db.Exec("TRUNCATE member_configs RESTART IDENTITY")
-	return repo, nil
-}
-
 func TestNew(t *testing.T) {
 	t.Run("empty dsn", func(t *testing.T) {
 		repo, err := New("")
 		assert.Error(t, err)
-		assert.Equal(t, MemberRepository{}, repo)
+		assert.Equal(t, Repository{}, repo)
 	})
 	t.Run("it creates table on setup", func(t *testing.T) {
 		config, err := model.LoadConfig(context.Background())
@@ -48,133 +30,101 @@ func TestNew(t *testing.T) {
 	})
 }
 
-var (
-	member = model.Member{
-		Firstname: "first",
-		Lastname:  "name",
+func (t *RepositoryTest) TestMemberRepository_CreateOrUpdateMember_create() {
+	newMember := model.Member{
+		Firstname: "firstname",
+		Lastname:  "lastname",
+		HasPaid:   true,
+		RoomNr:    room3.Number,
+		Room:      room3,
 		NetConfig: model.NetConfig{
-			Mac: "00:11:22:33:44:55",
-			IP:  "192.168.1.1",
+			Mac:          "AA:BB:CC:DD:EE:FF",
+			IP:           "192.168.0.1",
+			Manufacturer: "test",
+			Disabled:     true,
 		},
-		RoomNr: "00-11",
-		Room: model.Room{
-			Number: "00-11",
-			WG:     "25a",
-		},
-		HasPaid: false,
-		Email:   "bernd-das-brot@alumni.test-provider.com",
-		Phone:   "012345678901",
 	}
-	member2 = model.Member{
-		Firstname: "mister",
-		Lastname:  "x",
-		NetConfig: model.NetConfig{
-			Mac: "aa:aa:aa:aa:aa:aa",
-			IP:  "10.0.0.1",
-		},
-		HasPaid: false,
-		Room: model.Room{
-			Number: "99-99",
-			WG:     "13x",
-		},
-		Email: "mail@email.email",
-		Phone: "0999888777666",
-	}
-	updatedMember = model.Member{
-		Firstname: "Bernd",
-		Lastname:  "Das Brot",
-		NetConfig: model.NetConfig{
-			Mac: "55:44:33:22:11:00",
-			IP:  "172.0.0.1",
-		},
-		HasPaid: true,
-		RoomNr:  "11-00",
-		Room: model.Room{
-			Number: "11-00",
-			WG:     "29b",
-		},
-		Email: "other-email@alumni.test-provider.com",
-		Phone: "987654321",
-	}
-)
+	fromDB, err := t.repository.CreateOrUpdateMember(context.Background(), newMember)
+	t.NoError(err)
+	t.NotEmpty(fromDB.ID)
+	newMember.ID = fromDB.ID
+	newMember.NetConfigID = fromDB.NetConfigID
 
-func TestMemberRepository(t *testing.T) {
-	repo, creationErr := setupDB()
-	require.NoError(t, creationErr)
-
-	t.Run("it creates a member", func(t *testing.T) {
-		newMember, err := repo.CreateOrUpdateMember(ctx, member)
-		assert.NoError(t, err)
-		assert.NotEmpty(t, newMember.ID)
-		member.ID = newMember.ID
-
-		overwrite(t, &newMember, &member)
-		assert.Equal(t, member, newMember)
-	})
-	t.Run("it creates another member", func(t *testing.T) {
-		newMember, err := repo.CreateOrUpdateMember(ctx, member2)
-		assert.NoError(t, err)
-		member2 = newMember
-	})
-	t.Run("it retrevies a single member", func(t *testing.T) {
-		m, err := repo.GetMember(ctx, member.ID)
-		assert.NoError(t, err)
-		overwrite(t, &m, &member)
-		assert.Equal(t, member, m)
-	})
-	t.Run("it retreives multiple members", func(t *testing.T) {
-		members, err := repo.ListMembers(ctx, model.MemberRequestParams{})
-		assert.NoError(t, err)
-		assert.Len(t, members, 3)
-		assert.Equal(t, members[0].ID, member.ID)
-		assert.Equal(t, members[2].ID, member2.ID)
-	})
-	t.Run("it searches for members", func(t *testing.T) {
-		members, err := repo.ListMembers(ctx, model.MemberRequestParams{Search: "first"})
-		assert.NoError(t, err)
-		assert.Len(t, members, 1)
-		assert.Equal(t, members[0].ID, member.ID)
-	})
-
-	t.Run("it updates a member", func(t *testing.T) {
-		updatedMember.ID = member.ID
-		newMember, err := repo.CreateOrUpdateMember(ctx, updatedMember)
-		assert.NoError(t, err)
-		assert.Equal(t, updatedMember.Firstname, newMember.Firstname)
-	})
-
-	t.Run("it resets payments", func(t *testing.T) {
-		err := repo.ResetPayment(ctx)
-		assert.NoError(t, err)
-
-		members, err := repo.ListMembers(ctx, model.MemberRequestParams{})
-		assert.NoError(t, err)
-		for _, m := range members {
-			assert.False(t, m.HasPaid)
-		}
-	})
-	t.Run("it deletes a member", func(t *testing.T) {
-		err := repo.DeleteMember(ctx, member2.ID)
-		assert.NoError(t, err)
-
-		_, err = repo.GetMember(ctx, member2.ID)
-		assert.Equal(t, gorm.ErrRecordNotFound, err)
-	})
+	t.MemberEqual(newMember, fromDB)
 }
 
-func overwrite(t *testing.T, fromDB *model.Member, compare *model.Member) {
-	assert.NotEmpty(t, fromDB.NetConfigID)
-	assert.NotEmpty(t, fromDB.NetConfig.ID)
-	assert.NotEmpty(t, fromDB.RoomNr)
-	assert.NotEmpty(t, fromDB.Room.Number)
+func (t *RepositoryTest) TestMemberRepository_CreateOrUpdateMember_create_requireExistingRoom() {
+	newMember := model.Member{
+		Firstname: "firstname",
+		Lastname:  "lastname",
+		RoomNr:    "new",
+		NetConfig: model.NetConfig{
+			Mac: "00:00:00:11:11:11",
+			IP:  "192.168.1.1",
+		},
+	}
+	_, err := t.repository.CreateOrUpdateMember(context.Background(), newMember)
+	t.Error(err)
+}
 
-	assert.NotEmpty(t, fromDB.CreatedAt)
-	assert.NotEmpty(t, fromDB.UpdatedAt)
-	fromDB.CreatedAt = compare.CreatedAt
-	fromDB.UpdatedAt = compare.UpdatedAt
+func (t *RepositoryTest) TestMemberRepository_CreateOrUpdateMember_update() {
+	updatedMember := model.Member{
+		ID:          member1.ID,
+		Firstname:   "Bernd",
+		Lastname:    "Das Brot",
+		NetConfigID: member1.NetConfigID,
+		NetConfig: model.NetConfig{
+			ID:           member1.NetConfigID,
+			Mac:          "55:44:33:22:11:00",
+			IP:           "172.0.0.1",
+			Manufacturer: "other",
+		},
+		HasPaid: true,
+		RoomNr:  room4.Number,
+		Room:    room4,
+		Email:   "other-email@alumni.test-provider.com",
+		Phone:   "987654321",
+	}
+	fromDB, err := t.repository.CreateOrUpdateMember(context.Background(), updatedMember)
+	t.NoError(err)
+	t.MemberEqual(updatedMember, fromDB)
+}
 
-	fromDB.NetConfigID = compare.NetConfigID
-	fromDB.NetConfig.ID = compare.NetConfig.ID
-	fromDB.NetConfig.CreatedAt = compare.NetConfig.CreatedAt
-	fromDB.NetConfig.UpdatedAt = compare.NetConfig.UpdatedAt
+func (t *RepositoryTest) TestMemberRepository_GetMember() {
+	m, err := t.repository.GetMember(context.Background(), member1.ID)
+	t.NoError(err)
+	t.MemberEqual(member1, m)
+}
+
+func (t *RepositoryTest) TestMemberRepository_ListMembers() {
+	members, err := t.repository.ListMembers(context.Background(), model.MemberRequestParams{})
+	t.NoError(err)
+	t.Len(members, 2)
+	t.Equal(members[0].ID, member1.ID)
+}
+
+func (t *RepositoryTest) TestMemberRepository_ListMembers_search() {
+	members, err := t.repository.ListMembers(context.Background(), model.MemberRequestParams{Search: "first"})
+	t.NoError(err)
+	t.Len(members, 1)
+	t.MemberEqual(member1, members[0])
+}
+
+func (t *RepositoryTest) TestMemberRepository_ResetPayment_resetPayments() {
+	err := t.repository.ResetPayment(context.Background())
+	t.NoError(err)
+
+	members, err := t.repository.ListMembers(context.Background(), model.MemberRequestParams{})
+	t.NoError(err)
+	for _, m := range members {
+		t.False(m.HasPaid)
+	}
+}
+
+func (t *RepositoryTest) TestMemberRepository_DeleteMember() {
+	err := t.repository.DeleteMember(context.Background(), member2.ID)
+	t.NoError(err)
+
+	_, err = t.repository.GetMember(context.Background(), member2.ID)
+	t.Equal(gorm.ErrRecordNotFound, err)
 }

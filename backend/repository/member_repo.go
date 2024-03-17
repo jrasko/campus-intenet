@@ -9,21 +9,22 @@ import (
 
 const memberTable = "members"
 
-type MemberRepository struct {
+type Repository struct {
 	db *gorm.DB
 }
 
-func (mr MemberRepository) CreateOrUpdateMember(ctx context.Context, conf model.Member) (model.Member, error) {
-	err := mr.db.
+func (r Repository) CreateOrUpdateMember(ctx context.Context, conf model.Member) (model.Member, error) {
+	err := r.db.
 		WithContext(ctx).
+		Omit("Room").
 		Save(&conf).
 		Error
 	return conf, err
 }
 
-func (mr MemberRepository) ListMembers(ctx context.Context, params model.MemberRequestParams) ([]model.Member, error) {
+func (r Repository) ListMembers(ctx context.Context, params model.MemberRequestParams) ([]model.Member, error) {
 	var configs []model.Member
-	db := mr.db.
+	db := r.db.
 		WithContext(ctx).
 		Joins("Room").
 		Joins("NetConfig")
@@ -35,9 +36,9 @@ func (mr MemberRepository) ListMembers(ctx context.Context, params model.MemberR
 	return configs, err
 }
 
-func (mr MemberRepository) GetMember(ctx context.Context, id int) (model.Member, error) {
+func (r Repository) GetMember(ctx context.Context, id int) (model.Member, error) {
 	config := model.Member{}
-	err := mr.db.
+	err := r.db.
 		WithContext(ctx).
 		InnerJoins("Room").
 		InnerJoins("NetConfig").
@@ -46,15 +47,15 @@ func (mr MemberRepository) GetMember(ctx context.Context, id int) (model.Member,
 	return config, err
 }
 
-func (mr MemberRepository) DeleteMember(ctx context.Context, id int) error {
-	return mr.db.
+func (r Repository) DeleteMember(ctx context.Context, id int) error {
+	return r.db.
 		WithContext(ctx).
 		Delete(&model.Member{}, id).
 		Error
 }
 
-func (mr MemberRepository) ResetPayment(ctx context.Context) error {
-	return mr.db.
+func (r Repository) ResetPayment(ctx context.Context) error {
+	return r.db.
 		WithContext(ctx).
 		Table(memberTable).
 		Where("true").
