@@ -124,7 +124,7 @@
 
   async function fetchAvailableRooms() {
     try {
-      const data : Room[] = await fetchRooms({occupied: false, block: []})
+      const data: Room[] = await fetchRooms({occupied: false, block: []})
       availableRooms.value = availableRooms.value.concat(data)
     } catch (error) {
       console.error(error)

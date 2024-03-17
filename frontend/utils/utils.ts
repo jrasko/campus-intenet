@@ -1,11 +1,16 @@
-export function formatMac(mac: string): string {
-    const macLen = 17
-    let str = mac.toUpperCase()
-    str = str.replace(/([-/ ])/g,':')
-    if (str.length < macLen) {
-        str = str.replace(/([0-9A-F]{2}$)/g, '$1:')
+
+export function formatMac(str: string): string {
+    str = str.toUpperCase()
+    str = str.replace(/[^0-9A-F]/g, '')
+
+    let out = ""
+    for (let i = 1; i <= Math.min(str.length, 12); i++) {
+        out += str[i-1]
+        if (i%2 == 0 && i < str.length){
+            out += ":"
+        }
     }
-    return str
+    return out
 }
 
 export function MemberCompare(field: keyof MemberConfig) {
@@ -34,7 +39,7 @@ export function toInputMember(i: MemberConfig): InputMember {
 }
 
 export function jsonTransform<T>(r: string): T | null {
-    if (r == ''){
+    if (r == '') {
         return null
     }
     return JSON.parse(r)
