@@ -7,12 +7,16 @@ services:
     env_file:
       - ".env"
     container_name: dhcp_db
+    networks:
+      - default
     volumes:
       - dhcp-db:/var/lib/postgresql/data
   traefik:
     restart: unless-stopped
     image: traefik:v2.10
     container_name: dhcp_traefik
+    networks:
+      - default
     ports:
       - "443:443"
     command:
@@ -30,6 +34,8 @@ services:
       traefik.enable: true
       traefik.http.routers.frontend.tls: true
       traefik.http.routers.frontend.rule: "PathPrefix(`/`)"
+    networks:
+      - default
   backend:
     env_file:
       - ".env"
