@@ -13,7 +13,7 @@ services:
       - dhcp-db:/var/lib/postgresql/data
   traefik:
     restart: unless-stopped
-    image: traefik:v2.10
+    image: traefik:v2.11
     container_name: dhcp_traefik
     networks:
       - default
