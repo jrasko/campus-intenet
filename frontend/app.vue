@@ -1,7 +1,7 @@
 <template>
   <v-app>
     <v-container fluid>
-      <AppBar :logged-in="loggedIn" @logout="logout"/>
+      <AppBar :logged-in="loggedIn" :role="role" @logout="logout"/>
       <v-main>
         <NuxtPage @login="setLogin" @logout="logout"/>
       </v-main>
@@ -11,12 +11,17 @@
 
 <script lang="ts" setup>
   const loggedIn = ref(false)
+  const role = ref("")
 
   onMounted(() => setLogin())
   onUpdated(() => setLogin())
 
   function setLogin() {
     loggedIn.value = localStorage.getItem('jwt') != null
+    let r = localStorage.getItem("role")
+    if (r != null) {
+      role.value = r
+    }
   }
 
   function logout() {

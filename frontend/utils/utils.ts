@@ -1,3 +1,9 @@
+export const roles = {
+    admin: 'admin',
+    financer: 'financer',
+    viewer: 'viewer'
+}
+
 export function formatMac(str: string): string {
     str = str.toUpperCase()
     str = str.replace(/[^0-9A-F]/g, '')
