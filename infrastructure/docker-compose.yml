@@ -8,7 +8,7 @@ services:
       - ".env"
     container_name: dhcp_db
     networks:
-      - default
+      - traefik
     volumes:
       - dhcp-db:/var/lib/postgresql/data
   traefik:
@@ -16,12 +16,12 @@ services:
     image: traefik:v2.11
     container_name: dhcp_traefik
     networks:
-      - default
+      - traefik
     ports:
       - "443:443"
     command:
       - "--providers.docker.exposedbydefault=false"
-      - "--providers.docker.network=default"
+      - "--providers.docker.network=traefik"
       - "--log.level=DEBUG"
       - "--entrypoints.websecure.address=:443"
     volumes:
@@ -35,7 +35,7 @@ services:
       traefik.http.routers.frontend.tls: true
       traefik.http.routers.frontend.rule: "PathPrefix(`/`)"
     networks:
-      - default
+      - traefik
   backend:
     env_file:
       - ".env"
@@ -50,8 +50,8 @@ services:
       traefik.http.routers.backend.tls: true
       traefik.http.routers.backend.rule: "PathPrefix(`/api`)"
     networks:
-      - default
-      - kea-10-ipvlan
+      - traefik
+      - kea-lan
     volumes:
       - ./whitelist.json:/app/whitelist.json
       - ./login-users.json:/app/login-users.json
@@ -60,7 +60,7 @@ services:
     image: docker.cloudsmith.io/isc/docker/kea-dhcp4:2.4.1
     restart: unless-stopped
     networks:
-      - kea-10-ipvlan
+      - kea-lan
     volumes:
       - ./whitelist.json:/app/whitelist.json
       - ./kea-dhcp4:/etc/kea
@@ -71,7 +71,10 @@ volumes:
   kea4-var:
 
 networks:
-  kea-10-ipvlan: # network that binds container to host network interface.
+  traefik:
+    name: traefik
+    external: true
+  kea-lan: # network that binds container to host network interface.
     name: kea-10-ipvlan
     driver: ipvlan
     driver_opts:
