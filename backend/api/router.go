@@ -78,28 +78,32 @@ func NewRouter(config model.Configuration, memberService MemberService, roomServ
 		Methods(http.MethodGet)
 
 	router.
-		Handle("/api/write", auth.Middleware(h.WriteConfigHandler(), PermissionModify)).
+		Handle("/api/write", auth.Middleware(h.WriteConfigHandler(), PermissionAdmin)).
 		Methods(http.MethodPost)
 	router.
-		Handle("/api/net-configs", auth.Middleware(h.PostNetworkHandler(), PermissionModify)).
+		Handle("/api/net-configs", auth.Middleware(h.PostNetworkHandler(), PermissionAdmin)).
 		Methods(http.MethodPost)
 	router.
-		Handle("/api/net-configs", auth.Middleware(h.ListNetworkHandler(), PermissionModify)).
+		Handle("/api/net-configs", auth.Middleware(h.ListNetworkHandler(), PermissionAdmin)).
 		Methods(http.MethodGet)
 	router.
-		Handle("/api/net-configs/{id}", auth.Middleware(h.GetNetworkHandler(), PermissionModify)).
+		Handle("/api/net-configs/{id}", auth.Middleware(h.GetNetworkHandler(), PermissionAdmin)).
 		Methods(http.MethodGet)
 	router.
-		Handle("/api/net-configs/{id}", auth.Middleware(h.PutNetworkHandler(), PermissionModify)).
+		Handle("/api/net-configs/{id}", auth.Middleware(h.PutNetworkHandler(), PermissionAdmin)).
 		Methods(http.MethodPut)
 	router.
-		Handle("/api/net-configs/{id}", auth.Middleware(h.DeleteNetworkHandler(), PermissionModify)).
+		Handle("/api/net-configs/{id}", auth.Middleware(h.DeleteNetworkHandler(), PermissionAdmin)).
 		Methods(http.MethodDelete)
 	return router
 }
 
-func PermissionModify(role model.Role) bool {
+func PermissionAdmin(role model.Role) bool {
 	return role == model.RoleAdmin
+}
+
+func PermissionModify(role model.Role) bool {
+	return role == model.RoleAdmin || role == model.RoleEditor
 }
 
 func PermissionFinance(role model.Role) bool {
