@@ -29,7 +29,7 @@ type LoginUser struct {
 }
 
 func (u LoginUser) Validate() error {
-	allowedRoles := []Role{RoleAdmin, RoleFinance, RoleViewer}
+	allowedRoles := []Role{RoleAdmin, RoleEditor, RoleFinance, RoleViewer}
 	if !slices.Contains(allowedRoles, u.Role) {
 		return fmt.Errorf("invalid role %s", u.Role)
 	}
