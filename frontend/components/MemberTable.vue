@@ -1,6 +1,6 @@
 <template>
   <v-snackbar v-model="modals.success" :timeout="2000" color="success"> Erfolg!</v-snackbar>
-  <v-snackbar v-model="modals.failure" :timeout="3000" color="error">Fehler!</v-snackbar>
+  <v-snackbar v-model="modals.failure" :timeout="3000" color="error">{{modals.errorMessage}}</v-snackbar>
   <v-table hover>
     <thead>
     <tr>
@@ -66,7 +66,6 @@
       await togglePayment(p.id)
       modals.value.success = true
       emit('refresh')
-      return
     } catch (e) {
       handleError(e)
     }
@@ -101,8 +100,8 @@
   }
 
   function handleError(error: any) {
-    console.log(error.value)
-    if (error.statusCode === 403) {
+    console.log(error)
+    if (error.status === 403) {
       modals.value.errorMessage = 'no permissions for that'
     } else {
       modals.value.errorMessage = 'something went wrong'
