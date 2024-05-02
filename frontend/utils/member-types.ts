@@ -16,7 +16,8 @@ interface MemberConfig {
         manufacturer?: string
     }
     email: string,
-    phone: string
+    phone: string,
+    movedIn: string,
     comment: string,
     hasPaid: boolean,
     createdAt?: string
@@ -39,6 +40,7 @@ interface InputMember {
     phone: string
     hasPaid: boolean,
     comment: string,
+    movedIn: string
 }
 
 interface ReducedPerson {

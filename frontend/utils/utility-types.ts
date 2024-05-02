@@ -21,7 +21,7 @@ interface RoomFilterList {
     block: { header: string, value: Block | null }[]
 }
 
-interface ServerFilters{
+interface ServerFilters {
     disabled: boolean | null
     server: boolean | null
 }
@@ -51,6 +51,7 @@ type Column =
     'ip' |
     'manufacturer' |
     'comment' |
+    'movedIn' |
     'createdAt' |
     'updatedAt' |
     'lastEditor'

@@ -22,6 +22,7 @@ type Member struct {
 	NetConfigID int       `gorm:"unique"`
 	NetConfig   NetConfig `json:"dhcpConfig" gorm:"foreignKey:NetConfigID"`
 
+	MovedIn   string    `json:"movedIn" validate:"omitempty,datetime=2006-01-02"`
 	CreatedAt time.Time `json:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt"`
 }

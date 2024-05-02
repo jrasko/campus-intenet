@@ -44,7 +44,8 @@ export function toInputMember(i: MemberConfig): InputMember {
         hasPaid: i.hasPaid,
         lastname: i.lastname,
         phone: i.phone,
-        roomNr: i.room.roomNr
+        roomNr: i.room.roomNr,
+        movedIn: i.movedIn,
     }
 }
 

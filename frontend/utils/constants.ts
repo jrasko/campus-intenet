@@ -59,6 +59,12 @@ export const tableData: Columns = {
         key: 'comment',
         kind: 'text'
     },
+    movedIn: {
+        header: 'Einzug',
+        field: 'movedIn',
+        key: 'movedIn',
+        kind: 'text'
+    },
     createdAt: {
         header: 'Erstellt',
         field: 'createdAt',
@@ -128,7 +134,7 @@ export const roomFiler: RoomFilterList = {
     ]
 }
 
-export const serverFilter : ServerFilterList = {
+export const serverFilter: ServerFilterList = {
     server: [
         {
             header: 'Alle',

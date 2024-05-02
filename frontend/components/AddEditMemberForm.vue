@@ -1,4 +1,15 @@
 <template>
+  <v-overlay
+    activator="#movedInText"
+    class="align-center justify-center"
+  >
+    <v-date-picker
+      v-model="date"
+      elevation="12"
+      @update:modelValue="setDate"
+      label="Einzugsdatum"
+    />
+  </v-overlay>
   <v-form @submit.prevent="">
     <v-row>
       <v-col cols="12" sm="6">
@@ -37,6 +48,14 @@
           label="Zimmernummer"
         />
       </v-col>
+      <v-col cols="12" sm="6">
+        <v-text-field
+          v-model="member.movedIn"
+          label="Einzugsdaum"
+          readonly
+          id="movedInText"
+        />
+      </v-col>
     </v-row>
     <v-row>
       <v-col cols="12" sm="4">
@@ -71,71 +90,81 @@
 </template>
 
 <script lang="ts" setup>
-  import {toInputMember} from "~/utils/utils";
+import {toInputMember} from "~/utils/utils";
 
-  const props = defineProps<{ prefetchId?: string, room?: string }>()
+const props = defineProps<{ prefetchId?: string, room?: string }>()
 
-  const member = ref<InputMember>({
+const member = ref<InputMember>({
+  id: 0,
+  firstname: '',
+  lastname: '',
+  roomNr: '',
+  dhcpConfig: {
     id: 0,
-    firstname: '',
-    lastname: '',
-    roomNr: '',
-    dhcpConfig: {
-      id: 0,
-      mac: '',
-      ip: '',
-      disabled: false
-    },
-    phone: '',
-    email: '',
-    hasPaid: false,
-    comment: '',
-  })
+    mac: '',
+    ip: '',
+    disabled: false
+  },
+  phone: '',
+  email: '',
+  hasPaid: false,
+  comment: '',
+  movedIn: new Date().toISOString().split('T')[0],
+})
 
-  const availableRooms = ref<Room[]>([])
+const date = ref<Date>(new Date())
 
-  onMounted(() => nextTick(() => {
-    if (props.prefetchId != undefined) {
-      prefetchForID(<string>props.prefetchId)
-    }
-    if (props.room != undefined) {
-      member.value.roomNr = props.room
-    }
-    fetchAvailableRooms()
-  }))
+const availableRooms = ref<Room[]>([])
 
-  function updateMac() {
-    member.value.dhcpConfig.mac = formatMac(member.value.dhcpConfig.mac)
+onMounted(() => nextTick(() => {
+  if (props.prefetchId != undefined) {
+    prefetchForID(<string>props.prefetchId)
   }
-
-  async function prefetchForID(id: string) {
-    try {
-      const data: MemberConfig = await getMemberConfigFor(id)
-      member.value = toInputMember(data)
-      availableRooms.value.unshift({
-        roomNr: data.room.roomNr,
-        wg: data.room.wg,
-        block: ''
-      })
-    } catch (error) {
-      console.log(error)
-    }
+  if (props.room != undefined) {
+    member.value.roomNr = props.room
   }
+  fetchAvailableRooms()
+}))
 
-  async function fetchAvailableRooms() {
-    try {
-      const data: Room[] = await fetchRooms({occupied: false, block: []})
-      availableRooms.value = availableRooms.value.concat(data)
-    } catch (error) {
-      console.error(error)
-    }
-  }
+function updateMac() {
+  member.value.dhcpConfig.mac = formatMac(member.value.dhcpConfig.mac)
+}
 
-  function roomMapper(item: Room) {
-    return {
-      title: item.roomNr,
-      value: item.roomNr,
-      subtitle: item.wg,
-    }
+async function prefetchForID(id: string) {
+  try {
+    const data: MemberConfig = await getMemberConfigFor(id)
+    member.value = toInputMember(data)
+    availableRooms.value.unshift({
+      roomNr: data.room.roomNr,
+      wg: data.room.wg,
+      block: ''
+    })
+    date.value = new Date(member.value.movedIn)
+  } catch (error) {
+    console.log(error)
   }
+}
+
+function setDate(){
+  const offset = date.value.getTimezoneOffset()
+  let d = new Date(date.value.getTime() - (offset*60*1000))
+  member.value.movedIn = d.toISOString().split('T')[0]
+}
+
+async function fetchAvailableRooms() {
+  try {
+    const data: Room[] = await fetchRooms({occupied: false, block: []})
+    availableRooms.value = availableRooms.value.concat(data)
+  } catch (error) {
+    console.error(error)
+  }
+}
+
+function roomMapper(item: Room) {
+  return {
+    title: item.roomNr,
+    value: item.roomNr,
+    subtitle: item.wg,
+  }
+}
 </script>
