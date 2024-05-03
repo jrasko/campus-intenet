@@ -53,6 +53,7 @@ type Column =
     'manufacturer' |
     'comment' |
     'movedIn' |
+    'nationality' |
     'createdAt' |
     'updatedAt' |
     'lastEditor'

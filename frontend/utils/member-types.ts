@@ -1,49 +1,51 @@
 interface MemberConfig {
-    [index: string]: any,
+    [index: string]: any
 
-    id: number,
-    firstname: string,
-    lastname: string,
+    id: number
+    firstname: string
+    lastname: string
     room: {
-        roomNr: string,
+        roomNr: string
         wg: string
     }
     dhcpConfig: {
-        id: number,
-        mac: string,
-        ip: string,
-        disabled: boolean,
+        id: number
+        mac: string
+        ip: string
+        disabled: boolean
         manufacturer?: string
     }
-    email: string,
-    phone: string,
-    movedIn: string,
-    comment: string,
-    hasPaid: boolean,
+    email: string
+    phone: string
+    movedIn: string
+    nationality: string
+    comment: string
+    hasPaid: boolean
     createdAt?: string
     updatedAt?: string
     lastEditor?: string
 }
 
 interface InputMember {
-    id: number,
-    firstname: string,
-    lastname: string,
-    roomNr: string,
+    id: number
+    firstname: string
+    lastname: string
+    roomNr: string
     dhcpConfig: {
-        id: number,
-        mac: string,
-        ip: string,
-        disabled: boolean,
+        id: number
+        mac: string
+        ip: string
+        disabled: boolean
     }
-    email: string,
+    nationality: string
+    email: string
     phone: string
-    hasPaid: boolean,
-    comment: string,
+    hasPaid: boolean
+    comment: string
     movedIn: string
 }
 
 interface ReducedPerson {
-    firstname: string,
+    firstname: string
     lastname: string
 }

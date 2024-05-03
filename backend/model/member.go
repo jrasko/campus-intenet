@@ -7,14 +7,15 @@ import (
 )
 
 type Member struct {
-	ID         int    `json:"id" gorm:"primaryKey,autoIncrement"`
-	Firstname  string `json:"firstname" validate:"required"`
-	Lastname   string `json:"lastname" validate:"required"`
-	HasPaid    bool   `json:"hasPaid" gorm:"not null"`
-	Email      string `json:"email" validate:"omitempty,email"`
-	Phone      string `json:"phone"`
-	Comment    string `json:"comment"`
-	LastEditor string `json:"lastEditor"`
+	ID          int    `json:"id" gorm:"primaryKey,autoIncrement"`
+	Firstname   string `json:"firstname" validate:"required"`
+	Lastname    string `json:"lastname" validate:"required"`
+	HasPaid     bool   `json:"hasPaid" gorm:"not null"`
+	Email       string `json:"email" validate:"omitempty,email"`
+	Phone       string `json:"phone"`
+	Comment     string `json:"comment"`
+	Nationality string `json:"nationality"`
+	LastEditor  string `json:"lastEditor"`
 
 	RoomNr string `json:"-" gorm:"unique;not null"`
 	Room   Room   `json:"room" gorm:"foreignKey:RoomNr;references:Number"`

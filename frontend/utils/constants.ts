@@ -65,6 +65,12 @@ export const tableData: Columns = {
         key: 'movedIn',
         kind: 'text'
     },
+    nationality: {
+      header: 'Nationalität',
+      field: 'nationality',
+      key: 'nationality',
+      kind: 'text'
+    },
     createdAt: {
         header: 'Erstellt',
         field: 'createdAt',

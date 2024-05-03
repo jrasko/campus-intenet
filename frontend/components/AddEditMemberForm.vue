@@ -40,7 +40,7 @@
       </v-col>
     </v-row>
     <v-row>
-      <v-col cols="12" sm="6">
+      <v-col cols="12" sm="4">
         <v-select
           v-model="member.roomNr"
           :item-props="roomMapper"
@@ -48,12 +48,18 @@
           label="Zimmernummer"
         />
       </v-col>
-      <v-col cols="12" sm="6">
+      <v-col cols="12" sm="4">
+        <v-text-field
+          v-model="member.nationality"
+          label="Nationalität"
+        />
+      </v-col>      
+      <v-col cols="12" sm="4">
         <v-text-field
           v-model="member.movedIn"
           label="Einzugsdaum"
-          readonly
           id="movedInText"
+          readonly
         />
       </v-col>
     </v-row>
@@ -109,6 +115,7 @@ const member = ref<InputMember>({
   email: '',
   hasPaid: false,
   comment: '',
+  nationality: '',
   movedIn: new Date().toISOString().split('T')[0],
 })
 
