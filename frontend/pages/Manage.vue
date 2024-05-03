@@ -56,8 +56,20 @@
         variant="underlined"
         @update:modelValue="refresh()"
       />
+    </v-col>    
+    <v-col cols="6" md="2">
+      <v-select
+        v-model="filters.wg"
+        :items="wgs"
+        append-inner-icon="mdi-filter"
+        hide-details
+        label="WG"
+        variant="underlined"
+        clearable
+        @update:modelValue="refresh()"
+      />
     </v-col>
-    <v-col cols="12" md="4" @input="refresh">
+    <v-col cols="12" md="2" @input="refresh">
       <v-text-field
         v-model="filters.search"
         append-inner-icon="mdi-magnify"
@@ -95,6 +107,7 @@
 <script lang="ts" setup>
   import {manageFilter, tableData} from "~/utils/constants";
 
+  const wgs = ref<string[]>([])
   const members = ref<MemberConfig[]>([])
   const modals = ref({
     success: false,
@@ -105,6 +118,7 @@
 
   const filters = ref<ManageFilters>({
     search: '',
+    wg: null,
     payment: null,
     disabled: null,
   })
@@ -119,6 +133,7 @@
       columns.value = <Column[]>storedColumns.split(',')
     }
     refresh()
+    fetchWGs()
   })
 
   async function refresh() {
@@ -170,5 +185,14 @@
 
   function changeColumns() {
     localStorage.setItem('columns', columns.value.toString())
+  }
+
+  async function fetchWGs() {
+    try {
+      const data: Room[] = await fetchRooms({occupied: null, block: []})
+      wgs.value = Array.from(new Set(data.map(v => v.wg)));
+    } catch (error) {
+      console.error(error)
+    }
   }
 </script>

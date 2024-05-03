@@ -10,6 +10,7 @@ type MemberRequestParams struct {
 	Search   string
 	HasPaid  *bool
 	Disabled *bool
+	WG       *string
 }
 
 var (
@@ -29,6 +30,9 @@ var (
 func (r MemberRequestParams) Apply(db *gorm.DB) *gorm.DB {
 	if r.Search != "" {
 		db = db.Where(buildSearchQuery(), map[string]any{"s": "%" + r.Search + "%"})
+	}
+	if r.WG != nil {
+		db = db.Where(`"Room".wg = ?`, r.WG)
 	}
 	if r.HasPaid != nil {
 		db = db.Where("has_paid = ?", *r.HasPaid)

@@ -1,7 +1,8 @@
 interface ManageFilters {
-    search: string | null,
+    search: string | null
     payment: boolean | null
     disabled: boolean | null
+    wg: string | null
 }
 
 interface ManageFilterList {

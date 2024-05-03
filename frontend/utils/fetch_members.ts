@@ -12,7 +12,8 @@ export async function getMemberConfigs(filters: ManageFilters): Promise<AsyncDat
             params: {
                 search: filters.search,
                 hasPaid: filters.payment,
-                disabled: filters.disabled
+                disabled: filters.disabled,
+                wg: filters.wg
             },
             server: false,
             parseResponse: jsonTransform<MemberConfig[]>

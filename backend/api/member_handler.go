@@ -68,6 +68,7 @@ func (h Handler) GetAllConfigHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		params := model.MemberRequestParams{
 			Search:   r.FormValue("search"),
+			WG:       stringFilter(r, "wg"),
 			Disabled: boolFilter(r, "disabled"),
 			HasPaid:  boolFilter(r, "hasPaid"),
 		}
@@ -177,4 +178,12 @@ func boolFilter(r *http.Request, name string) *bool {
 		return nil
 	}
 	return &boolValue
+}
+
+func stringFilter(r *http.Request, name string) *string {
+	value := r.FormValue(name)
+	if value == "" {
+		return nil
+	}
+	return &value
 }
