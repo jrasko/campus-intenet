@@ -63,7 +63,7 @@ func NewRouter(config model.Configuration, memberService MemberService, roomServ
 		Methods(http.MethodPut)
 
 	router.
-		Handle("/api/resetPayment", auth.Middleware(h.ResetPaymentConfigHandler(), PermissionFinance)).
+		Handle("/api/members/resetPayment", auth.Middleware(h.ResetPaymentConfigHandler(), PermissionFinance)).
 		Methods(http.MethodPost)
 	router.
 		Handle("/api/members/{id}/togglePayment", auth.Middleware(h.TogglePayment(), PermissionFinance)).
