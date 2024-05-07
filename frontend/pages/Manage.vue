@@ -21,7 +21,7 @@
       </v-btn>
     </v-col>
     <v-col>
-      <a :href="'mailto:wohnheimsprecher@scj.fh-aachen.de?bcc=' + copyEmails()">
+      <a :href="'mailto:wohnheimsprecher@scj.fh-aachen.de?bcc=' + listEmails()">
         <v-btn prepend-icon="mdi-content-copy" @click="copyEmails">Emails kopieren</v-btn>
       </a>
     </v-col>
@@ -148,12 +148,18 @@
     }
   }
 
-  function copyEmails() {
+  function listEmails() {
     let mails = ''
     for (const p of members.value) {
-      mails += p.email + ','
+      if(p.email.length > 0){
+        mails += p.email + ','
+      }
     }
     return mails
+  }  
+  
+  function copyEmails() {
+    navigator.clipboard.writeText(listEmails())
   }
 
   async function resetPaymentsForAll() {
