@@ -152,7 +152,7 @@
     let mails = ''
     for (const p of members.value) {
       if(p.email.length > 0){
-        mails += p.email + ','
+        mails += p.email + ';'
       }
     }
     return mails
