@@ -32,7 +32,7 @@ func cleanTables(config model.Configuration) error {
 	}
 	defer db.Close()
 
-	_, err = db.Exec("TRUNCATE member_configs RESTART IDENTITY")
+	_, err = db.Exec("TRUNCATE members, net_configs, rooms RESTART IDENTITY")
 	return err
 }
 
