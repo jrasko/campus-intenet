@@ -108,3 +108,19 @@ func (h Handler) WriteConfigHandler() http.HandlerFunc {
 		w.WriteHeader(http.StatusOK)
 	}
 }
+
+func (h Handler) ToggleActivation() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		id, err := readIntFromVar(r, "id")
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		err = h.networkService.ToggleNetwork(r.Context(), id)
+		if err != nil {
+			sendHttpError(w, err)
+			return
+		}
+		w.WriteHeader(http.StatusOK)
+	}
+}

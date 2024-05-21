@@ -42,6 +42,15 @@ func (r Repository) DeleteNetConfig(ctx context.Context, id int) error {
 		Error
 }
 
+func (r Repository) Deactivate(ctx context.Context, ids []int) error {
+	return r.db.
+		WithContext(ctx).
+		Table(netTable).
+		Where("id IN ?", ids).
+		Updates(map[string]any{"disabled": true}).
+		Error
+}
+
 func (r Repository) GetAllIPs(ctx context.Context) ([]string, error) {
 	var ips []string
 	err := r.db.

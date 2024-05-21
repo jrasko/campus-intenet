@@ -136,6 +136,18 @@ func (h Handler) ResetPaymentConfigHandler() http.HandlerFunc {
 	}
 }
 
+func (h Handler) PunishmentHandler() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		err := h.memberService.Punish(r.Context())
+		if err != nil {
+			sendHttpError(w, err)
+			return
+		}
+
+		w.WriteHeader(http.StatusNoContent)
+	}
+}
+
 func (h Handler) WallOfShame() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		members, err := h.memberService.GetNotPayingMembers(r.Context())

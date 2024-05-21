@@ -14,10 +14,12 @@ type MemberService interface {
 	GetMember(ctx context.Context, id int) (model.Member, error)
 	DeleteMember(ctx context.Context, id int) error
 
-	GetNotPayingMembers(ctx context.Context) ([]model.ReducedMember, error)
+	GetNotPayingMembers(ctx context.Context) ([]model.Member, error)
 	TogglePayment(ctx context.Context, id int) error
 	ResetPayment(ctx context.Context) error
+	Punish(ctx context.Context) error
 }
+
 type RoomService interface {
 	ListRooms(ctx context.Context, params model.RoomRequestParams) ([]model.Room, error)
 }
@@ -29,6 +31,7 @@ type NetworkService interface {
 	DeleteNetConfig(ctx context.Context, id int) error
 
 	UpdateDhcpFile(ctx context.Context) error
+	ToggleNetwork(ctx context.Context, id int) error
 	IsInconsistent() bool
 }
 
@@ -66,6 +69,10 @@ func NewRouter(config model.Configuration, memberService MemberService, roomServ
 		Handle("/api/members/resetPayment", auth.Middleware(h.ResetPaymentConfigHandler(), PermissionFinance)).
 		Methods(http.MethodPost)
 	router.
+		Handle("/api/members/punish", auth.Middleware(h.PunishmentHandler(), PermissionFinance)).
+		Methods(http.MethodPost)
+
+	router.
 		Handle("/api/members/{id}/togglePayment", auth.Middleware(h.TogglePayment(), PermissionFinance)).
 		Methods(http.MethodPost)
 
@@ -95,6 +102,9 @@ func NewRouter(config model.Configuration, memberService MemberService, roomServ
 	router.
 		Handle("/api/net-configs/{id}", auth.Middleware(h.DeleteNetworkHandler(), PermissionAdmin)).
 		Methods(http.MethodDelete)
+	router.
+		Handle("/api/net-configs/{id}/toggleActivation", auth.Middleware(h.ToggleActivation(), PermissionAdmin)).
+		Methods(http.MethodPost)
 	return router
 }
 

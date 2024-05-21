@@ -28,18 +28,6 @@ type Member struct {
 	UpdatedAt time.Time `json:"updatedAt"`
 }
 
-type ReducedMember struct {
-	Firstname string `json:"firstname"`
-	Lastname  string `json:"lastname"`
-}
-
-func (c *Member) ToReduced() ReducedMember {
-	return ReducedMember{
-		Firstname: c.Firstname,
-		Lastname:  c.Lastname,
-	}
-}
-
 func (c *Member) Sanitize() {
 	mac, _ := net.ParseMAC(c.NetConfig.Mac)
 	c.NetConfig.Mac = strings.ToUpper(mac.String())

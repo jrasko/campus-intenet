@@ -59,6 +59,6 @@ func (r Repository) ResetPayment(ctx context.Context) error {
 		WithContext(ctx).
 		Table(memberTable).
 		Where("true").
-		Updates(map[string]interface{}{"has_paid": false}).
+		Updates(map[string]any{"has_paid": false}).
 		Error
 }

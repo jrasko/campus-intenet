@@ -48,6 +48,7 @@ type NetworkRepository interface {
 	GetNetConfig(ctx context.Context, id int) (model.NetConfig, error)
 	ListNetConfigs(ctx context.Context, params model.NetworkRequestParams) ([]model.NetConfig, error)
 	DeleteNetConfig(ctx context.Context, id int) error
+	Deactivate(ctx context.Context, ids []int) error
 }
 
 func New(

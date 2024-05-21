@@ -106,18 +106,30 @@ func (s *Service) TogglePayment(ctx context.Context, id int) error {
 	return err
 }
 
-func (s *Service) GetNotPayingMembers(ctx context.Context) ([]model.ReducedMember, error) {
+func (s *Service) GetNotPayingMembers(ctx context.Context) ([]model.Member, error) {
 	hasPaid := false
 	idiots, err := s.memberRepo.ListMembers(ctx, model.MemberRequestParams{HasPaid: &hasPaid})
 	if err != nil {
 		return nil, model.WrapGormError(err)
 	}
 
-	reducedIdiots := make([]model.ReducedMember, 0, len(idiots))
-	for _, member := range idiots {
-		reducedIdiots = append(reducedIdiots, member.ToReduced())
+	return idiots, nil
+}
+
+func (s *Service) Punish(ctx context.Context) error {
+	nonPayers, err := s.GetNotPayingMembers(ctx)
+	if err != nil {
+		return err
 	}
-	return reducedIdiots, nil
+	ids := make([]int, len(nonPayers))
+	for i, p := range nonPayers {
+		ids[i] = p.ID
+	}
+	err = s.netRepo.Deactivate(ctx, ids)
+	if err != nil {
+		return err
+	}
+	return s.UpdateDhcpFile(ctx)
 }
 
 func mapValidationError(err error) error {

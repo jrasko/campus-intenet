@@ -60,6 +60,16 @@ var (
 	}
 )
 
+var (
+	net1 = model.NetConfig{
+		Name:         "test",
+		Mac:          "00:00:00:FF:FF:FF",
+		IP:           "127.0.0.1",
+		Manufacturer: "test",
+		Disabled:     false,
+	}
+)
+
 type RepositoryTest struct {
 	suite.Suite
 	repository Repository
@@ -82,7 +92,7 @@ func setupDB() (Repository, error) {
 	if err != nil {
 		return Repository{}, err
 	}
-	repo.db.Exec("TRUNCATE members, rooms, net_configs RESTART IDENTITY")
+	repo.db.Exec("TRUNCATE members, rooms, net_configs")
 	return repo, nil
 }
 
@@ -116,5 +126,8 @@ func (t *RepositoryTest) insertSampleData() {
 	t.Require().NoError(err)
 
 	member2, err = t.repository.CreateOrUpdateMember(context.Background(), member2)
+	t.Require().NoError(err)
+
+	net1, err = t.repository.CreateOrUpdateNetConfig(context.Background(), net1)
 	t.Require().NoError(err)
 }

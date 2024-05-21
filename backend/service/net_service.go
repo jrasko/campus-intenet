@@ -60,3 +60,16 @@ func (s *Service) DeleteNetConfig(ctx context.Context, id int) error {
 	}
 	return s.UpdateDhcpFile(ctx)
 }
+
+func (s *Service) ToggleNetwork(ctx context.Context, id int) error {
+	config, err := s.netRepo.GetNetConfig(ctx, id)
+	if err != nil {
+		return err
+	}
+	config.Disabled = !config.Disabled
+	_, err = s.netRepo.CreateOrUpdateNetConfig(ctx, config)
+	if err != nil {
+		return err
+	}
+	return s.UpdateDhcpFile(ctx)
+}
