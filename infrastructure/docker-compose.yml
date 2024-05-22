@@ -10,6 +10,8 @@ services:
       - traefik
     volumes:
       - dhcp-db:/var/lib/postgresql/data
+    expose:
+      - "5432"
   traefik:
     restart: unless-stopped
     image: traefik:v2.11
@@ -35,6 +37,8 @@ services:
       traefik.http.routers.frontend.rule: "PathPrefix(`/`)"
     networks:
       - traefik
+    expose:
+      - "3000/tcp"
   backend:
     env_file:
       - ".env"
@@ -52,6 +56,8 @@ services:
     networks:
       - traefik
       - kea-lan
+    expose:
+      - "8080/tcp"
     volumes:
       - ./whitelist.json:/app/whitelist.json
       - ./login-users.json:/app/login-users.json
