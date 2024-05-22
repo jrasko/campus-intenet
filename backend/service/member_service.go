@@ -123,7 +123,7 @@ func (s *Service) Punish(ctx context.Context) error {
 	}
 	ids := make([]int, len(nonPayers))
 	for i, p := range nonPayers {
-		ids[i] = p.ID
+		ids[i] = p.NetConfigID
 	}
 	err = s.netRepo.Deactivate(ctx, ids)
 	if err != nil {
