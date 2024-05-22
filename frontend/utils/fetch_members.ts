@@ -88,6 +88,24 @@ export function togglePayment(id: number): Promise<AsyncData<any, any>> {
     )
 }
 
+export function toggleNetworkActivation(id: number): Promise<AsyncData<any, any>> {
+    return $fetch('/api/net-configs/' + id + '/toggleActivation', {
+            baseURL: getBaseURL(),
+            method: "POST",
+            headers: authHeader(),
+        }
+    )
+}
+
+export function punish(): Promise<AsyncData<any, any>> {
+    return $fetch('/api/members/punish', {
+            baseURL: getBaseURL(),
+            method: "POST",
+            headers: authHeader(),
+        }
+    ) 
+}
+
 export function loginUser(credentials: Credentials): Promise<AsyncData<LoginResponse, any>> {
     return $fetch('/api/login', {
             baseURL: getBaseURL(),

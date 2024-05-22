@@ -15,20 +15,25 @@
     </v-row>
     -->
   <v-row>
-    <v-col>
+    <v-col cols="2">
       <v-btn prepend-icon="mdi-credit-card-refresh" @click="resetPaymentsForAll">
         Zahlungen zurücksetzen
       </v-btn>
     </v-col>
-    <v-col>
+    <v-col cols="2">
+      <v-btn prepend-icon="mdi-razor-double-edge" @click="punishNonPayers">
+        Der Bestrafer
+      </v-btn>
+    </v-col>
+    <v-col cols="2">
       <a :href="'mailto:wohnheimsprecher@scj.fh-aachen.de?bcc=' + listEmails()">
         <v-btn prepend-icon="mdi-content-copy" @click="copyEmails">Emails kopieren</v-btn>
       </a>
     </v-col>
-    <v-spacer />
-    <v-spacer />
-    <v-spacer />
-    <v-spacer />
+    <v-spacer/>
+    <v-spacer/>
+    <v-spacer/>
+    <v-spacer/>
   </v-row>
   <v-row align="baseline" justify="center">
     <v-col cols="6" md="2">
@@ -56,16 +61,16 @@
         variant="underlined"
         @update:modelValue="refresh()"
       />
-    </v-col>    
+    </v-col>
     <v-col cols="6" md="2">
       <v-select
         v-model="filters.wg"
         :items="wgs"
         append-inner-icon="mdi-filter"
+        clearable
         hide-details
         label="WG"
         variant="underlined"
-        clearable
         @update:modelValue="refresh()"
       />
     </v-col>
@@ -106,6 +111,7 @@
 
 <script lang="ts" setup>
   import {manageFilter, tableData} from "~/utils/constants";
+  import {punish} from "~/utils/fetch_members";
 
   const wgs = ref<string[]>([])
   const members = ref<MemberConfig[]>([])
@@ -151,19 +157,19 @@
   function listEmails() {
     let mails = ''
     for (const p of members.value) {
-      if(p.email.length > 0){
+      if (p.email.length > 0) {
         mails += p.email + ';'
       }
     }
     return mails
-  }  
+  }
   
   function copyEmails() {
     navigator.clipboard.writeText(listEmails())
   }
 
   async function resetPaymentsForAll() {
-    let answer = prompt('Zahlungen zurücksetzen?\n\nSchreibe "reset", wenn du dir sicher bist!',);
+    let answer = prompt('Zahlungen zurücksetzen?\n\nSchreibe "reset", wenn du dir sicher bist!');
     if (answer == 'reset') {
       try {
         await resetPayments()
@@ -177,7 +183,23 @@
       modals.value.failure = true
     }
   }
-
+  
+  async function punishNonPayers() {
+    let answer = prompt('Bestrafe nicht zahlende?\n\nSchreibe "punish", wenn du dir sicher bist!');
+    if (answer == 'punish') {
+      try {
+        await punish()
+        modals.value.success = true
+        await refresh()
+      } catch (e) {
+        handleError(e)
+      }
+    } else {
+      modals.value.errorMessage = 'Abbruch!'
+      modals.value.failure = true
+    }
+  }
+  
   function handleError(error: any) {
     console.log(error)
     if (error.status === 403) {

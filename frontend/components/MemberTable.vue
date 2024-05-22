@@ -1,6 +1,6 @@
 <template>
   <v-snackbar v-model="modals.success" :timeout="2000" color="success"> Erfolg!</v-snackbar>
-  <v-snackbar v-model="modals.failure" :timeout="3000" color="error">{{modals.errorMessage}}</v-snackbar>
+  <v-snackbar v-model="modals.failure" :timeout="3000" color="error">{{ modals.errorMessage }}</v-snackbar>
   <v-table hover>
     <thead>
     <tr>
@@ -15,7 +15,11 @@
     <tbody>
     <tr v-for="p in props.people">
       <td>
-        <v-icon :color="p.dhcpConfig.disabled ? 'orange' : 'green'" icon="mdi-circle-medium"/>
+        <v-icon
+          :color="p.dhcpConfig.disabled ? 'orange' : 'green'"
+          icon="mdi-circle-medium"
+          @click="swapNetworkActivation(p)"
+        />
       </td>
       <td>
         <v-icon
@@ -47,6 +51,7 @@
 </template>
 <script lang="ts" setup>
   import {tableData} from "~/utils/constants";
+  import {toggleNetworkActivation} from "~/utils/fetch_members";
 
   const props = defineProps<{
     people: MemberConfig[]
@@ -70,15 +75,24 @@
       handleError(e)
     }
   }
-
+  
+  async function swapNetworkActivation(p: MemberConfig) {
+    try {
+      await toggleNetworkActivation(p.dhcpConfig.id)
+      modals.value.success = true
+      emit('refresh')
+    } catch (e) {
+      handleError(e)
+    }
+  }
+  
   async function deleteUser(u: MemberConfig) {
     if (confirm('Wirklich löschen?')) {
       try {
         await deleteMemberConfigFor(u.id)
         modals.value.success = true
         emit('refresh')
-      }
-      catch (e) {
+      } catch (e) {
         handleError(e)
       }
     }
