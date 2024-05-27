@@ -105,6 +105,11 @@ func NewRouter(config model.Configuration, memberService MemberService, roomServ
 	router.
 		Handle("/api/net-configs/{id}/toggleActivation", auth.Middleware(h.ToggleActivation(), PermissionAdmin)).
 		Methods(http.MethodPost)
+
+	router.
+		Handle("/api/health", h.HealthCheck()).
+		Methods(http.MethodGet)
+
 	return router
 }
 

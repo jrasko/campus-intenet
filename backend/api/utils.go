@@ -9,6 +9,16 @@ import (
 	"strings"
 )
 
+func (h Handler) HealthCheck() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if h.networkService.IsInconsistent() {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		w.WriteHeader(http.StatusOK)
+	}
+}
+
 func sendJSONResponse(w http.ResponseWriter, v any) {
 	if err := json.NewEncoder(w).Encode(v); err != nil {
 		sendHttpError(w, err)
