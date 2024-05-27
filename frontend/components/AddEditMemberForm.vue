@@ -60,6 +60,7 @@
           label="Einzugsdaum"
           id="movedInText"
           readonly
+          clearable
         />
       </v-col>
     </v-row>
