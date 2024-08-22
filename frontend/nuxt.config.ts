@@ -1,28 +1,29 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 import vuetify, { transformAssetUrls } from 'vite-plugin-vuetify'
 export default defineNuxtConfig({
-    build: {
-        transpile: ['vuetify'],
-    },
-    modules: [
-        (_options, nuxt) => {
-            nuxt.hooks.hook('vite:extendConfig', (config) => {
-                // @ts-expect-error
-                config.plugins.push(vuetify({ autoImport: true }))
-            })
-        },
-    ],
-    vite: {
-        vue: {
-            template: {
-                transformAssetUrls,
-            },
-        },
-    },
-    runtimeConfig:{
-      public: {
-          baseURL: process.env.BASE_URL
-      }  
-    },
-    devtools: { enabled: true }
+  build: {
+      transpile: ['vuetify'],
+  },
+  modules: [
+      (_options, nuxt) => {
+          nuxt.hooks.hook('vite:extendConfig', (config) => {
+              // @ts-expect-error
+              config.plugins.push(vuetify({ autoImport: true }))
+          })
+      },
+  ],
+  vite: {
+      vue: {
+          template: {
+              transformAssetUrls,
+          },
+      },
+  },
+  runtimeConfig:{
+    public: {
+        baseURL: process.env.BASE_URL
+    }
+  },
+  devtools: { enabled: true },
+  compatibilityDate: '2024-08-22'
 })
