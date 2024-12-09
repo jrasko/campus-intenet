@@ -19,7 +19,7 @@ services:
       - "5432"
   traefik:
     restart: unless-stopped
-    image: traefik:v2.11
+    image: traefik:v3.2
     container_name: dhcp_traefik
     networks:
       - traefik
