@@ -68,8 +68,11 @@
       <v-col cols="12" sm="4">
         <v-text-field v-model="member.email" label="Email"/>
       </v-col>
-      <v-col cols="12" sm="4">
+      <v-col cols="12" sm="2">
         <v-text-field v-model="member.phone" label="Telefonnummer"/>
+      </v-col>
+      <v-col>
+        <v-switch v-model="member.isFurnished" color="green" label="Möbiliert"/>
       </v-col>
       <v-col cols="6" sm="2">
         <v-switch v-model="member.hasPaid" color="green" label="Bezahlt"/>
@@ -106,6 +109,7 @@ const member = ref<InputMember>({
   firstname: '',
   lastname: '',
   roomNr: '',
+  isFurnished: true,
   dhcpConfig: {
     id: 0,
     mac: '',

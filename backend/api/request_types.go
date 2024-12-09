@@ -13,6 +13,7 @@ type requestMember struct {
 	Comment     string `json:"comment"`
 	MovedIn     string `json:"movedIn"`
 	Nationality string `json:"nationality"`
+	IsFurnished bool   `json:"isFurnished"`
 
 	RoomNr     string          `json:"roomNr" gorm:"unique;not null"`
 	DhcpConfig model.NetConfig `json:"dhcpConfig" gorm:"foreignKey:NetConfigID"`
@@ -30,5 +31,6 @@ func (r requestMember) toModel() model.Member {
 		NetConfig:   r.DhcpConfig,
 		MovedIn:     r.MovedIn,
 		Nationality: r.Nationality,
+		IsFurnished: r.IsFurnished,
 	}
 }

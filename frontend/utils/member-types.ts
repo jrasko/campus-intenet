@@ -15,6 +15,7 @@ interface MemberConfig {
         disabled: boolean
         manufacturer?: string
     }
+    isFurnished: boolean
     email: string
     phone: string
     movedIn: string
@@ -31,6 +32,7 @@ interface InputMember {
     firstname: string
     lastname: string
     roomNr: string
+    isFurnished: boolean
     dhcpConfig: {
         id: number
         mac: string

@@ -32,7 +32,7 @@ interface ServerFilterList {
     server: { header: string, value: boolean | null }[]
 }
 
-type ColumnFormat = 'text' | 'date'
+type ColumnFormat = 'text' | 'date' | 'bool'
 
 interface ColumnOptions {
     key: string,
@@ -56,6 +56,7 @@ type Column =
     'nationality' |
     'createdAt' |
     'updatedAt' |
-    'lastEditor'
+    'lastEditor' |
+    'isFurnished'
 
 type Columns = Record<Column, ColumnOptions>

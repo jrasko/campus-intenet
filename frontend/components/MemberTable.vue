@@ -31,7 +31,17 @@
         <v-icon v-else color="red" icon="mdi-close-circle" @click="swapPayment(p)"/>
       </td>
       <td v-for="c in columns">
-        {{ getValue(p, c) }}
+        <div v-if="tableData[c].kind === 'bool'">
+          <v-icon
+            v-if="getValue(p, c)"
+            color="green"
+            icon="mdi-checkbox-marked-circle"
+          />
+          <v-icon v-else color="red" icon="mdi-close-circle"/>
+        </div>
+        <div v-else>
+          {{ getValue(p, c) }}
+        </div>
       </td>
       <td>
         <v-row align="center" justify="center">
@@ -98,7 +108,7 @@
     }
   }
 
-  function getValue(p: MemberConfig, c: Column): string | undefined {
+  function getValue(p: MemberConfig, c: Column): string | boolean | undefined {
     const selector = tableData[c].field.split('.')
     let value: any = p
     for (let s of selector) {

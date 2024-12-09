@@ -17,8 +17,9 @@ type Member struct {
 	Nationality string `json:"nationality"`
 	LastEditor  string `json:"lastEditor"`
 
-	RoomNr string `json:"-" gorm:"unique;not null"`
-	Room   Room   `json:"room" gorm:"foreignKey:RoomNr;references:Number"`
+	RoomNr      string `json:"-" gorm:"unique;not null"`
+	Room        Room   `json:"room" gorm:"foreignKey:RoomNr;references:Number"`
+	IsFurnished bool   `json:"isFurnished" gorm:"not null"`
 
 	NetConfigID int       `gorm:"unique"`
 	NetConfig   NetConfig `json:"dhcpConfig" gorm:"foreignKey:NetConfigID"`

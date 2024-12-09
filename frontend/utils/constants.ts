@@ -47,6 +47,12 @@ export const tableData: Columns = {
         key: 'ip',
         kind: 'text'
     },
+    isFurnished: {
+        header: 'Möblierung',
+        field: 'isFurnished',
+        key: 'isFurnished',
+        kind: 'bool'
+    },
     manufacturer: {
         header: 'Hersteller',
         field: 'dhcpConfig.manufacturer',

@@ -48,6 +48,7 @@ export function toInputMember(i: MemberConfig): InputMember {
         roomNr: i.room.roomNr,
         movedIn: i.movedIn,
         nationality: i.nationality,
+        isFurnished: i.isFurnished
     }
 }
 
