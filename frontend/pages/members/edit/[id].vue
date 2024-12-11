@@ -5,6 +5,8 @@
 </template>
 
 <script lang="ts" setup>
+  import {updateMemberConfig} from "~/utils/fetch_members";
+
   const route = useRoute()
   const modal = ref({
     failure: false,
@@ -14,7 +16,7 @@
   async function submit(person: InputMember) {
     try {
       await updateMemberConfig(person)
-      navigateTo('/manage')
+      navigateTo('/')
     } catch (error: any) {
       modal.value.failure = true
       modal.value.errorMessage = error.data

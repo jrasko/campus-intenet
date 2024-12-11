@@ -4,6 +4,7 @@
 </template>
 
 <script lang="ts" setup>
+  import {createServer} from "~/utils/fetch_netconfig";
 
   const route = useRoute()
 

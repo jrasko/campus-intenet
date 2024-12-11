@@ -16,10 +16,10 @@
     "vue-router": "^4.4.3"
   },
   "devDependencies": {
-    "nuxt": "^3.12.4",
-    "typescript": "^5.5.4",
+    "nuxt": "^3.14.1592",
+    "typescript": "^5.7.2",
     "vite-plugin-vuetify": "^2.0.4",
-    "vue-tsc": "^2.0.29",
-    "vuetify": "^3.7.0"
+    "vue-tsc": "^2.1.10",
+    "vuetify": "^3.7.5"
   }
 }

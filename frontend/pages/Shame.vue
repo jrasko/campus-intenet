@@ -12,14 +12,16 @@
       <v-table hover>
         <thead>
         <tr>
+          <th>WG</th>
           <th>Vorname</th>
           <th>Nachname</th>
         </tr>
         </thead>
         <tbody>
         <tr v-for="p in moochers">
-          <td>{{ p.firstname }}</td>
-          <td>{{ p.lastname }}</td>
+          <td>{{ p.wg }}</td>
+          <td>{{ p.member?.firstname }}</td>
+          <td>{{ p.member?.lastname }}</td>
         </tr>
         </tbody>
       </v-table>
@@ -27,13 +29,14 @@
   </v-row>
 </template>
 <script lang="ts" setup>
+  import {fetchRooms} from "~/utils/fetch_rooms";
 
-  const moochers = ref<ReducedPerson[]>([])
+  const moochers = ref<Room[]>([])
   onMounted(() => nextTick(() => refresh()))
 
   async function refresh() {
     try {
-      moochers.value = await getShameList()
+      moochers.value = await fetchRooms({payment: false, occupied: true})
     } catch (e) {
       console.log(e)
     }

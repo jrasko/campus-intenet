@@ -1,6 +1,4 @@
-import type {AsyncData} from "#app";
-import {authHeader, getBaseURL} from "~/utils/utils";
-
+import {authHeader, getBaseURL, jsonTransform} from "~/utils/utils";
 
 export function updateDhcp(): Promise<any> {
     return $fetch('/api/write', {
@@ -11,8 +9,8 @@ export function updateDhcp(): Promise<any> {
     )
 }
 
-export function listServers(filters: ServerFilters): Promise<AsyncData<Server[], any>> {
-    return $fetch('/api/net-configs', {
+export function listServers(filters: ServerFilters): Promise<Server[]> {
+    return $fetch<Server[]>('/api/net-configs', {
             baseURL: getBaseURL(),
             method: "GET",
             headers: authHeader(),
@@ -25,12 +23,12 @@ export function listServers(filters: ServerFilters): Promise<AsyncData<Server[],
     )
 }
 
-export function fetchServer(id: string): Promise<AsyncData<Server[], any>> {
-    return $fetch('/api/net-configs/' + id, {
+export function fetchServer(id: string): Promise<Server> {
+    return $fetch<Server>('/api/net-configs/' + id, {
             baseURL: getBaseURL(),
             method: "GET",
             headers: authHeader(),
-            parseResponse: jsonTransform<Server[]>
+            parseResponse: jsonTransform<Server>
         }
     )
 }

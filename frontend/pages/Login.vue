@@ -21,6 +21,8 @@
 </template>
 
 <script lang="ts" setup>
+  import {loginUser} from "~/utils/fetch_members";
+
   const emit = defineEmits(['login'])
 
   const failure = ref(false)
@@ -32,7 +34,7 @@
 
   async function login() {
     try {
-      const login = await <any>loginUser(credentials.value)
+      const login = await loginUser(credentials.value)
       localStorage.setItem('jwt', login.token)
       localStorage.setItem('role', login.role)
       emit('login')

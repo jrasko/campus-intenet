@@ -36,7 +36,7 @@
     <v-spacer/>
   </v-row>
   <v-row align="baseline" justify="center">
-    <v-col cols="6" md="2">
+    <v-col cols="6" md="1">
       <v-select
         v-model="filters.payment"
         :items="manageFilter.payment"
@@ -49,7 +49,7 @@
         @update:modelValue="refresh()"
       />
     </v-col>
-    <v-col cols="6" md="2">
+    <v-col cols="6" md="1">
       <v-select
         v-model="filters.disabled"
         :items="manageFilter.disabled"
@@ -62,7 +62,20 @@
         @update:modelValue="refresh()"
       />
     </v-col>
-    <v-col cols="6" md="2">
+    <v-col cols="6" md="1">
+      <v-select
+        v-model="filters.occupied"
+        :items="manageFilter.occupied"
+        append-inner-icon="mdi-filter"
+        hide-details
+        item-title="header"
+        item-value="value"
+        label="Belegt"
+        variant="underlined"
+        @update:modelValue="refresh"
+      />
+    </v-col>
+    <v-col cols="6" md="1">
       <v-select
         v-model="filters.wg"
         :items="wgs"
@@ -74,7 +87,7 @@
         @update:modelValue="refresh()"
       />
     </v-col>
-    <v-col cols="12" md="2" @input="refresh">
+    <v-col cols="12" md="4" @input="refresh">
       <v-text-field
         v-model="filters.search"
         append-inner-icon="mdi-magnify"
@@ -100,9 +113,9 @@
   </v-row>
   <v-row>
     <v-col cols="12">
-      <MemberTable
+      <RoomTable
         :columns="columns"
-        :people="members"
+        :rooms="rooms"
         @refresh="refresh"
       />
     </v-col>
@@ -110,11 +123,12 @@
 </template>
 
 <script lang="ts" setup>
-  import {manageFilter, tableData} from "~/utils/constants";
-  import {punish} from "~/utils/fetch_members";
+  import {punish, resetPayments} from "~/utils/fetch_members";
+  import {fetchRooms} from "~/utils/fetch_rooms";
+  import {manageFilter} from "~/utils/constants";
 
   const wgs = ref<string[]>([])
-  const members = ref<MemberConfig[]>([])
+  const rooms = ref<Room[]>([])
   const modals = ref({
     success: false,
     failure: false,
@@ -122,11 +136,13 @@
     errorMessage: '',
   })
 
-  const filters = ref<ManageFilters>({
+  const filters = ref<RoomFilters>({
     search: '',
-    wg: null,
-    payment: null,
-    disabled: null,
+    wg: undefined,
+    payment: undefined,
+    disabled: undefined,
+    occupied: undefined,
+    block: []
   })
 
   const columns = ref<Column[]>(['firstname', 'lastname', 'wg', 'roomNr', 'comment'])
@@ -139,12 +155,12 @@
       columns.value = <Column[]>storedColumns.split(',')
     }
     refresh()
-    fetchWGs()
   })
 
   async function refresh() {
     try {
-      members.value = await getMemberConfigs(filters.value)
+      rooms.value = await fetchRooms(filters.value)
+      wgs.value = Array.from(new Set(rooms.value.map(v => v.wg)));
     } catch (error: any) {
       if (error.statusCode === 403) {
         emit('logout')
@@ -156,9 +172,12 @@
 
   function listEmails() {
     let mails = ''
-    for (const p of members.value) {
-      if (p.email.length > 0) {
-        mails += p.email + ';'
+    for (const r of rooms.value) {
+      if (!r.member){
+        continue
+      }
+      if (r.member?.email.length > 0) {
+        mails += r.member.email + ';'
       }
     }
     return mails
@@ -213,14 +232,5 @@
 
   function changeColumns() {
     localStorage.setItem('columns', columns.value.toString())
-  }
-
-  async function fetchWGs() {
-    try {
-      const data: Room[] = await fetchRooms({occupied: null, block: []})
-      wgs.value = Array.from(new Set(data.map(v => v.wg)));
-    } catch (error) {
-      console.error(error)
-    }
   }
 </script>

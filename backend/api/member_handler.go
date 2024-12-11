@@ -1,7 +1,6 @@
 package api
 
 import (
-	"backend/model"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -61,27 +60,6 @@ func (h Handler) PutConfigHandler() http.HandlerFunc {
 		}
 
 		sendJSONResponse(w, member)
-	}
-}
-
-func (h Handler) GetAllConfigHandler() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		params := model.MemberRequestParams{
-			Search:   r.FormValue("search"),
-			WG:       stringFilter(r, "wg"),
-			Disabled: boolFilter(r, "disabled"),
-			HasPaid:  boolFilter(r, "hasPaid"),
-		}
-		members, err := h.memberService.ListMembers(r.Context(), params)
-		if err != nil {
-			sendHttpError(w, err)
-			return
-		}
-
-		if h.networkService.IsInconsistent() {
-			w.WriteHeader(StatusInconsistent)
-		}
-		sendJSONResponse(w, members)
 	}
 }
 
@@ -145,17 +123,6 @@ func (h Handler) PunishmentHandler() http.HandlerFunc {
 		}
 
 		w.WriteHeader(http.StatusNoContent)
-	}
-}
-
-func (h Handler) WallOfShame() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		members, err := h.memberService.GetNotPayingMembers(r.Context())
-		if err != nil {
-			sendHttpError(w, err)
-			return
-		}
-		sendJSONResponse(w, members)
 	}
 }
 

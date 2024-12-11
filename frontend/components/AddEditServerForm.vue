@@ -42,6 +42,7 @@
 </template>
 
 <script lang="ts" setup>
+  import {fetchServer} from "~/utils/fetch_netconfig";
 
   const props = defineProps<{ prefetchId?: string, room?: string }>()
 
