@@ -48,7 +48,7 @@ export const tableData: Columns = {
         kind: 'text'
     },
     isFurnished: {
-        header: 'Möblierung',
+        header: 'Möbliert',
         field: 'isFurnished',
         key: 'isFurnished',
         kind: 'bool'

@@ -2,6 +2,7 @@ package service
 
 import (
 	"backend/model"
+	"backend/service/oui"
 	"context"
 	"errors"
 	"fmt"
@@ -24,7 +25,7 @@ func (s *Service) CreateOrUpdateMember(ctx context.Context, member model.Member)
 
 	member.Sanitize()
 	member.LastEditor, _ = ctx.Value(model.FieldUsername).(string)
-	member.NetConfig.Manufacturer = ouiMappings[member.NetConfig.Mac[:8]]
+	member.NetConfig.Manufacturer = oui.Mappings[member.NetConfig.Mac[:8]]
 
 	if member.NetConfig.IP == "" {
 		member.NetConfig.IP, err = s.ipService.GetUnusedIP(ctx)
