@@ -10,11 +10,9 @@ import (
 
 type MemberService interface {
 	CreateOrUpdateMember(ctx context.Context, member model.Member) (model.Member, error)
-	ListMembers(ctx context.Context, params model.MemberRequestParams) ([]model.Member, error)
 	GetMember(ctx context.Context, id int) (model.Member, error)
 	DeleteMember(ctx context.Context, id int) error
 
-	GetNotPayingMembers(ctx context.Context) ([]model.Member, error)
 	TogglePayment(ctx context.Context, id int) error
 	ResetPayment(ctx context.Context) error
 	Punish(ctx context.Context) error
@@ -50,9 +48,6 @@ func NewRouter(config model.Configuration, memberService MemberService, roomServ
 		Methods(http.MethodPost)
 
 	router.
-		Handle("/api/members", auth.Middleware(h.GetAllConfigHandler(), PermissionView)).
-		Methods(http.MethodGet)
-	router.
 		Handle("/api/members", auth.Middleware(h.PostConfigHandler(), PermissionModify)).
 		Methods(http.MethodPost)
 	router.
@@ -75,10 +70,6 @@ func NewRouter(config model.Configuration, memberService MemberService, roomServ
 	router.
 		Handle("/api/members/{id}/togglePayment", auth.Middleware(h.TogglePayment(), PermissionFinance)).
 		Methods(http.MethodPost)
-
-	router.
-		Handle("/api/shame", auth.Middleware(h.WallOfShame(), PermissionView)).
-		Methods(http.MethodGet)
 
 	router.
 		Handle("/api/rooms", auth.Middleware(h.ListRooms(), PermissionView)).

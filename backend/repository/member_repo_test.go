@@ -96,31 +96,6 @@ func (t *RepositoryTest) TestMemberRepository_GetMember() {
 	t.MemberEqual(member1, m)
 }
 
-func (t *RepositoryTest) TestMemberRepository_ListMembers() {
-	members, err := t.repository.ListMembers(context.Background(), model.MemberRequestParams{})
-	t.NoError(err)
-	t.Len(members, 2)
-	t.Equal(members[0].ID, member1.ID)
-}
-
-func (t *RepositoryTest) TestMemberRepository_ListMembers_search() {
-	members, err := t.repository.ListMembers(context.Background(), model.MemberRequestParams{Search: "first"})
-	t.NoError(err)
-	t.Len(members, 1)
-	t.MemberEqual(member1, members[0])
-}
-
-func (t *RepositoryTest) TestMemberRepository_ResetPayment_resetPayments() {
-	err := t.repository.ResetPayment(context.Background())
-	t.NoError(err)
-
-	members, err := t.repository.ListMembers(context.Background(), model.MemberRequestParams{})
-	t.NoError(err)
-	for _, m := range members {
-		t.False(m.HasPaid)
-	}
-}
-
 func (t *RepositoryTest) TestMemberRepository_DeleteMember() {
 	err := t.repository.DeleteMember(context.Background(), member2.ID)
 	t.NoError(err)

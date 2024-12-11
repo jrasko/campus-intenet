@@ -1,62 +1,43 @@
-interface ManageFilters {
-    search: string | null
-    payment: boolean | null
-    disabled: boolean | null
-    wg: string | null
+export interface RoomFilters {
+    occupied?: boolean
+    search?: string
+    payment?: boolean
+    disabled?: boolean
+    wg?: string
+    block?: Block[]
 }
 
-interface ManageFilterList {
-    payment: { header: string, value: boolean | null }[]
-    disabled: { header: string, value: boolean | null }[]
-}
+export type Block = ('1' | '2' | '3' | '4' | '5') 
 
-type Block = '1' | '2' | '3' | '4' | '5'
-
-interface RoomFilters {
-    occupied: boolean | null,
-    block: Block[]
-}
-
-interface RoomFilterList {
-    occupied: { header: string, value: boolean | null }[]
-    block: { header: string, value: Block | null }[]
-}
-
-interface ServerFilters {
+export interface ServerFilters {
     disabled: boolean | null
     server: boolean | null
 }
+export type Columns = Record<Column, ColumnOptions>
 
-interface ServerFilterList {
-    disabled: { header: string, value: boolean | null }[]
-    server: { header: string, value: boolean | null }[]
+export type Column =
+  'firstname' |
+  'lastname' |
+  'mac' |
+  'roomNr' |
+  'wg' |
+  'email' |
+  'phone' |
+  'ip' |
+  'manufacturer' |
+  'comment' |
+  'movedIn' |
+  'nationality' |
+  'createdAt' |
+  'updatedAt' |
+  'lastEditor' |
+  'isFurnished' |
+  'occupied'
+
+export interface ColumnOptions {
+    key: string
+    header: string
+    field: string
+    kind: ('text' | 'date' | 'bool')
+    banNull?: boolean
 }
-
-type ColumnFormat = 'text' | 'date' | 'bool'
-
-interface ColumnOptions {
-    key: string,
-    header: string,
-    field: string,
-    kind: ColumnFormat
-}
-
-type Column =
-    'firstname' |
-    'lastname' |
-    'mac' |
-    'roomNr' |
-    'wg' |
-    'email' |
-    'phone' |
-    'ip' |
-    'manufacturer' |
-    'comment' |
-    'movedIn' |
-    'nationality' |
-    'createdAt' |
-    'updatedAt' |
-    'lastEditor' |
-    'isFurnished'
-
-type Columns = Record<Column, ColumnOptions>

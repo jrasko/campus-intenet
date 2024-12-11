@@ -1,4 +1,19 @@
-interface MemberConfig {
+export interface Room {
+  roomNr: string
+  wg: string
+  block: string
+  member?: MemberConfig
+}
+
+export interface Server {
+  id: number,
+  name: string,
+  mac: string,
+  ip: string,
+  disabled: boolean,
+}
+
+export interface MemberConfig {
     [index: string]: any
 
     id: number
@@ -27,7 +42,7 @@ interface MemberConfig {
     lastEditor?: string
 }
 
-interface InputMember {
+export interface InputMember {
     id: number
     firstname: string
     lastname: string
@@ -45,9 +60,4 @@ interface InputMember {
     hasPaid: boolean
     comment: string
     movedIn: string
-}
-
-interface ReducedPerson {
-    firstname: string
-    lastname: string
 }

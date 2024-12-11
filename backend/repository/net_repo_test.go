@@ -3,7 +3,6 @@ package repository
 import (
 	"backend/model"
 	"context"
-	"fmt"
 
 	"gorm.io/gorm"
 )
@@ -24,7 +23,6 @@ func (t *RepositoryTest) TestRepository_ListNetConfig() {
 }
 
 func (t *RepositoryTest) TestRepository_CreateNetConfig() {
-	fmt.Println("Go!")
 	cfg := model.NetConfig{
 		Name:         "some name",
 		Mac:          "AA:AA:AA:BB:BB:BB",

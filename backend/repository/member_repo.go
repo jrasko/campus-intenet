@@ -22,20 +22,6 @@ func (r Repository) CreateOrUpdateMember(ctx context.Context, conf model.Member)
 	return conf, err
 }
 
-func (r Repository) ListMembers(ctx context.Context, params model.MemberRequestParams) ([]model.Member, error) {
-	var configs []model.Member
-	db := r.db.
-		WithContext(ctx).
-		Joins("Room").
-		Joins("NetConfig")
-
-	db = params.Apply(db)
-	err := db.
-		Find(&configs).
-		Error
-	return configs, err
-}
-
 func (r Repository) GetMember(ctx context.Context, id int) (model.Member, error) {
 	config := model.Member{}
 	err := r.db.

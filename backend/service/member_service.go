@@ -54,18 +54,6 @@ func (s *Service) CreateOrUpdateMember(ctx context.Context, member model.Member)
 	return member, err
 }
 
-func (s *Service) ListMembers(ctx context.Context, params model.MemberRequestParams) ([]model.Member, error) {
-	err := s.validate.Struct(params)
-	if err != nil {
-		return []model.Member{}, mapValidationError(err)
-	}
-	members, err := s.memberRepo.ListMembers(ctx, params)
-	if err != nil {
-		return []model.Member{}, model.WrapGormError(err)
-	}
-	return members, nil
-}
-
 func (s *Service) GetMember(ctx context.Context, id int) (model.Member, error) {
 	member, err := s.memberRepo.GetMember(ctx, id)
 	if err != nil {
@@ -100,31 +88,27 @@ func (s *Service) ResetPayment(ctx context.Context) error {
 func (s *Service) TogglePayment(ctx context.Context, id int) error {
 	config, err := s.memberRepo.GetMember(ctx, id)
 	if err != nil {
-		return err
+		return model.WrapGormError(err)
 	}
 	config.HasPaid = !config.HasPaid
 	_, err = s.memberRepo.CreateOrUpdateMember(ctx, config)
-	return err
-}
-
-func (s *Service) GetNotPayingMembers(ctx context.Context) ([]model.Member, error) {
-	hasPaid := false
-	idiots, err := s.memberRepo.ListMembers(ctx, model.MemberRequestParams{HasPaid: &hasPaid})
-	if err != nil {
-		return nil, model.WrapGormError(err)
-	}
-
-	return idiots, nil
+	return model.WrapGormError(err)
 }
 
 func (s *Service) Punish(ctx context.Context) error {
-	nonPayers, err := s.GetNotPayingMembers(ctx)
+	hasPaid := false
+	isOccupied := true
+
+	nonPayers, err := s.roomRepo.ListRooms(ctx, model.RoomRequestParams{HasPaid: &hasPaid, IsOccupied: &isOccupied})
 	if err != nil {
-		return err
+		return model.WrapGormError(err)
 	}
 	ids := make([]int, len(nonPayers))
 	for i, p := range nonPayers {
-		ids[i] = p.NetConfigID
+		if p.Member == nil {
+			continue
+		}
+		ids[i] = p.Member.NetConfigID
 	}
 	err = s.netRepo.Deactivate(ctx, ids)
 	if err != nil {

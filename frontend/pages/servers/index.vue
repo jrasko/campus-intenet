@@ -61,6 +61,7 @@
   </v-row>
 </template>
 <script lang="ts" setup>
+  import {listServers, deleteServer} from "~/utils/fetch_netconfig";
   import {serverFilter} from "~/utils/constants";
 
   const emit = defineEmits(['logout'])
