@@ -100,83 +100,84 @@
 </template>
 
 <script lang="ts" setup>
-import {toInputMember} from "~/utils/utils";
+  import {toInputMember, formatMac} from "~/utils/utils";
+  import {getMemberConfigFor} from "~/utils/fetch_members";
 
-const props = defineProps<{ prefetchId?: string, room?: string }>()
-
-const member = ref<InputMember>({
-  id: 0,
-  firstname: '',
-  lastname: '',
-  roomNr: '',
-  isFurnished: true,
-  dhcpConfig: {
+  const props = defineProps<{ prefetchId?: string, room?: string }>()
+  
+  const member = ref<InputMember>({
     id: 0,
-    mac: '',
-    ip: '',
-    disabled: false
-  },
-  phone: '',
-  email: '',
-  hasPaid: false,
-  comment: '',
-  nationality: '',
-  movedIn: new Date().toISOString().split('T')[0],
-})
-
-const date = ref<Date>(new Date())
-
-const availableRooms = ref<Room[]>([])
-
-onMounted(() => nextTick(() => {
-  if (props.prefetchId != undefined) {
-    prefetchForID(<string>props.prefetchId)
+    firstname: '',
+    lastname: '',
+    roomNr: '',
+    isFurnished: true,
+    dhcpConfig: {
+      id: 0,
+      mac: '',
+      ip: '',
+      disabled: false
+    },
+    phone: '',
+    email: '',
+    hasPaid: false,
+    comment: '',
+    nationality: '',
+    movedIn: new Date().toISOString().split('T')[0],
+  })
+  
+  const date = ref<Date>(new Date())
+  
+  const availableRooms = ref<Room[]>([])
+  
+  onMounted(() => nextTick(() => {
+    if (props.prefetchId != undefined) {
+      prefetchForID(<string>props.prefetchId)
+    }
+    if (props.room != undefined) {
+      member.value.roomNr = props.room
+    }
+    fetchAvailableRooms()
+  }))
+  
+  function updateMac() {
+    member.value.dhcpConfig.mac = formatMac(member.value.dhcpConfig.mac)
   }
-  if (props.room != undefined) {
-    member.value.roomNr = props.room
+  
+  async function prefetchForID(id: string) {
+    try {
+      const data: MemberConfig = await getMemberConfigFor(id)
+      member.value = toInputMember(data)
+      availableRooms.value.unshift({
+        roomNr: data.room.roomNr,
+        wg: data.room.wg,
+        block: ''
+      })
+      // date.value = new Date(member.value.movedIn) // let this out since we change this date mostly to recent move-ins
+    } catch (error) {
+      console.log(error)
+    }
   }
-  fetchAvailableRooms()
-}))
-
-function updateMac() {
-  member.value.dhcpConfig.mac = formatMac(member.value.dhcpConfig.mac)
-}
-
-async function prefetchForID(id: string) {
-  try {
-    const data: MemberConfig = await getMemberConfigFor(id)
-    member.value = toInputMember(data)
-    availableRooms.value.unshift({
-      roomNr: data.room.roomNr,
-      wg: data.room.wg,
-      block: ''
-    })
-    date.value = new Date(member.value.movedIn)
-  } catch (error) {
-    console.log(error)
+  
+  function setDate(){
+    const offset = date.value.getTimezoneOffset()
+    let d = new Date(date.value.getTime() - (offset*60*1000))
+    member.value.movedIn = d.toISOString().split('T')[0]
   }
-}
-
-function setDate(){
-  const offset = date.value.getTimezoneOffset()
-  let d = new Date(date.value.getTime() - (offset*60*1000))
-  member.value.movedIn = d.toISOString().split('T')[0]
-}
-
-async function fetchAvailableRooms() {
-  try {
-    const data: Room[] = await fetchRooms({occupied: false, block: []})
-    availableRooms.value = availableRooms.value.concat(data)
-  } catch (error) {
-    console.error(error)
+  
+  async function fetchAvailableRooms() {
+    try {
+      const data: Room[] = await fetchRooms({occupied: false, block: []})
+      availableRooms.value = availableRooms.value.concat(data)
+    } catch (error) {
+      console.error(error)
+    }
   }
-}
-
-function roomMapper(item: Room) {
-  return {
-    title: item.roomNr,
-    value: item.roomNr,
-    subtitle: item.wg,
+  
+  function roomMapper(item: Room) {
+    return {
+      title: item.roomNr,
+      value: item.roomNr,
+      subtitle: item.wg,
+    }
   }
-}
 </script>

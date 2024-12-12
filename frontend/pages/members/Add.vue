@@ -4,6 +4,8 @@
 </template>
 
 <script lang="ts" setup>
+  import {createMemberConfig} from "~/utils/fetch_members";
+
   const route = useRoute()
 
   const modal = ref({

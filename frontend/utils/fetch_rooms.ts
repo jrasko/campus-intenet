@@ -1,14 +1,16 @@
-import type {AsyncData} from "#app";
 import {authHeader, getBaseURL} from "~/utils/utils";
 
-export function fetchRooms(filters: RoomFilters): Promise<AsyncData<Room[], any>> {
-    return $fetch('/api/rooms', {
+export function fetchRooms(filters: RoomFilters): Promise<Room[]> {
+    return $fetch<Room[]>('/api/rooms', {
             baseURL: getBaseURL(),
             method: "GET",
             headers: authHeader(),
             params: {
                 occupied: filters.occupied,
-                block: filters.block
+                search: filters.search,
+                disabled: filters.disabled,
+                wg: filters.wg,
+                payment: filters.payment
             },
             parseResponse: jsonTransform<Room[]>
         }

@@ -10,6 +10,10 @@ func (h Handler) ListRooms() http.HandlerFunc {
 		params := model.RoomRequestParams{
 			IsOccupied: boolFilter(req, "occupied"),
 			Blocks:     req.URL.Query()["block"],
+			Search:     req.FormValue("search"),
+			HasPaid:    boolFilter(req, "payment"),
+			Disabled:   boolFilter(req, "disabled"),
+			WG:         stringFilter(req, "wg"),
 		}
 		rooms, err := h.roomService.ListRooms(req.Context(), params)
 		if err != nil {

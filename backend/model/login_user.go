@@ -17,9 +17,11 @@ const (
 	RoleViewer  Role = "viewer"
 )
 
+type ContextKey string
+
 const (
-	FieldUsername = "username"
-	FieldRole     = "role"
+	FieldUsername ContextKey = "username"
+	FieldRole     ContextKey = "role"
 )
 
 type LoginUser struct {

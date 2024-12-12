@@ -12,10 +12,10 @@ func (r Repository) ListRooms(ctx context.Context, params model.RoomRequestParam
 
 	tx := r.db.
 		WithContext(ctx).
-		Joins("Member")
+		Joins("Member").
+		Joins("Member.NetConfig")
 	tx = params.Apply(tx)
 	err := tx.
-		Order("number").
 		Find(&rooms).
 		Error
 	return rooms, err

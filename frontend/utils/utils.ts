@@ -19,17 +19,6 @@ export function formatMac(str: string): string {
     return out
 }
 
-export function MemberCompare(field: keyof MemberConfig) {
-    return function (a: MemberConfig, b: MemberConfig) {
-        let aVal = a[field]
-        let bVal = b[field]
-        if (typeof aVal === 'string') {
-            return aVal.localeCompare(<string>bVal)
-        }
-        return aVal === bVal ? 0 : aVal ? -1 : 1
-    }
-}
-
 export function toInputMember(i: MemberConfig): InputMember {
     return {
         id: i.id,

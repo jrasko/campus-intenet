@@ -34,7 +34,6 @@ type MemberRepository interface {
 
 	CreateOrUpdateMember(ctx context.Context, member model.Member) (model.Member, error)
 	GetMember(ctx context.Context, id int) (model.Member, error)
-	ListMembers(ctx context.Context, params model.MemberRequestParams) ([]model.Member, error)
 	DeleteMember(ctx context.Context, id int) error
 }
 

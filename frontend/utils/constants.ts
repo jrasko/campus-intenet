@@ -1,100 +1,115 @@
 export const tableData: Columns = {
+    occupied: {
+      header: 'Belegt',
+      field: 'member',
+      key: 'occupied',
+      kind: 'bool',
+      banNull: false
+    },
+    roomNr: {
+      key: 'roomNr',
+      header: 'Zimmer-Nr.',
+      field: 'roomNr',
+      kind: 'text'
+    },
+    wg: {
+      header: 'WG',
+      field: 'wg',
+      key: 'wg',
+      kind: 'text'
+    },
     firstname: {
         header: 'Vorname',
-        field: 'firstname',
+        field: 'member.firstname',
         key: 'firstname',
         kind: 'text'
     },
     lastname: {
         header: 'Nachname',
-        field: 'lastname',
+        field: 'member.lastname',
         key: 'lastname',
         kind: 'text'
     },
+    comment: {
+      header: 'Kommentar',
+      field: 'member.comment',
+      key: 'comment',
+      kind: 'text'
+    },
     mac: {
         header: 'MAC',
-        field: 'dhcpConfig.mac',
+        field: 'member.dhcpConfig.mac',
         key: 'mac',
-        kind: 'text'
-    },
-    roomNr: {
-        key: 'roomNr',
-        header: 'Zimmer-Nr.',
-        field: 'room.roomNr',
-        kind: 'text'
-    },
-    wg: {
-        header: 'WG',
-        field: 'room.wg',
-        key: 'wg',
         kind: 'text'
     },
     email: {
         header: 'E-Mail',
-        field: 'email',
+        field: 'member.email',
         key: 'email',
         kind: 'text'
     },
     phone: {
         header: 'Telefonnr.',
-        field: 'phone',
+        field: 'member.phone',
         key: 'phone',
         kind: 'text'
     },
     ip: {
         header: 'IP',
-        field: 'dhcpConfig.ip',
+        field: 'member.dhcpConfig.ip',
         key: 'ip',
         kind: 'text'
     },
     isFurnished: {
         header: 'Möbliert',
-        field: 'isFurnished',
+        field: 'member.isFurnished',
         key: 'isFurnished',
-        kind: 'bool'
+        kind: 'bool',
+        banNull: true
     },
     manufacturer: {
         header: 'Hersteller',
-        field: 'dhcpConfig.manufacturer',
+        field: 'member.dhcpConfig.manufacturer',
         key: 'manufacturer',
         kind: 'text'
     },
-    comment: {
-        header: 'Kommentar',
-        field: 'comment',
-        key: 'comment',
-        kind: 'text'
-    },
     movedIn: {
-        header: 'Einzug',
-        field: 'movedIn',
+        header: 'Einzugsdatum',
+        field: 'member.movedIn',
         key: 'movedIn',
         kind: 'text'
     },
     nationality: {
       header: 'Nationalität',
-      field: 'nationality',
+      field: 'member.nationality',
       key: 'nationality',
       kind: 'text'
     },
     createdAt: {
         header: 'Erstellt',
-        field: 'createdAt',
+        field: 'member.createdAt',
         key: 'createdAt',
         kind: 'date'
     },
     updatedAt: {
         header: 'Bearbeitet',
-        field: 'updatedAt',
+        field: 'member.updatedAt',
         key: 'updatedAt',
         kind: 'date'
     },
     lastEditor: {
         header: 'Editor',
-        field: 'lastEditor',
+        field: 'member.lastEditor',
         key: 'lastEditor',
         kind: 'text'
     }
+}
+
+interface ManageFilterList {
+  payment: { header: string, value: boolean | null }[]
+  disabled: { header: string, value: boolean | null }[]
+  occupied: { header: string, value: boolean | null }[]
+  block: { header: string, value: Block | null }[]  
 }
 
 export const manageFilter: ManageFilterList = {
@@ -125,25 +140,27 @@ export const manageFilter: ManageFilterList = {
             header: 'Deaktiviert',
             value: true
         }
+    ],
+    block: [],
+    occupied: [
+      {
+        header: 'Alle',
+        value: null
+      },
+      {
+        header: 'Belegt',
+        value: true
+      },
+      {
+        header: 'Unbelegt',
+        value: false
+      }
     ]
 }
 
-export const roomFiler: RoomFilterList = {
-    block: [],
-    occupied: [
-        {
-            header: 'Alle',
-            value: null
-        },
-        {
-            header: 'Belegt',
-            value: true
-        },
-        {
-            header: 'Unbelegt',
-            value: false
-        }
-    ]
+interface ServerFilterList {
+  disabled: { header: string, value: boolean | null }[]
+  server: { header: string, value: boolean | null }[]
 }
 
 export const serverFilter: ServerFilterList = {

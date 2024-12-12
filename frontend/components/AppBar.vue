@@ -1,8 +1,7 @@
 <template>
   <v-app-bar density="compact" justify="space-between">
     <v-icon/>
-    <v-btn v-if="props.loggedIn" append-icon="mdi-account" @click="navigateTo('/')">Personen</v-btn>
-    <v-btn v-if="props.loggedIn" append-icon="mdi-bed" @click="navigateTo('/rooms')">Räume</v-btn>
+    <v-btn v-if="props.loggedIn" append-icon="mdi-bed" @click="()=> {navigateTo('/')}">Räume</v-btn>
     <v-btn v-if="props.loggedIn && props.role == roles.admin" append-icon="mdi-server" @click="navigateTo('/servers')">
       Server
     </v-btn>
@@ -14,12 +13,10 @@
 </template>
 <script lang="ts" setup>
   import {useTheme} from "vuetify";
-  import {roles} from "~/utils/utils";
   
   const theme = useTheme()
   
   const props = defineProps<{ loggedIn: boolean, role: string }>()
-  
   
   function toggleTheme() {
     theme.global.name.value = theme.global.current.value.dark ? 'light' : 'dark'

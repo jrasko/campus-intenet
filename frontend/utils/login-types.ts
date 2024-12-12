@@ -1,9 +1,9 @@
-interface Credentials {
+export interface Credentials {
     username: string,
     password: string
 }
 
-interface LoginResponse {
+export interface LoginResponse {
     token: string,
     role: string,
     username: string

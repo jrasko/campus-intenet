@@ -1,27 +1,6 @@
-import type {AsyncData} from "#app";
 import {authHeader, getBaseURL} from "~/utils/utils";
 
-export async function getMemberConfigs(filters: ManageFilters): Promise<AsyncData<MemberConfig[], any>> {
-    if (filters.search === '') {
-        filters.search = null
-    }
-    return $fetch('/api/members', {
-            baseURL: getBaseURL(),
-            method: "GET",
-            headers: authHeader(),
-            params: {
-                search: filters.search,
-                hasPaid: filters.payment,
-                disabled: filters.disabled,
-                wg: filters.wg
-            },
-            server: false,
-            parseResponse: jsonTransform<MemberConfig[]>
-        }
-    )
-}
-
-export function createMemberConfig(cfg: InputMember): Promise<AsyncData<any, any>> {
+export function createMemberConfig(cfg: InputMember): Promise<any> {
     return $fetch('/api/members', {
             baseURL: getBaseURL(),
             method: "POST",
@@ -31,7 +10,7 @@ export function createMemberConfig(cfg: InputMember): Promise<AsyncData<any, any
     )
 }
 
-export function updateMemberConfig(cfg: InputMember): Promise<AsyncData<any, any>> {
+export function updateMemberConfig(cfg: InputMember): Promise<any> {
     return $fetch('/api/members/' + cfg.id, {
             baseURL: getBaseURL(),
             method: "PUT",
@@ -41,8 +20,8 @@ export function updateMemberConfig(cfg: InputMember): Promise<AsyncData<any, any
     )
 }
 
-export function getMemberConfigFor(id: string): Promise<AsyncData<MemberConfig, any>> {
-    return $fetch('/api/members/' + id, {
+export function getMemberConfigFor(id: string): Promise<MemberConfig> {
+    return $fetch<MemberConfig>('/api/members/' + id, {
             baseURL: getBaseURL(),
             method: "GET",
             headers: authHeader(),
@@ -51,7 +30,7 @@ export function getMemberConfigFor(id: string): Promise<AsyncData<MemberConfig, 
     )
 }
 
-export function deleteMemberConfigFor(id: number): Promise<AsyncData<any, any>> {
+export function deleteMemberConfigFor(id: number): Promise<any> {
     return $fetch('/api/members/' + id, {
             baseURL: getBaseURL(),
             method: "DELETE",
@@ -60,7 +39,7 @@ export function deleteMemberConfigFor(id: number): Promise<AsyncData<any, any>> 
     )
 }
 
-export function resetPayments(): Promise<AsyncData<any, any>> {
+export function resetPayments(): Promise<any> {
     return $fetch('/api/members/resetPayment', {
             baseURL: getBaseURL(),
             method: "POST",
@@ -69,17 +48,7 @@ export function resetPayments(): Promise<AsyncData<any, any>> {
     )
 }
 
-export function getShameList(): Promise<AsyncData<any, any>> {
-    return $fetch('/api/shame', {
-            baseURL: getBaseURL(),
-            method: "GET",
-            headers: authHeader(),
-            parseResponse: jsonTransform<ReducedPerson[]>
-        }
-    )
-}
-
-export function togglePayment(id: number): Promise<AsyncData<any, any>> {
+export function togglePayment(id: number): Promise<any> {
     return $fetch('/api/members/' + id + '/togglePayment', {
             baseURL: getBaseURL(),
             method: "POST",
@@ -88,7 +57,7 @@ export function togglePayment(id: number): Promise<AsyncData<any, any>> {
     )
 }
 
-export function toggleNetworkActivation(id: number): Promise<AsyncData<any, any>> {
+export function toggleNetworkActivation(id: number): Promise<any> {
     return $fetch('/api/net-configs/' + id + '/toggleActivation', {
             baseURL: getBaseURL(),
             method: "POST",
@@ -97,7 +66,7 @@ export function toggleNetworkActivation(id: number): Promise<AsyncData<any, any>
     )
 }
 
-export function punish(): Promise<AsyncData<any, any>> {
+export function punish(): Promise<any> {
     return $fetch('/api/members/punish', {
             baseURL: getBaseURL(),
             method: "POST",
@@ -106,8 +75,8 @@ export function punish(): Promise<AsyncData<any, any>> {
     ) 
 }
 
-export function loginUser(credentials: Credentials): Promise<AsyncData<LoginResponse, any>> {
-    return $fetch('/api/login', {
+export function loginUser(credentials: Credentials): Promise<LoginResponse> {
+    return $fetch<LoginResponse>('/api/login', {
             baseURL: getBaseURL(),
             method: "POST",
             headers: authHeader(),

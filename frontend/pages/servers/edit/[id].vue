@@ -5,6 +5,8 @@
 </template>
 
 <script lang="ts" setup>
+  import {updateServer} from "~/utils/fetch_netconfig";
+
   const route = useRoute()
   const modal = ref({
     failure: false,

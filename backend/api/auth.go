@@ -169,6 +169,6 @@ func CreateJWT(user model.LoginUser, secret string) (string, error) {
 		return token.SignedString(bytes)
 	}
 
-	fmt.Printf("[WARNING] could not parse hmac secret as Base64")
+	log.Printf("[WARNING] could not parse hmac secret as Base64")
 	return token.SignedString([]byte(secret))
 }
