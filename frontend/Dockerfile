@@ -1,4 +1,4 @@
-FROM node:lts-alpine as build
+FROM node:lts-alpine3.21 as build
 WORKDIR /app
 COPY package*.json ./
 RUN npm clean-install
@@ -9,4 +9,3 @@ FROM build
 COPY --from=build /app/.output /app/.output
 EXPOSE 3000
 CMD [ "node", ".output/server/index.mjs" ]
-

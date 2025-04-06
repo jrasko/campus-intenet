@@ -19,7 +19,7 @@ services:
       - "5432"
   traefik:
     restart: unless-stopped
-    image: traefik:v3.2
+    image: traefik:v3.3
     container_name: dhcp_traefik
     networks:
       - traefik
@@ -51,8 +51,10 @@ services:
     build: ../backend
     container_name: dhcp_backend
     depends_on:
-      - database
-      - dhcp4
+      database:
+        condition: service_healthy
+      dhcp4:
+        condition: service_healthy
     labels:
       traefik.enable: true
       traefik.docker.network: "traefik"
@@ -68,7 +70,7 @@ services:
       - ./login-users.json:/app/login-users.json
   dhcp4:
     container_name: dhcp4-server
-    image: docker.cloudsmith.io/isc/docker/kea-dhcp4:2.6.1
+    image: docker.cloudsmith.io/isc/docker/kea-dhcp4:2.6.2
     restart: unless-stopped
     networks:
       - kea-lan
