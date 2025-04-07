@@ -8,7 +8,7 @@
     </v-container>
     <v-spacer />
     <footer>
-      <v-footer height="30" class="justify-end">2024 @Jannik Raskob</v-footer>
+      <v-footer height="30" class="justify-end">2025 @Jannik Raskob</v-footer>
     </footer>
   </v-app>
 </template>
