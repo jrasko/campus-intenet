@@ -29,9 +29,10 @@ I use arch btw.
     * [Authentifikation](#authentifikation)
         * [Erläuterung](#erläuterung)
         * [Konfiguration](#konfiguration-1)
-    * [Passwort Hash](#passwort-hash)
-        * [Erläuterung](#erläuterung-1)
-        * [Hash aus Passwort erstellen](#hash-aus-passwort-erstellen)
+        * [Nutzerverwaltung](#nutzerverwaltung)
+        * [Passwort Hash](#passwort-hash)
+            * [Erläuterung](#erläuterung-1)
+            * [Hash aus Passwort erstellen](#hash-aus-passwort-erstellen)
     * [CIDR](#cidr)
     * [Sonstiges](#sonstiges)
 * [Nutzung und Debugging](#nutzung-und-debugging)
@@ -79,8 +80,8 @@ Der DHCP-Server nutzt das *Dynamic Host Configuration Protocol v4 (DHCPv4)* um G
 zuzuteilen.
 Wir nutzen in dieser Anwendung den [Kea DHCP Server](https://www.isc.org/kea/). Dieser wird in der kea-dhcp4.conf
 konfiguriert.
-Die Dokumentation zur Konfiguration der hier verwendet *Kea Version 2.4.0* findet sich hier:
-https://kea.readthedocs.io/en/kea-2.4.0
+Die Dokumentation zur Konfiguration der hier verwendet *Kea Version 2.6.2* findet sich hier:
+https://kea.readthedocs.io/en/kea-2.6.2
 
 ### Frontend
 
@@ -127,8 +128,8 @@ Rechner anzuschaffen, sind wahrscheinlich ausnahmslos alle Prozessoren auf dem M
 ## Anforderungen an Software
 
 Es sollte ein modernes und verbreitetes Betriebssystem installiert werden, idealerweise eine aktuelle Linux-Distribution
-mit großer Community und einfacher Bedienung. Es sollte eine Long-Term-Support (LTS) Variante verwendet werden. Wir
-nutzen das aktuellste Ubuntu LTS 22.04
+mit großer Community und einfacher Bedienung. Es sollte eine Long-Term-Support (LTS) Variante verwendet werden.
+Wir nutzen das aktuellste Ubuntu LTS 22.04
 
 ## Installation von Docker
 
@@ -143,24 +144,25 @@ Die Anwendung selbst besteht aus einem Ordner mit mehreren Unterordnern und befi
 unter https://github.com/jrasko/campus-intenet.
 Es existieren 2 Möglichkeiten, die Anwendung zu installieren:
 
-1. (empfohlen) Es wird *git* verwendet werden. Unter Ubuntu lässt sich *git* ganz einfach mit dem Paketmanager
-   installieren: `sudo apt-get insall git`. Mithilfe von *git* kann man sich den Ordner mit folgendem Befehl auf den
-   eigenen
-   Rechner kopieren: `git clone https://github.com/jrasko/campus-intenet.git`.
+1. (empfohlen) Verwendung von *git*.
+   Unter Ubuntu lässt sich *git* ganz einfach mit dem Paketmanager installieren: `sudo apt-get insall git`.
+   Mithilfe von *git* kann man sich den Ordner mit folgendem Befehl auf den eigenen Rechner kopieren:
+   `git clone https://github.com/jrasko/campus-intenet.git`.
 
-2. Alternativ kann man sich die Dateien als ZIP-Ordner auf der GitHub Seite herunterladen und entpacken. Diese Methode
-   wirkt einfacher, hat allerdings nicht die Vorteile, die eine Versionskontrolle wie *git* bietet.
+2. Alternativ kann man sich die Dateien als ZIP-Ordner auf der GitHub Seite herunterladen und entpacken.
+   Diese Methode wirkt einfacher, hat allerdings nicht die Vorteile, die eine Versionskontrolle wie *git* bietet.
 
 ## Ordner
 
-Im Ordner befinden sich neben dieser README.md Datei 3 Unterordner.
+Im Ordner befinden sich neben dieser README.md Datei drei Unterordner.
 Konfigurieren, Starten und Stoppen der Anwendung findet im Unterordner **infrastructure** statt.
 
 Die anderen beiden Ordner sind nur dann relevant, wenn an der Programmierung der Services etwas geändert
 werden soll.
 **backend** enthält den in *go* oder *golang* geschriebenen backend-Service, dessen Aufgabe bereits [oben](#backend)
-schon erläutert wurde. In **frontend** befindet sich die in Vue.js geschriebene Webanwendung, auch diese wurde bereits
-in einem [oberen Abschnitt](#frontend) beschrieben.
+schon erläutert wurde.
+In **frontend** befindet sich die in Vue.js geschriebene Webanwendung, auch diese wurde bereits in
+einem [oberen Abschnitt](#frontend) beschrieben.
 
 # Konfiguration
 
@@ -170,11 +172,11 @@ Hier eine Vorlage für eine Standardkonfiguration:
 
 ```
 POSTGRES_PASSWORD= # >= 20 zufällige Bytes
-LOGIN_USER= # beliebiger nutzername
-LOGIN_PASSWORD_HASH= # generiert mit argon2
 HMAC_SECRET= # 64 zufällige Bytes
 CIDR= # Subnetzmaske mit erster vergebenen IP
 ```
+
+Zusätzlich müssen Nutzer angelegt werden, siehe [das entsprechende Kapitel](#nutzerverwaltung)
 
 ## Konfiguration mit einer env-Datei
 
@@ -192,19 +194,18 @@ ANDERE_UMGEBUNGSVARIABLE=anderer-Wert
 
 Es können die folgenden Konfigurationen in *.env* hinterlegt werden.
 
-| Name                | Pflicht | Services   | Details                               |
-|---------------------|---------|------------|---------------------------------------|
-| POSTGRES_HOST       |         | Backend,DB | [DB/Postgres](#dbpostgres)            |
-| POSTGRES_DB         |         | Backend,DB | [DB/Postgres](#dbpostgres)            |
-| POSTGRES_USER       |         | Backend,DB | [DB/Postgres](#dbpostgres)            |
-| POSTGRES_PASSWORD   | X       | Backend,DB | [DB/Postgres](#dbpostgres)            |
-| LOGIN_USER          | X       | Backend    | [Authentifikation](#authentifikation) |
-| LOGIN_PASSWORD_HASH | X       | Backend    | [Authentifikation](#authentifikation) |
-| HMAC_SECRET         | X       | Backend    | [Authentifikation](#authentifikation) |
-| CIDR                | X       | Backend    | [CIDR](#cidr)                         |
-| SKIP_DHCP_RELOAD    |         | Backend    | [Sonstiges](#sonstiges)               |
-| URL                 |         | Backend    | [Sonstiges](#sonstiges)               |
-| OUTPUT_FILE         |         | Backend    | [Sonstiges](#sonstiges)               |
+| Name              | Pflicht | Services   | Details                               |
+|-------------------|---------|------------|---------------------------------------|
+| POSTGRES_HOST     |         | Backend,DB | [DB/Postgres](#dbpostgres)            |
+| POSTGRES_DB       |         | Backend,DB | [DB/Postgres](#dbpostgres)            |
+| POSTGRES_USER     |         | Backend,DB | [DB/Postgres](#dbpostgres)            |
+| POSTGRES_PASSWORD | X       | Backend,DB | [DB/Postgres](#dbpostgres)            |
+| HMAC_SECRET       | X       | Backend    | [Authentifikation](#authentifikation) |
+| USER_FILE_PATH    |         | Backend    | [Authentifikation](#authentifikation) |
+| CIDR              | X       | Backend    | [CIDR](#cidr)                         |
+| SKIP_DHCP_RELOAD  |         | Backend    | [Sonstiges](#sonstiges)               |
+| URL               |         | Backend    | [Sonstiges](#sonstiges)               |
+| OUTPUT_FILE       |         | Backend    | [Sonstiges](#sonstiges)               |
 
 ## Zufallszahlen
 
@@ -244,45 +245,67 @@ ausschließlich in der .env Datei vorhanden sein.
 
 Damit ergeben sich folgende Konfigurationen:
 
-- *LOGIN_USER* ist der verwendete Nutzername, der auch im frontend angegeben werden muss
-- *LOGIN_PASSWORD_HASH* ist der Hash des Passwortes, näheres dazu im [nächsten Abschnitt](#passwort-hash)
-- *HMAC_SECRET* ist das bereits erläuterte Secret, mit dem die Token signiert werden. Als Wert sollten 64 zufällige
-  Bytes mit einem [kryptografischen Zufallsgenerator](#zufallszahlen) erzeugt werden.
+- *HMAC_SECRET* ist das bereits erläuterte Secret, mit dem die Token signiert werden.
+  Als Wert sollten 64 zufällige Bytes mit einem [kryptografischen Zufallsgenerator](#zufallszahlen) erzeugt werden.
+- Einzelne Nutzer lassen sich in der Datei _login_users.json_ verwalten, siehe
+  Abschnitt [Nutzerverwaltung](#nutzerverwaltung)
 
-## Passwort Hash
+### Nutzerverwaltung
 
-### Erläuterung
+In der Datei _login_users.json_ werden Nutzer, Rollen und Passwörter verwaltet, die Datei ist
+im [JSON](https://de.wikipedia.org/wiki/JSON) Format und sieht dabei wie folgt aus:
+
+```json
+[
+  {
+    "username": "<user>",
+    "role": "<role>",
+    "passwordHash": "<hash>"
+  },
+  {
+    "username": "moneyboy",
+    "role": "financer",
+    "passwordHash": "$argon2id$v=19$m=1048576,t=1,p=4$Z2xXYm40WUpaN1VubkNVdDZXbWovUT09$r+3eWWe5+JP9+hH1JHmIWHCACZ8iF7Ghz4LyH576DbU"
+  },
+  ...
+]
+```
+
+Man beachte, dass die Einträge mit einem Komma separiert werden müssen, hinter dem letzten Eintrag darf kein Komma
+stehen.
+
+Der Nutzername im Feld `username` kann frei gewählt werden. Die Rolle im Feld `role` muss eine der Folgenden sein:
+
+* "admin" // Nutzt alle Funktionen und hat eine Zusatzoberfläche um MACs freizuschalten, die keinem Nutzer zugeordnet
+  sind
+* "editor" // Kann Nutzer editieren, jedoch nicht direkt die Internetaktivierung auf der Übersicht editieren
+* "financer" // Kann die Zahlung von Nutzern ändern
+* "viewer" // Kann Einträge sehen, aber nicht editieren
+
+Das Feld `passwordHash` hält einen kryptografischen Hash vom Passwort des Benutzers,
+im [folgenden Kapitel](#passwort-hash) wird erklärt wie dieser erstellt wird.
+
+### Passwort Hash
+
+#### Erläuterung
 
 Um zu verhindern, dass ein Angreifer im Falle einer schweren Sicherheitslücke das Passwort möglicherweise mehrfach
-verwendete Passwort im Klartext auslesen kann, wird in der .env Datei ein Hash-Wert des Passwortes gespeichert. Ein
-kryptografischer Hash ist eine Einwegfunktion, sodass sich nicht aus dem Hash auf das Passwort schließen lässt.
+verwendete Passwort im Klartext auslesen kann, wird in der login-users.json Datei ein Hash-Wert des Passwortes
+gespeichert.
+Ein kryptografischer Hash ist eine Einwegfunktion, sodass sich nicht aus dem Hash auf das Passwort schließen lässt.
 
-Als Hashfunktion nutzen wir Argon2ID, welche Schutzfunktionen gegen Angriffe mit spezialisierter Hardware oder mit
-mehreren Threads anbietet. Argon2ID kann über verschiedene Parameter eingestellt werden:
+#### Hash aus Passwort erstellen
 
-- _Memory_ ist die Belastung des Arbeitsspeichers zur Berechnung des Hashes.
-- _Parallelism_: Die Anzahl an aufzuwendenden Threads. Muss eine Zahl zwischen 1 und den zur Verfügung stehenden
-  CPU-Kernen sein.
-- _Salt_ sollte mindestens aus 16 [zufälligen Bytes](#zufallszahlen) bestehen
-- _KeyLength_ 32 Bytes empfohlen, sollte nur aus gutem Grund geändert werden
-- _Iterations_ gibt an, wie lange die Berechnung dauert. Am besten werden erst alle anderen Faktoren eingestellt und
-  _Iterations_ auf 1 gesetzt. Erst danach sollte Iterations so eingestellt werden, dass Generierung eines Hashes etwa 1s
-  dauert.
-
-_Memory_ und _Parallelism_ sollten so eingestellt werden, ohne dass durch das Hashing so viele Ressourcen
-beansprucht werden, dass andere Prozesse gestört werden. So hoch wie möglich, so niedrig wie nötig.
-
-### Hash aus Passwort erstellen
-
-Unter Ubuntu kann das Programm _argon2_ benutzt werden. Es kann mit `sudo apt-get install argon2` installiert
-werden.<br>
+Unter Ubuntu kann das Skript *hash_password.sh* im "infrastrucure" Ordner verwendet werden.
+Es benötigt das Programm argon2, dieses kann mit `sudo apt-get install argon2` installiert werden.<br>
 Es wird wie folgt benutzt:
 
 ```
-echo -n <password> | argon2 <salt> -id -m <memory> -p <parallelism> -t <iterations>
+./hash_password.sh
 ```
 
-KeyLength 32 ist bereits der Standardwert. Mit `argon2 -h` wird der Befehl erklärt und Einheiten angezeigt.
+Beim Ausführen muss zunächst ein Passwort angegeben werden (achtung, das passwort ist beim Tippen ausgeblendet).
+Das Ergebnis wird
 
 Das Programm gibt sowohl den Hash, der in die Konfiguration übernommen werden kann, als auch die benötigte Zeit an.
 
@@ -344,7 +367,7 @@ Folgendes Kommando erstellt ein Backup der Datenbank, die als Docker Container m
 und speichert es in der Datei `<Ordner>/backup_<Datum>`
 
 ```
-docker exec -t <containerName> pg_dumpall -c -U postgres > <Ordner>/backup_`date +%d-%m-%Y"_"%H_%M_%S`.dump
+docker exec -t <containerName> pg_dumpall -c -U postgres > <Ordner>/backup_`date +%Y-%m-%d"_"%H:%M:%S`.dump
 ```
 
 Mit dem folgenden Befehl lässt sich ein backup in der Datenbank einspielen:
