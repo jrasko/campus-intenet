@@ -1,11 +1,11 @@
-FROM node:lts-alpine3.21 as build
+FROM node:lts-alpine3.23 as build
 WORKDIR /app
 COPY package*.json ./
 RUN npm clean-install
 COPY . .
 RUN npm run build
 
-FROM build
-COPY --from=build /app/.output /app/.output
-EXPOSE 3000
-CMD [ "node", ".output/server/index.mjs" ]
+FROM nginx:stable-alpine
+COPY --from=build /app/.output /usr/share/nginx/html
+EXPOSE 80
+CMD [ "nginx", "-g", "daemon off;" ]
