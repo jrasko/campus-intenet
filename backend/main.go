@@ -16,7 +16,6 @@ import (
 )
 
 type application struct {
-	url        string
 	service    api.MemberService
 	repository service.MemberRepository
 	router     http.Handler
@@ -52,13 +51,12 @@ func newApplication(config model.Configuration) (*application, error) {
 	return &application{
 		repository: repo,
 		service:    srv,
-		url:        config.URL,
 		router:     router,
 	}, nil
 }
 
 func (app application) start() {
-	log.Println("[INFO] Listening at " + app.url)
-	err := http.ListenAndServe(app.url, app.router)
+	log.Println("[INFO] Listening at :8080")
+	err := http.ListenAndServe(":8080", app.router)
 	panic(err)
 }

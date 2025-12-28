@@ -19,8 +19,6 @@ type Configuration struct {
 	DBUser     string `env:"POSTGRES_USER,default=postgres"`
 	DBPassword string `env:"POSTGRES_PASSWORD,required"`
 
-	URL string `env:"URL,default=:8080"`
-
 	CIDR                 string `env:"CIDR,required"`
 	OutputFilepath       string `env:"OUTPUT_FILE,default=whitelist.json"`
 	SkipDhcpNotification bool   `env:"SKIP_DHCP_RELOAD,default=false"`

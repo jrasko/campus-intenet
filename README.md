@@ -2,10 +2,10 @@
 non-technical users, the following german documentation is written as non-technical as possible.
 
 I use arch btw.
+Repository: https://github.com/jrasko/campus-intenet
 
 ---
 <!-- TOC -->
-
 * [Schnelleinstieg](#schnelleinstieg)
 * [Übersicht](#übersicht)
     * [Aufgabe](#aufgabe)
@@ -46,15 +46,18 @@ I use arch btw.
 
 # Schnelleinstieg
 
-Du möchtest schnell loslegen ohne viel zu lesen? Los!
+TLDR? Los!
 
 1. Installiere Docker
 2. Lade den Ordner herunter
 3. Navigiere in den Unterordner *infrastructure*
 4. Erstelle eine Konfigurationsdatei `.env`, dazu kann diese [Vorlage](#schnellconfig) verwendet werden
 5. Erstelle ein Docker Volume für die Datenbank mit `docker volume create dhcp-db`, falls nicht vorhanden
-6. Starte die Anwendung mit `docker-compose up -d`
-7. Prüfe mit `docker ps` ob alles funktioniert hat
+6. Erstelle die Datei `login_users.json` im Ordner *infrastructure* und füge mindestens einen Nutzer hinzu, siehe
+   [Nutzerverwaltung](#nutzerverwaltung)
+7. Erstelle eine leere Datei `whitelist.json` im Ordner *infrastructure*
+8. Starte die Anwendung mit `docker-compose up -d`
+9. Prüfe mit `docker ps` ob alles funktioniert hat
 
 Etwas funktioniert nicht oder diese Anleitung ist zu ungenau? Dann hier die ausführliche Dokumentation:
 
@@ -80,15 +83,14 @@ Der DHCP-Server nutzt das *Dynamic Host Configuration Protocol v4 (DHCPv4)* um G
 zuzuteilen.
 Wir nutzen in dieser Anwendung den [Kea DHCP Server](https://www.isc.org/kea/). Dieser wird in der kea-dhcp4.conf
 konfiguriert.
-Die Dokumentation zur Konfiguration der hier verwendet *Kea Version 2.6.2* findet sich hier:
-https://kea.readthedocs.io/en/kea-2.6.2
+Die Dokumentation zur Konfiguration der hier verwendet *Kea Version 3.0.2* findet sich hier:
+https://kea.readthedocs.io/en/kea-3.0.2
 
 ### Frontend
 
 Das Frontend ist die Website, auf der Nutzer angelegt, bearbeitet oder gelöscht werden können. Es kann ganz normal über
 einen gängigen Webbrowser aufgerufen werden. Alle angezeigten Daten werden vom **Backend** abgefragt, alle Formulare
-werden
-an das **Backend** gesendet.
+werden an das **Backend** gesendet.
 
 ### Backend
 
@@ -196,20 +198,25 @@ Es können die folgenden Konfigurationen in *.env* hinterlegt werden.
 
 | Name              | Pflicht | Services   | Details                               |
 |-------------------|---------|------------|---------------------------------------|
+| CIDR              | X       | Backend    | [CIDR](#cidr)                         |
+| HMAC_SECRET       | X       | Backend    | [Authentifikation](#authentifikation) |
+| POSTGRES_PASSWORD | X       | Backend,DB | [DB/Postgres](#dbpostgres)            |
 | POSTGRES_HOST     |         | Backend,DB | [DB/Postgres](#dbpostgres)            |
 | POSTGRES_DB       |         | Backend,DB | [DB/Postgres](#dbpostgres)            |
 | POSTGRES_USER     |         | Backend,DB | [DB/Postgres](#dbpostgres)            |
-| POSTGRES_PASSWORD | X       | Backend,DB | [DB/Postgres](#dbpostgres)            |
-| HMAC_SECRET       | X       | Backend    | [Authentifikation](#authentifikation) |
-| USER_FILE_PATH    |         | Backend    | [Authentifikation](#authentifikation) |
-| CIDR              | X       | Backend    | [CIDR](#cidr)                         |
 | SKIP_DHCP_RELOAD  |         | Backend    | [Sonstiges](#sonstiges)               |
-| URL               |         | Backend    | [Sonstiges](#sonstiges)               |
 | OUTPUT_FILE       |         | Backend    | [Sonstiges](#sonstiges)               |
+| USER_FILE_PATH    |         | Backend    | [Sonstiges](#sonstiges)               |
 
+Eine minimale .env Datei sieht also wie folgt aus:
+```
+CIDR=<IP-Adresse>/<Subnetzmaske>
+HMAC_SECRET=<64 zufällige Bytes>
+POSTGRES_PASSWORD=<21 zufällige Bytes>
+```
 ## Zufallszahlen
 
-Mit folgendem Befehl lässt sich unter Linux eine zufällige Zeichenfolge erzeugen:
+Mit folgendem Befehl lässt sich unter Linux eine zufällige Zeichenfolge erzeugen, die dann als secret genutzt werden kann:
 
 ```
 head -c <Bytes> /dev/random | base64 -w 0
@@ -229,7 +236,7 @@ Datenbank als auch vom Backend eingelesen, damit das Backend eine Verbindung zur
 - *POSTGRES_DB* ist der Name der Standard-Datenbank. Dieser ist defaultmäßig `postgres`.
 - *POSTGRES_USER* ist der Standard-Benutzername der Datenbank. Defaultwert ist `postgres`.
 - *POSTGRES_PASSWORD* ist das Password für den Standard-Benutzer. Dies ist das einzige verpflichtende Feld. Ich empfehle
-  etwa [20 zufällige Bytes](#zufallszahlen).
+  etwa [21 zufällige Bytes](#zufallszahlen).
 
 ## Authentifikation
 
@@ -323,10 +330,12 @@ Die letzte IP eines Subnetzes ist die Broadcast-Adresse und bleibt daher unbeleg
 ## Sonstiges
 
 - *SKIP_DHCP_RELOAD* verhindert das Senden eines config-reload Signals des Backends an den DHCP-Server. Dadurch kann das
-  Backend funktionieren, auch wenn kein DHCP Server läuft.
+  Backend funktionieren, auch wenn kein DHCP Server läuft. Dies ist vor allem für Debugging-Zwecke nützlich.
 - *URL* sollte nicht geändert werden, außer es gibt einen triftigen Grund. Ändert nur die URL **INNERHALB** des
   docker containers. Zum Ändern der von außen erreichbaren URL, docker umkonfigurieren (siehe unten).
 - *OUTPUT_FILE* sollte nicht geändert werden, außer es gibt einen triftigen Grund. Ändert nur den Dateipfad
+  **INNERHALB** des docker containers. Zum Ändern des Pfades auf dem Rechner, docker umkonfigurieren (siehe unten).
+- USER_FILE_PATH sollte nicht geändert werden, außer es gibt einen triftigen Grund. Ändert nur den Dateipfad
   **INNERHALB** des docker containers. Zum Ändern des Pfades auf dem Rechner, docker umkonfigurieren (siehe unten).
 
 # Nutzung und Debugging
