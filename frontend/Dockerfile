@@ -5,7 +5,7 @@ RUN npm clean-install
 COPY . .
 RUN npm run build
 
-FROM nginx:stable-alpine
-COPY --from=build /app/.output /usr/share/nginx/html
-EXPOSE 80
-CMD [ "nginx", "-g", "daemon off;" ]
+FROM build
+COPY --from=build /app/.output /app/.output
+EXPOSE 3000
+CMD [ "node", ".output/server/index.mjs" ]
