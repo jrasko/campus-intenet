@@ -7,6 +7,7 @@ name: Backend build and push
 
 on:
   push:
+    paths: [ backend/** ]
     branches: [ "master" ]
 env:
   # Use docker.io for Docker Hub if empty
@@ -19,21 +20,21 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v6
+      - uses: actions/checkout@v6
 
-    - name: Set up Go
-      uses: actions/setup-go@v6
-      with:
-        go-version-file: 'backend/go.mod'
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version-file: 'backend/go.mod'
 
-    - name: Build
-      working-directory: backend
-      run: go build -v .
+      - name: Build
+        working-directory: backend
+        run: go build -v .
 
-# TODO fix
-#    - name: Test
-#      working-directory: backend
-#      run: go test -v ./...
+#      # TODO fix
+#      - name: Test
+#        working-directory: backend
+#        run: go test -v ./...
 
   push:
     needs:

@@ -19,7 +19,7 @@ services:
       - "5432"
   traefik:
     restart: unless-stopped
-    image: traefik:v3.6
+    image: traefik:latest
     container_name: dhcp_traefik
     networks:
       - traefik
@@ -34,7 +34,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
   frontend:
     restart: unless-stopped
-    image: ghcr.io/jrasko/campus-internet-frontend:latest 
+    image: ghcr.io/jrasko/campus-internet-frontend:latest
     container_name: dhcp_frontend
     labels:
       traefik.enable: true
