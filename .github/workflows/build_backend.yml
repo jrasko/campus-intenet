@@ -19,6 +19,19 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
+    services:
+      db:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: testing
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
     steps:
       - uses: actions/checkout@v6
 
@@ -31,10 +44,16 @@ jobs:
         working-directory: backend
         run: go build -v .
 
-#      # TODO fix
-#      - name: Test
-#        working-directory: backend
-#        run: go test -v ./...
+      - name: Test
+        working-directory: backend
+        run: go test -v ./...
+        env:
+          CIDR: 192.168.0.5/24
+          HMAC_SECRET: 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000==
+          SKIP_DHCP_RELOAD: true
+          POSTGRES_HOST: localhost
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: testing
 
   push:
     needs:

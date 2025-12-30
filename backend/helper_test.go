@@ -12,14 +12,10 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-const (
-	database   = "integration"
-	hmacSecret = "gtMtzZVY5n+wM/B1rUZFRz9uiUQN28C2DaKJMtdwuYqkONFID/yYiFeYYYU+l/fazLD0/DNrKw03cK4AaTcZhQ=="
-)
+const hmacSecret = "gtMtzZVY5n+wM/B1rUZFRz9uiUQN28C2DaKJMtdwuYqkONFID/yYiFeYYYU+l/fazLD0/DNrKw03cK4AaTcZhQ=="
 
 func loadConfig() (model.Configuration, error) {
 	config, err := model.LoadConfig(context.Background())
-	config.DBDatabase = database
 	config.HMACSecret = hmacSecret
 
 	return config, err

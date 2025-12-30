@@ -21,7 +21,7 @@ func TestNew(t *testing.T) {
 		require.NoError(t, err)
 		config.DBDatabase = "testing"
 		repo, err := New(config.DSN())
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		err = repo.db.Migrator().DropTable(&model.Member{}, &model.Room{}, &model.NetConfig{})
 		require.NoError(t, err)
 

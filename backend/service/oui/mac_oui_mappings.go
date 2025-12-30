@@ -14,6 +14,6 @@ var Mappings map[string]string
 func init() {
 	err := json.Unmarshal(ouiFile, &Mappings)
 	if err != nil {
-		log.Fatalf("could not parse oui file: %w", err)
+		log.Fatalf("could not parse oui file: %v", err)
 	}
 }

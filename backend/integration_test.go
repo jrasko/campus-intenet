@@ -19,7 +19,7 @@ var (
 )
 
 func (t *IntegrationTest) Test_Walkthrough() {
-	t.T().Skip()
+	t.T().Skip() // Add a room first to make this test work
 	token := adminToken()
 	t.Run("add member", func() {
 		resp, err := t.client.R().
@@ -27,7 +27,7 @@ func (t *IntegrationTest) Test_Walkthrough() {
 			SetAuthToken(token).
 			Post("/api/members")
 		t.Require().NoError(err)
-		t.Equal(http.StatusOK, resp.StatusCode())
+		t.Require().Equal(http.StatusOK, resp.StatusCode())
 
 		t.JSONEq(member, RemoveTimestamps(t.T(), resp.Body()))
 	})
