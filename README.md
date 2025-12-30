@@ -53,11 +53,9 @@ TLDR? Los!
 3. Navigiere in den Unterordner *infrastructure*
 4. Erstelle eine Konfigurationsdatei `.env`, dazu kann diese [Vorlage](#schnellconfig) verwendet werden
 5. Erstelle ein Docker Volume für die Datenbank mit `docker volume create dhcp-db`, falls nicht vorhanden
-6. Erstelle die Datei `login_users.json` im Ordner *infrastructure* und füge mindestens einen Nutzer hinzu, siehe
-   [Nutzerverwaltung](#nutzerverwaltung)
-7. Erstelle eine leere Datei `whitelist.json` im Ordner *infrastructure*
-8. Starte die Anwendung mit `docker-compose up -d`
-9. Prüfe mit `docker ps` ob alles funktioniert hat
+6. Starte die Anwendung mit `docker-compose up -d`
+7. Prüfe mit `docker ps` ob alles funktioniert hat
+8. Erstelle einen Account mithilfe der [Nutzerverwaltung](#nutzerverwaltung)
 
 Etwas funktioniert nicht oder diese Anleitung ist zu ungenau? Dann hier die ausführliche Dokumentation:
 
@@ -208,15 +206,10 @@ Es können die folgenden Konfigurationen in *.env* hinterlegt werden.
 | OUTPUT_FILE       |         | Backend    | [Sonstiges](#sonstiges)               |
 | USER_FILE_PATH    |         | Backend    | [Sonstiges](#sonstiges)               |
 
-Eine minimale .env Datei sieht also wie folgt aus:
-```
-CIDR=<IP-Adresse>/<Subnetzmaske>
-HMAC_SECRET=<64 zufällige Bytes>
-POSTGRES_PASSWORD=<21 zufällige Bytes>
-```
 ## Zufallszahlen
 
-Mit folgendem Befehl lässt sich unter Linux eine zufällige Zeichenfolge erzeugen, die dann als secret genutzt werden kann:
+Mit folgendem Befehl lässt sich unter Linux eine zufällige Zeichenfolge erzeugen, die dann als secret genutzt werden
+kann:
 
 ```
 head -c <Bytes> /dev/random | base64 -w 0
@@ -259,7 +252,7 @@ Damit ergeben sich folgende Konfigurationen:
 
 ### Nutzerverwaltung
 
-In der Datei _login_users.json_ werden Nutzer, Rollen und Passwörter verwaltet, die Datei ist
+In der Datei _login_users.json_ im _infrastructure/app_ Verzeichnis werden Nutzer, Rollen und Passwörter verwaltet, die Datei ist
 im [JSON](https://de.wikipedia.org/wiki/JSON) Format und sieht dabei wie folgt aus:
 
 ```json
@@ -329,14 +322,10 @@ Die letzte IP eines Subnetzes ist die Broadcast-Adresse und bleibt daher unbeleg
 
 ## Sonstiges
 
+- USER_FILE_PATH enthält den Dateinamen der Datei, in der die Benutzer und ihre Rollen gespeichert werden.
 - *SKIP_DHCP_RELOAD* verhindert das Senden eines config-reload Signals des Backends an den DHCP-Server. Dadurch kann das
   Backend funktionieren, auch wenn kein DHCP Server läuft. Dies ist vor allem für Debugging-Zwecke nützlich.
-- *URL* sollte nicht geändert werden, außer es gibt einen triftigen Grund. Ändert nur die URL **INNERHALB** des
-  docker containers. Zum Ändern der von außen erreichbaren URL, docker umkonfigurieren (siehe unten).
-- *OUTPUT_FILE* sollte nicht geändert werden, außer es gibt einen triftigen Grund. Ändert nur den Dateipfad
-  **INNERHALB** des docker containers. Zum Ändern des Pfades auf dem Rechner, docker umkonfigurieren (siehe unten).
-- USER_FILE_PATH sollte nicht geändert werden, außer es gibt einen triftigen Grund. Ändert nur den Dateipfad
-  **INNERHALB** des docker containers. Zum Ändern des Pfades auf dem Rechner, docker umkonfigurieren (siehe unten).
+- *OUTPUT_FILE* **sollte nicht geändert werden, außer es gibt einen triftigen Grund.** Ändert den Dateinamen der Whitelist für den DHCPv4-Server. Muss unbedingt konsisitent mit der konfiguration des dhcp4 servers gehalten werden.
 
 # Nutzung und Debugging
 

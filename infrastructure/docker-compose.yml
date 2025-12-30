@@ -64,8 +64,7 @@ services:
     expose:
       - "8080/tcp"
     volumes:
-      - ./whitelist.json:/app/whitelist.json
-      - ./login-users.json:/app/login-users.json
+      - ./app:/app
   dhcp4:
     container_name: dhcp4-server
     image: docker.cloudsmith.io/isc/docker/kea-dhcp4:3.0.2
@@ -74,7 +73,7 @@ services:
       - kea-lan
       - kea-cmd
     volumes:
-      - ./whitelist.json:/app/whitelist.json
+      - ./app:/app/
       - ./kea-dhcp4:/etc/kea
       - kea4-var:/var/lib/kea
 volumes:

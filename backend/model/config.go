@@ -3,7 +3,9 @@ package model
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"io"
 	"os"
 
 	"github.com/sethvargo/go-envconfig"
@@ -49,22 +51,24 @@ func LoadConfig(ctx context.Context) (Configuration, error) {
 }
 
 func LoadUsers(filepath string) ([]LoginUser, error) {
-	file, err := os.Open(filepath)
+	file, err := os.OpenFile(filepath, os.O_RDONLY|os.O_CREATE, 0644)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("could not open users file: %w", err)
 	}
 
-	var user []LoginUser
-	err = json.NewDecoder(file).Decode(&user)
-	if err != nil {
-		return nil, err
+	var users []LoginUser
+	err = json.NewDecoder(file).Decode(&users)
+	if errors.Is(err, io.EOF) {
+		return nil, nil
+	} else if err != nil {
+		return nil, fmt.Errorf("decoding json: %w", err)
 	}
 
-	for _, loginUser := range user {
+	for _, loginUser := range users {
 		if err = loginUser.Validate(); err != nil {
-			return nil, err
+			return nil, fmt.Errorf("validating user: %w", err)
 		}
 	}
 
-	return user, nil
+	return users, nil
 }
